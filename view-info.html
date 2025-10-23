@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View My Info</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      #loadingScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.3); /* lighter background */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(4px); /* optional blur */
+      }
+
+      /* Enhanced ticket section styling - Compact */
+      .ticket-section {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+        position: relative;
+      }
+
+      .ticket-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--section-accent);
+        border-radius: 6px 6px 0 0;
+      }
+
+      .ticket-section:hover {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      .adult-tickets {
+        --section-accent: #2563eb;
+      }
+
+      .child-tickets {
+        --section-accent: #FFD600;
+      }
+
+      .ticket-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f3f4f6;
+      }
+
+      .ticket-icon {
+        font-size: 1rem;
+        margin-right: 10px;
+        padding: 8px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: #f8f9fa;
+        color: var(--section-accent);
+      }
+
+      .ticket-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #111827;
+      }
+
+      .ticket-price {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 1px;
+        font-weight: 500;
+      }
+
+      .ticket-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .ticket-section .btn-primary {
+        background: var(--section-accent);
+        border: 1px solid var(--section-accent);
+        color: white;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+      }
+
+      .ticket-section .btn-primary:hover {
+        background: color-mix(in srgb, var(--section-accent) 85%, black);
+        border-color: color-mix(in srgb, var(--section-accent) 85%, black);
+      }
+
+      /* Enhanced ticket dropdown styling */
+      .ticket-section .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .adult-tickets .form-label {
+        color: #1e40af;
+      }
+
+      .child-tickets .form-label {
+        color: #dc2626;
+      }
+
+      /* Individual ticket card styling - Compact Design */
+      .individual-ticket-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+        background: #ffffff;
+        border-left: 3px solid var(--accent-color);
+      }
+
+      .individual-ticket-card:hover {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+
+      /* Color scheme for ticket cards */
+      .adult-ticket-primary {
+        --accent-color: #2563eb;
+      }
+
+      .adult-ticket-secondary {
+        --accent-color: #2563eb;
+      }
+
+      .adult-ticket-tertiary {
+        --accent-color: #2563eb;
+      }
+
+      .child-ticket-primary {
+        --accent-color: #FFD600;
+      }
+
+      .child-ticket-secondary {
+        --accent-color: #FFE066;
+      }
+
+      .child-ticket-tertiary {
+        --accent-color: #FFF9C4;
+      }
+      /* Child ticket icon yellow */
+      .child-tickets .ticket-icon {
+        color: #FFD600 !important;
+      }
+      /* Child ticket Add button yellow */
+      .child-tickets .btn-primary {
+        background: #FFD600 !important;
+        border-color: #FFD600 !important;
+        color: #111827 !important;
+      }
+      .child-tickets .btn-primary:hover {
+        background: #FFE066 !important;
+        border-color: #FFE066 !important;
+        color: #111827 !important;
+      }
+      /* Remove button always red */
+      .remove-ticket-btn,
+      .remove-ticket-btn,
+      .remove-ticket-btn,
+      .remove-ticket-btn i,
+      .remove-ticket-btn span {
+        color: #dc2626 !important;
+        border-color: #dc2626 !important;
+        background: #fff !important;
+      }
+
+      .ticket-card-header {
+        background: #f8f9fa;
+        padding: 8px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .ticket-card-title {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        font-size: 0.85rem;
+        margin: 0;
+        color: #374151;
+      }
+
+      .ticket-number-badge {
+        display: flex;
+        align-items: center;
+        color: #374151;
+        font-weight: 600;
+        font-size: 0.8rem;
+      }
+
+      .ticket-type-indicator {
+        font-size: 0.7rem;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 1px 6px;
+        border-radius: 8px;
+        font-weight: 500;
+      }
+
+      .ticket-card-body {
+        padding: 12px;
+      }
+
+      /* Additional padding for ticket content */
+      .ticket-card-content {
+        padding: 12px;
+      }
+
+      .ticket-card-content > div {
+        margin-bottom: 8px;
+        padding-left: 12px; /* Add left padding to all content sections */
+      }
+
+      .ticket-card-content > div:last-child {
+        margin-bottom: 0;
+      }
+
+      /* Specific spacing for different sections */
+      .ticket-card-content .food-option-section {
+        padding-left: 12px;
+      }
+
+      .ticket-card-content .pickup-time-section {
+        padding-left: 12px;
+      }
+
+      /* Food select dropdown spacing */
+      .ticket-card-content .form-select {
+        margin-left: 0; /* Reset since parent has padding */
+      }
+
+      .form-section {
+        margin-bottom: 12px;
+      }
+
+      .form-section:last-child {
+        margin-bottom: 0;
+      }
+
+      .form-section .form-label {
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+        color: #4b5563;
+      }
+
+      /* Fix form-check spacing - increased specificity */
+      .form-check {
+        margin-bottom: 0.5rem;
+        padding-left: 1.5rem !important; /* Force Bootstrap default */
+      }
+
+      .form-check-input {
+        margin-top: 0.25rem;
+        margin-left: -1.5rem !important; /* Force Bootstrap default */
+        margin-right: 0.5rem;
+      }
+
+      .form-check-label {
+        font-size: 0.85rem;
+        color: #374151;
+      }
+
+      /* Specific styling for ticket cards to match ticket-form.html */
+      .individual-ticket-card .form-check {
+        margin-bottom: 4px;
+        padding-left: 1.5rem !important;
+      }
+
+      .individual-ticket-card .form-check-input {
+        margin-left: -1.5rem !important;
+        margin-top: 0.25rem;
+      }
+
+      .individual-ticket-card .form-check-label {
+        font-size: 0.8rem;
+        color: #374151;
+        font-weight: 500;
+      }
+
+      /* Additional specificity for ticket card content */
+      .ticket-card-content .form-check {
+        padding-left: 1.5rem !important;
+        margin-bottom: 0.5rem;
+      }
+
+      .ticket-card-content .form-check-input {
+        margin-left: -1.5rem !important;
+      }
+
+      /* Most specific rule for edit modal ticket cards */
+      #editTicketSections .individual-ticket-card .ticket-card-content .form-check {
+        padding-left: 1.5rem !important;
+        margin-bottom: 0.5rem !important;
+        position: relative;
+      }
+
+      #editTicketSections .individual-ticket-card .ticket-card-content .form-check-input {
+        position: absolute;
+        left: 0;
+        margin-left: 0 !important;
+        margin-top: 0.25rem;
+      }
+
+      #editTicketSections .individual-ticket-card .ticket-card-content .form-check-label {
+        padding-left: 0;
+        margin-left: 0;
+      }
+
+      /* Additional form styling to match ticket-form.html */
+      .individual-ticket-card .form-label {
+        color: #111827;
+        font-weight: 600;
+        margin-bottom: 4px;
+        font-size: 0.8rem;
+      }
+
+      .individual-ticket-card .form-select {
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        padding: 6px 10px;
+        background: #ffffff;
+      }
+
+      .individual-ticket-card .form-select:focus {
+        border-color: var(--accent-color, #2563eb);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        outline: none;
+      }
+
+      .individual-ticket-card .form-check-input:checked {
+        background-color: var(--accent-color, #2563eb);
+        border-color: var(--accent-color, #2563eb);
+      }
+
+      .individual-ticket-card .form-check-input:focus {
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+      }
+
+      /* Section labels styling */
+      .individual-ticket-card .mb-2 .form-label.small {
+        color: #6b7280;
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+      }
+
+      .attendance-options {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+
+      .attendance-option {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.85rem;
+      }
+
+      .pickup-time-section {
+        background: #f9fafb;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #e5e7eb;
+      }
+
+      .pickup-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .pickup-option {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+      }
+
+      .form-select.compact {
+        font-size: 0.85rem;
+        padding: 4px 8px;
+      }
+
+      /* Number formatting for ticket cards */
+      .ticket-number {
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 0.75rem;
+        margin-left: auto;
+      }
+
+      .adult-ticket-number {
+        background: #dbeafe;
+        color: #1e40af;
+      }
+
+      .child-ticket-number {
+        background: #fecaca;
+        color: #dc2626;
+      }
+    </style>
+    </style>
+  </head>
+  <body style="background-color: #d0f0ff">
+    <div id="loadingScreen" style="display: none">
+      <div
+        class="spinner-border text-primary"
+        role="status"
+        style="width: 3rem; height: 3rem"
+      >
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+    <div class="container bg-white min-vh-100">
+      <!-- NAVBAR -->
+      <nav
+        class="navbar navbar-expand-lg navbar-dark"
+        style="background-color: #2f4f4f"
+      >
+        <div class="container">
+          <a class="navbar-brand" href="index.html">🎄 Stella Maris Family Day</a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div
+            class="collapse navbar-collapse justify-content-end"
+            id="navbarNav"
+          >
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="index.html#about">About Us</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="index.html#expect">What to Expect</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="ticket-form.html"
+                  >Ticket Order Form</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="view-info.html">My Info</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <!-- HERO SECTION -->
+      <header class="bg-light text-center py-2 mb-4">
+        <div class="container">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>My Info</h2>
+            <div class="text-end mb-3">
+              <button
+                id="userSignOut"
+                class="btn btn-outline-danger"
+                onclick="signOut()"
+                style="display: none"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="px-3 pb-5">
+        <form id="lookupForm" class="mb-4">
+          <label for="lookupEmail">Email</label>
+          <input
+            type="email"
+            class="form-control mb-2"
+            id="lookupEmail"
+            placeholder="Enter your email"
+            required
+          />
+          <label for="memorableDate">Memorable Date</label>
+          <label for="memorableHint" class="form-label">
+            <small class="text-primary">
+              <span
+                id="hintHover"
+                data-bs-toggle="tooltip"
+                data-bs-title=""
+                style="cursor: help"
+                >(hint)</span
+              >
+            </small>
+          </label>
+          <input
+              class="form-control mb-2"
+              id="memorableDate"
+              placeholder="YYYY-MM-DD"
+              name="memorableDate"
+              type="text"
+              maxlength="10"
+              pattern="\d{4}-\d{2}-\d{2}"
+              required
+            />
+          <p class="mb-2">
+            <small
+              >Forgot your Memorable Date?
+              <a href="mailto:stellamarisfamilyday@gmail.com">Contact us</a> to
+              retrieve it.</small
+            >
+          </p>
+          <button class="btn btn-primary" type="submit">View Info</button>
+        </form>
+
+        <div id="result" style="display: none">
+          <h4>Your Information:</h4>
+          <div id="customerInfo" class="mb-4"></div>
+          <h5>Ticket Orders:</h5>
+          <div id="ticketList"></div>
+        </div>
+      </div>
+    </div>
+    <!-- FOOTER -->
+    <footer class="text-center py-4 bg-light mt-5">
+      <p class="mb-1">
+        <strong>📍 Stella Maris Church Grounds</strong> |
+        <span id="dateAndTime"></span>
+      </p>
+      <p class="mb-1">
+        📞 876-925-9520 | 📧
+        <a href="mailto:stellamarisfamilyday@gmail.com">stellamarisfamilyday@gmail.com</a>
+      </p>
+      <small class="text-muted"
+        >#StellaMarisFamilyDay #JamaicanChristmas #FamilyFun</small
+      >
+      <p>
+        &copy; <span id="year"></span> by Stella Maris Catholic Church Jamaica
+      </p>
+    </footer>
+
+    <!-- View Selections Modal -->
+    <div
+      class="modal fade"
+      id="foodSelectionsModal"
+      tabindex="-1"
+      aria-labelledby="foodSelectionsLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="foodSelectionsLabel">
+              Your Food Selections
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          <div class="modal-body">
+            <div id="ticketSummary">Loading...</div>
+          </div>
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ticket Edit Modal -->
+    <div
+      class="modal fade"
+      id="editModal"
+      tabindex="-1"
+      aria-labelledby="editModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">Edit Ticket Order</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="editForm">
+              <!-- existing inputs -->
+              <input type="hidden" id="editTicketId" />
+              <input type="hidden" id="orderNumber" />
+              <input type="hidden" id="eventId" />
+              
+              <!-- Use reusable ticket sections with professional styling -->
+              <div id="editTicketSections"></div>
+              
+              <div class="mb-3">
+                <label class="form-label">Payment Method</label>
+                <select class="form-select" id="editPaymentMethod">
+                  <option value="cash">Cash/Cheque</option>
+                  <option value="bank transfer">Bank Transfer</option>
+                </select>
+              </div>
+              
+              <input type="hidden" id="orderNumber" value="" />
+              <input type="hidden" id="eventId" value="" />
+              <input type="hidden" id="editAdult" value="" />
+              <input type="hidden" id="editChild" value="" />
+              <input type="hidden" id="editAdultDonations" value="" />
+              <input type="hidden" id="editChildDonations" value="" />
+              <p><strong>Total:</strong> $<span id="editTotal"></span></p>
+              <p>
+                <strong>Outstanding Amount:</strong> $<span
+                  id="editOutstanding"
+                ></span>
+              </p>
+              <div class="d-flex justify-content-end gap-2 mt-3">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                Cancel
+              </button>
+              <button type="submit" id="saveChangesBtn" class="btn btn-primary" disabled>
+                Save Changes
+              </button>
+            </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="functions.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+
+        const memorableDate = document.getElementById("memorableDate");
+        memorableDate.addEventListener("input", function (e) {
+          let v = e.target.value.replace(/[^\d]/g, "");
+          let formatted = "";
+          if (v.length > 0) {
+            formatted += v.slice(0, 4);
+            if (v.length >= 4) {
+              formatted += "-";
+              formatted += v.slice(4, 6);
+              if (v.length >= 6) {
+                formatted += "-";
+                formatted += v.slice(6, 8);
+              }
+            }
+          }
+          e.target.value = formatted.slice(0, 10);
+        });
+
+        const savedEmail = sessionStorage.getItem("customerEmail");
+        const form = document.getElementById("lookupForm");
+        const resultDiv = document.getElementById("result");
+
+        if (savedEmail && form && resultDiv) {
+          const { data: customer, error } = await supabaseClient
+            .from("customers")
+            .select("*")
+            .eq("email", savedEmail)
+            .maybeSingle();
+
+          if (!customer || error) {
+            sessionStorage.removeItem("customerEmail");
+            form.style.display = "block";
+            resultDiv.style.display = "none";
+            return;
+          }
+
+          form.style.display = "none";
+          document.getElementById("userSignOut").style.display = "block";
+          resultDiv.style.display = "block";
+
+          await fetchAndRenderTickets();
+        }
+      });
+    </script>
+    <script>
+      emailjs.init("-RrY_RPQHt4a9S2Mc");
+      const adultPrice = CONFIG.PRICING.adult_ticket;
+      const childPrice = CONFIG.PRICING.child_ticket;
+      const supabaseClient = supabase.createClient(
+        CONFIG.SUPABASE_URL,
+        CONFIG.SUPABASE_ANON_KEY
+      );
+
+      const form = document.getElementById("lookupForm");
+      const resultDiv = document.getElementById("result");
+      const customerInfo = document.getElementById("customerInfo");
+      const ticketList = document.getElementById("ticketList");
+      const emailInput = document.getElementById("lookupEmail");
+      const hintHover = document.getElementById("hintHover");
+
+      let currentTickets = [];
+      let ticketDetailsHTML = "";
+      let orderId = null;
+
+      // Change detection for edit form
+      let initialFormState = null;
+      let formChangeListeners = [];
+
+      // Function to capture current form state
+      function captureFormState() {
+        const state = {
+          adultTickets: document.getElementById("editAdult").value,
+          childTickets: document.getElementById("editChild").value,
+          paymentMethod: document.getElementById("editPaymentMethod").value,
+          adultDonations: document.getElementById("editAdultDonations")?.value || 0,
+          childDonations: document.getElementById("editChildDonations")?.value || 0,
+          tickets: []
+        };
+
+        // Capture individual ticket states
+        const containers = document.querySelectorAll('#editAdultFoodSelections > div[data-ticket-id], #editChildFoodSelections > div[data-ticket-id], #editAdultFoodSelections > div[data-temp-id], #editChildFoodSelections > div[data-temp-id]');
+        containers.forEach(container => {
+          const ticketId = container.dataset.ticketId || container.dataset.tempId;
+          const ticketState = {
+            id: ticketId,
+            attendance: null,
+            foodOption: '',
+            pickupTime: null
+          };
+
+          // Get attendance type
+          const attendanceRadios = container.querySelectorAll(`input[name="attendance_${ticketId}"]`);
+          const selectedAttendance = Array.from(attendanceRadios).find(radio => radio.checked);
+          ticketState.attendance = selectedAttendance ? selectedAttendance.value : null;
+
+          // Get food options (now checkboxes)
+          const foodCheckboxes = container.querySelectorAll(`input[type="checkbox"][data-ticket-id="${ticketId}"]`);
+          const selectedFoodOptions = Array.from(foodCheckboxes)
+            .filter(checkbox => checkbox.checked)
+            .map(checkbox => checkbox.value);
+          ticketState.foodOption = selectedFoodOptions;
+
+          // Get pickup time
+          const pickupRadios = container.querySelectorAll(`input[name="pickup_${ticketId}"]`);
+          const selectedPickup = Array.from(pickupRadios).find(radio => radio.checked);
+          ticketState.pickupTime = selectedPickup ? selectedPickup.value : null;
+
+          state.tickets.push(ticketState);
+        });
+
+        return state;
+      }
+
+      // Helper function to compare arrays
+      function arraysEqual(arr1, arr2) {
+        if (!Array.isArray(arr1) || !Array.isArray(arr2)) return arr1 === arr2;
+        if (arr1.length !== arr2.length) return false;
+        return arr1.sort().join(',') === arr2.sort().join(',');
+      }
+
+      // Function to compare form states
+      function hasFormChanged() {
+        if (!initialFormState) return false;
+        const currentState = captureFormState();
+
+        // Compare ticket IDs (added/removed tickets)
+        const initialIds = initialFormState.tickets.map(t => t.id).sort();
+        const currentIds = currentState.tickets.map(t => t.id).sort();
+        if (initialIds.length !== currentIds.length || initialIds.join(',') !== currentIds.join(',')) {
+          return true;
+        }
+
+        // Compare basic fields
+        if (currentState.adultTickets !== initialFormState.adultTickets ||
+            currentState.childTickets !== initialFormState.childTickets ||
+            currentState.paymentMethod !== initialFormState.paymentMethod ||
+            currentState.adultDonations !== initialFormState.adultDonations ||
+            currentState.childDonations !== initialFormState.childDonations) {
+          return true;
+        }
+
+        // Compare individual tickets
+        for (let i = 0; i < currentState.tickets.length; i++) {
+          const current = currentState.tickets[i];
+          const initial = initialFormState.tickets.find(t => t.id === current.id);
+          if (!initial || 
+              current.attendance !== initial.attendance ||
+              !arraysEqual(current.foodOption, initial.foodOption) ||
+              current.pickupTime !== initial.pickupTime) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      // Function to update save button state
+      function updateSaveButtonState() {
+        const saveBtn = document.getElementById("saveChangesBtn");
+        if (saveBtn) {
+          saveBtn.disabled = false;
+        }
+      }
+
+      // Function to add change listeners to form elements
+      function addFormChangeListeners() {
+        // Remove existing listeners
+        formChangeListeners.forEach(({ element, event, handler }) => {
+          element.removeEventListener(event, handler);
+        });
+        formChangeListeners = [];
+
+        // Add listeners for basic form fields
+        const basicFields = [
+          { id: "editAdult", event: "change" },
+          { id: "editChild", event: "change" },
+          { id: "editPaymentMethod", event: "change" },
+        ];
+
+        basicFields.forEach(({ id, event }) => {
+          const element = document.getElementById(id);
+          if (element) {
+            const handler = updateSaveButtonState;
+            element.addEventListener(event, handler);
+            formChangeListeners.push({ element, event, handler });
+          }
+        });
+
+        // Add listeners for ticket-specific fields (delegated event handling)
+        const ticketContainers = document.querySelectorAll('#editAdultFoodSelections, #editChildFoodSelections');
+        ticketContainers.forEach(container => {
+          const handler = (e) => {
+            if (e.target.matches('input[type="radio"], select, input[type="checkbox"]')) {
+              updateSaveButtonState();
+            }
+          };
+          container.addEventListener('change', handler);
+          formChangeListeners.push({ element: container, event: 'change', handler });
+        });
+      }
+
+      emailInput.addEventListener("blur", async () => {
+        const email = emailInput.value.trim().toLowerCase();
+        if (!email) return;
+
+        const { data: customer } = await supabaseClient
+          .from("customers")
+          .select("memorable_hint")
+          .eq("email", email)
+          .maybeSingle();
+
+        if (customer?.memorable_hint) {
+          hintHover.setAttribute("data-bs-title", customer.memorable_hint);
+          bootstrap.Tooltip.getInstance(hintHover)?.dispose();
+          new bootstrap.Tooltip(hintHover);
+        }
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        const memorableDate = document
+          .getElementById("memorableDate")
+          .value.trim();
+
+        const { data: customer, error } = await supabaseClient
+          .from("customers")
+          .select("*")
+          .eq("email", email)
+          .eq("memorable_date", memorableDate)
+          .maybeSingle();
+
+        if (error || !customer) {
+          showToastWithBlur(
+            "No match found. Please check your information and try again.",
+            { type: 'error', icon: 'fas fa-exclamation-circle' }
+          );
+          return;
+        }
+
+        form.style.display = "none";
+        sessionStorage.setItem("customerEmail", email);
+        document.getElementById("userSignOut").style.display = "block";
+
+        await fetchAndRenderTickets();
+        resultDiv.style.display = "block";
+      });
+
+      function signOut() {
+        sessionStorage.clear();
+        location.reload();
+      }
+
+      document.querySelectorAll('input[name="attendanceType"]').forEach((input) => {
+        input.addEventListener("change", (e) => {
+          const pickupSection = document.getElementById("pickupTimeSection");
+          if (e.target.value === "takeaway") {
+            pickupSection.style.display = "block";
+            // make pickupTime required only if takeaway is selected
+            document.querySelectorAll('input[name="pickupTime"]').forEach((pt) => {
+              pt.required = true;
+            });
+          } else {
+            pickupSection.style.display = "none";
+            // clear pickup time and remove required
+            document.querySelectorAll('input[name="pickupTime"]').forEach((pt) => {
+              pt.checked = false;
+              pt.required = false;
+            });
+          }
+        });
+      });
+      document
+        .getElementById("editAdult")
+        .addEventListener("change", updateEditTotals);
+      document
+        .getElementById("editChild")
+        .addEventListener("change", updateEditTotals);
+
+      document
+        .getElementById("editForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const { data: event } = await supabaseClient
+            .from("events")
+            .select("name", "date")
+            .eq("id", document.getElementById("eventId").value)
+            .maybeSingle();
+
+          const form = document.getElementById("editForm");
+          const ticketId = document.getElementById("editTicketId").value;
+
+
+          // Recalculate ticket counts from DOM for accuracy
+          let adult = 0, child = 0, adultDonations = 0, childDonations = 0;
+          const adultCards = document.querySelectorAll('#editAdultFoodSelections > div');
+          adultCards.forEach(card => {
+            const ticketId = card.getAttribute('data-ticket-id');
+            const donateRadio = card.querySelector(`input[name="attendance_${ticketId}"][value="donate"]`);
+            if (donateRadio && donateRadio.checked) {
+              adultDonations++;
+            } else {
+              adult++;
+            }
+          });
+          const childCards = document.querySelectorAll('#editChildFoodSelections > div');
+          childCards.forEach(card => {
+            const ticketId = card.getAttribute('data-ticket-id');
+            const donateRadio = card.querySelector(`input[name="attendance_${ticketId}"][value="donate"]`);
+            if (donateRadio && donateRadio.checked) {
+              childDonations++;
+            } else {
+              child++;
+            }
+          });
+          const payment_method = document.getElementById("editPaymentMethod").value;
+
+          let total = calculateTotal(adult + adultDonations, child + childDonations);
+
+          let paid = false;
+          showLoadingScreen();
+          const { data: payments, error: paymentError } = await supabaseClient
+            .from("payment_transactions")
+            .select("amount")
+            .eq("ticket_id", ticketId);
+
+          if (paymentError) {
+            alert("Failed to fetch payment info.");
+            return;
+          }
+
+          const paidSoFar = calculateTotalPaid(payments);
+          const outstanding = total - paidSoFar;
+
+          if (outstanding < 0) {
+            showToastWithBlur(
+              "This order is already fully paid. You cannot reduce number of tickets.",
+              { type: 'warning', icon: 'fas fa-exclamation-triangle' }
+            );
+            hideLoadingScreen();
+            return;
+          } else if (outstanding === 0) {
+            paid = true;
+          }
+
+
+          // Process all ticket containers (adult and child) just like ticket-form.html
+          const ticketContainers = document.querySelectorAll('#editAdultFoodSelections > div[data-ticket-id], #editAdultFoodSelections > div[data-temp-id], #editChildFoodSelections > div[data-ticket-id], #editChildFoodSelections > div[data-temp-id]');
+          const ticketsToUpdate = [];
+          const ticketsToInsert = [];
+          const containerIds = [];
+
+          ticketContainers.forEach(container => {
+            const ticketId = container.dataset.ticketId || container.dataset.tempId;
+            containerIds.push(ticketId);
+            const isTemp = ticketId.startsWith("temp_");
+
+            // Get attendance type
+            const attendanceRadios = container.querySelectorAll(`input[name="attendance_${ticketId}"]`);
+            const selectedAttendance = Array.from(attendanceRadios).find(radio => radio.checked);
+            const attendanceType = selectedAttendance ? selectedAttendance.value : 'attending';
+
+            // Determine ticket type
+            let ticketType = container.parentElement.id === 'editAdultFoodSelections' ? 'adult' : 'child';
+            if (attendanceType === 'donate') {
+              ticketType = ticketType + '_donated';
+            }
+
+            // Food and pickup only for takeaway
+            let foodOption = null;
+            let pickupTime = null;
+            if (attendanceType === 'takeaway') {
+              const foodCheckboxes = container.querySelectorAll(`input.food-station-checkbox[data-ticket-id="${ticketId}"]:checked`);
+              const foodOptions = Array.from(foodCheckboxes).map(checkbox => checkbox.value);
+              foodOption = foodOptions.length > 0 ? foodOptions : null;
+              const pickupRadios = container.querySelectorAll(`input[name="pickup_${ticketId}"]`);
+              const selectedPickup = Array.from(pickupRadios).find(radio => radio.checked);
+              pickupTime = selectedPickup ? selectedPickup.value : null;
+            }
+
+            const ticketData = {
+              ticket_order_id: document.getElementById("editTicketId").value,
+              ticket_type: ticketType,
+              attendance_type: attendanceType,
+              pickup_time: pickupTime,
+              food_option: foodOption,
+            };
+
+            if (isTemp) {
+              ticketsToInsert.push(ticketData);
+            } else {
+              ticketsToUpdate.push({
+                id: ticketId,
+                ...ticketData
+              });
+            }
+          });
+
+          // Delete tickets that are no longer present in the DOM
+          const originalTicketIds = currentTickets.map((t) => t.id.toString());
+          const removedTicketIds = originalTicketIds.filter((id) => !containerIds.includes(id));
+
+          // Validate takeaway tickets have required fields
+          const allTickets = [...ticketsToUpdate, ...ticketsToInsert];
+          for (const ticket of allTickets) {
+            if (ticket.attendance_type === 'takeaway') {
+              if (!ticket.food_option) {
+                showToastWithBlur(
+                  "Please select at least one food option for all takeaway tickets before saving.",
+                  { type: 'warning', icon: 'fas fa-exclamation-triangle' }
+                );
+                hideLoadingScreen();
+                return;
+              }
+              if (!ticket.pickup_time) {
+                showToastWithBlur(
+                  "Please select pickup times for all takeaway tickets before saving.",
+                  { type: 'warning', icon: 'fas fa-exclamation-triangle' }
+                );
+                hideLoadingScreen();
+                return;
+              }
+            }
+          }
+
+          if (ticketsToInsert.length > 0) {
+            const { data: insertedTickets,error: insertError } = await supabaseClient
+              .from("tickets")
+              .insert(ticketsToInsert)
+              .select();
+
+            if (insertError) {
+              alert(
+                "❌ Error updating food selections: " +
+                  insertError.message
+              );
+              hideLoadingScreen();
+              return;
+            }
+          }
+
+          if (ticketsToUpdate.length > 0) {
+            // Remove duplicates by keeping only the last occurrence of each ticket ID
+            const uniqueTicketsToUpdate = ticketsToUpdate.reduce((acc, ticket) => {
+              const existingIndex = acc.findIndex(t => t.id === ticket.id);
+              if (existingIndex >= 0) {
+                acc[existingIndex] = ticket; // Replace with latest data
+              } else {
+                acc.push(ticket);
+              }
+              return acc;
+            }, []);
+            
+            const { error: ticketUpdateError } = await supabaseClient
+              .from("tickets")
+              .upsert(uniqueTicketsToUpdate, { onConflict: "id" });
+
+            if (ticketUpdateError) {
+              alert(
+                "❌ Error updating food selections: " +
+                  ticketUpdateError.message
+              );
+              hideLoadingScreen();
+              return;
+            }
+          }
+
+          const tickets = ticketsToUpdate.concat(ticketsToInsert);
+
+          ticketDetailsHTML = buildTicketHTML(tickets);
+
+
+          // Safe ticket deletion - only delete tickets that were removed from the DOM
+          if (removedTicketIds.length > 0) {
+            console.log('Safely removing tickets:', removedTicketIds);
+            const { error } = await supabaseClient
+              .from("tickets")
+              .delete()
+              .in("id", removedTicketIds);
+
+            if (error) {
+              alert("❌ Error removing tickets: " + error.message);
+              hideLoadingScreen();
+              return;
+            }
+          }
+
+          const { error } = await supabaseClient
+            .from("orders")
+            .update({
+              adult_tickets: adult,
+              child_tickets: child,
+              adult_donations: adultDonations,
+              child_donations: childDonations,
+              total_amount: total,
+              paid: paid,
+              payment_method,
+            })
+            .eq("id", ticketId);
+
+          // --- Sync donation tickets in tickets table ---
+          if (!error) {
+            // 1. Query existing donation tickets for this order
+            const { data: existingDonationTickets, error: donationQueryError } = await supabaseClient
+              .from("tickets")
+              .select("id, ticket_type")
+              .eq("ticket_order_id", ticketId)
+              .in("ticket_type", ["adult_donated", "child_donated"]);
+
+            if (donationQueryError) {
+              showToastWithBlur("Error syncing donation tickets: " + donationQueryError.message, "error");
+            } else {
+              // 2. Count current donation tickets
+              const currentAdultDonations = existingDonationTickets.filter(t => t.ticket_type === "adult_donated").length;
+              const currentChildDonations = existingDonationTickets.filter(t => t.ticket_type === "child_donated").length;
+
+              // 3. Insert new donation tickets if needed
+              const donationTicketsToInsert = [];
+              if (adultDonations > currentAdultDonations) {
+                for (let i = 0; i < adultDonations - currentAdultDonations; i++) {
+                  donationTicketsToInsert.push({
+                    ticket_order_id: ticketId,
+                    ticket_type: "adult_donated",
+                    attendance_type: "donate"
+                  });
+                }
+              }
+              if (childDonations > currentChildDonations) {
+                for (let i = 0; i < childDonations - currentChildDonations; i++) {
+                  donationTicketsToInsert.push({
+                    ticket_order_id: ticketId,
+                    ticket_type: "child_donated",
+                    attendance_type: "donate"
+                  });
+                }
+              }
+              if (donationTicketsToInsert.length > 0) {
+                await supabaseClient.from("tickets").insert(donationTicketsToInsert);
+              }
+
+              // 4. Delete excess donation tickets if needed
+              const donationTicketsToDelete = [];
+              if (adultDonations < currentAdultDonations) {
+                donationTicketsToDelete.push(...existingDonationTickets.filter(t => t.ticket_type === "adult_donated").slice(0, currentAdultDonations - adultDonations).map(t => t.id));
+              }
+              if (childDonations < currentChildDonations) {
+                donationTicketsToDelete.push(...existingDonationTickets.filter(t => t.ticket_type === "child_donated").slice(0, currentChildDonations - childDonations).map(t => t.id));
+              }
+              if (donationTicketsToDelete.length > 0) {
+                await supabaseClient.from("tickets").delete().in("id", donationTicketsToDelete);
+              }
+            }
+
+            // --- Continue with email and toast ---
+            emailjs
+              .send("service_4huc4z9", "template_3ezl67k", {
+                subject_line: `Your ${event.name} Order Has Been Updated`,
+                name: document.getElementById("customerName").textContent,
+                email: sessionStorage.getItem("customerEmail"),
+                email_message: `<p style=\"font-size: 16px; color: #555;\">Your ticket order for <strong>${event.name}</strong> has been <span style=\"color: #2c7be5;  \"><strong>updated</strong></span>.</p>
+              <p style=\"font-size: 15px; color: #666;\">Here are your revised order details:</p>`,
+                email_end: `<p style=\"font-size: 14px; color: #555;\">
+              If you've already made a payment, any outstanding balance will be updated accordingly.
+            </p>
+
+            <p style=\"font-size: 14px; color: #555;\">
+              We look forward to seeing you at the event!
+            </p>`,
+                adult_tickets: adult,
+                child_tickets: child,
+                adult_donations: adultDonations,
+                child_donations: childDonations,
+                total_amount: formatCurrency(total),
+                order_number: document.getElementById("orderNumber").value,
+                payment_method: CONFIG.PAYMENT.methods[payment_method === "cash" ? "cash" : "bank_transfer"],
+                payment_instructions: CONFIG.PAYMENT.instructions[payment_method === "cash" ? "cash" : "bank_transfer"],
+                outstanding_balance: formatCurrency(outstanding),
+                ticket_details: ticketDetailsHTML,
+              })
+              .then(() => {
+                // Hide loading screen first
+                hideLoadingScreen();
+
+                // Update initialFormState so save button disables after save
+                initialFormState = captureFormState();
+                updateSaveButtonState();
+
+                // Hide modal
+                bootstrap.Modal.getInstance(document.getElementById("editModal")).hide();
+
+                // Show success toast with blur background
+                showToastWithBlur(
+                  "Order updated successfully!🎉 A confirmation has been sent to your email.",
+                  {
+                    type: 'success',
+                    icon: 'fas fa-check-circle',
+                    delay: 3000,
+                    onHidden: () => {
+                      // Reload page after toast is dismissed
+                      setTimeout(() => {
+                        location.reload();
+                      }, 100);
+                    }
+                  }
+                );
+              })
+              .catch((err) => {
+                console.error("EmailJS Error:", err);
+                hideLoadingScreen();
+                alert("Failed to send confirmation email. Please try again.");
+              });
+          } else {
+            hideLoadingScreen();
+              showToastWithBlur(
+                "There was an error saving your order. Please try again.",
+                { type: 'error', icon: 'fas fa-exclamation-circle' }
+              );
+            console.error(error);
+          }
+        });
+
+      async function openEditModal(orderId) {
+        const { data: ticket } = await supabaseClient
+          .from("orders")
+          .select("*")
+          .eq("id", orderId)
+          .maybeSingle();
+
+        const { data: transactions } = await supabaseClient
+          .from("payment_transactions")
+          .select("amount")
+          .eq("ticket_id", orderId);
+
+        let total = calculateTotal(ticket.adult_tickets + (ticket.adult_donations || 0), ticket.child_tickets + (ticket.child_donations || 0));
+        const totalPaid = calculateTotalPaid(transactions);
+        const outstanding = total - totalPaid;
+
+        // Generate ticket sections using shared function from functions.js
+        const ticketSectionsContainer = document.getElementById('editTicketSections');
+        ticketSectionsContainer.innerHTML = createTicketSections({
+          prefix: 'edit',
+          showPricing: true
+        });
+
+        // Populate the ticket prices
+        document.getElementById('editAdultTicketPrice').textContent = formatCurrency(adultPrice);
+        document.getElementById('editChildTicketPrice').textContent = formatCurrency(childPrice);
+
+        // Set up form IDs and populate hidden fields
+        document.getElementById("editTicketId").value = ticket.id;
+        document.getElementById("orderNumber").value = ticket.order_number;
+        document.getElementById("eventId").value = ticket.event_id;
+        document.getElementById("editAdult").value = ticket.adult_tickets;
+        document.getElementById("editChild").value = ticket.child_tickets;
+        document.getElementById("editPaymentMethod").value = ticket.payment_method;
+          
+        const adultDonationsInput = document.getElementById("editAdultDonations");
+        const childDonationsInput = document.getElementById("editChildDonations");
+          
+        adultDonationsInput.value = ticket.adult_donations || 0;
+        childDonationsInput.value = ticket.child_donations || 0;
+          
+        document.getElementById("editTotal").textContent = formatCurrency(total);
+        document.getElementById("editOutstanding").textContent = formatCurrency(outstanding);
+        
+        const { data: tickets, error } = await supabaseClient
+          .from("tickets")
+          .select("*")
+          .eq("ticket_order_id", orderId)
+          .order('created_at', { ascending: true });
+
+        currentTickets = tickets || [];
+
+        if (error) {
+          console.error("Failed to load ticket food selections:", error.message);
+          ticketSectionsContainer.innerHTML = "<p class='text-danger'>Failed to load food selections.</p>";
+        } else {
+          // Populate tickets with the new professional design
+          populateEditExistingTickets(tickets);
+        }
+        
+        setupEditFormEventListeners();
+
+        // Set up change detection after a brief delay to ensure all DOM elements are ready
+        setTimeout(() => {
+          initialFormState = captureFormState();
+          addFormChangeListeners();
+          updateSaveButtonState(); // Set initial button state
+        }, 100);
+
+        new bootstrap.Modal(document.getElementById("editModal")).show();
+      }
+
+      async function fetchAndRenderTickets() {
+        showLoadingScreen();
+        const savedEmail = sessionStorage.getItem("customerEmail");
+
+        if (!savedEmail) return;
+        const { data: customer, error: customerError } = await supabaseClient
+          .from("customers")
+          .select("*")
+          .eq("email", savedEmail)
+          .maybeSingle();
+
+        if (!customer || customerError) return;
+
+        customerInfo.innerHTML = `<p><strong>Name:</strong> <span id="customerName">${customer.first_name} ${customer.last_name}</span></p>
+            <p><strong>Phone:</strong> ${customer.phone_number}</p>
+            <p><strong>Email:</strong> ${customer.email}</p>`;
+
+        const { data: tickets } = await supabaseClient
+          .from("orders")
+          .select("*, events(name)")
+          .eq("customer_id", customer.id)
+          .order("created_at", { ascending: false });
+
+        if (tickets?.length) {
+          const { data: event } = await supabaseClient
+          .from("events")
+          .select("name, date")
+          .eq("id", tickets[0].event_id)
+          .maybeSingle();
+        }         
+
+        let cutOffDate = new Date(CONFIG.EVENT.cutoffDate);
+
+        ticketList.innerHTML = "";
+
+        if (tickets?.length) {
+          for (const ticket of tickets) {
+            const ticketDate = new Date(ticket.created_at);
+            const { data: transactions } = await supabaseClient
+              .from("payment_transactions")
+              .select("amount, payment_date, payment_method")
+              .eq("ticket_id", ticket.id)
+              .order("payment_date", { ascending: false });
+
+            let historyHTML =
+              '<li class="list-group-item">No payments made yet.</li>';
+            const totalPaid = calculateTotalPaid(transactions);
+            const outstanding = (ticket.total_amount || 0) - totalPaid;
+            if (transactions.length !== 0) {
+              historyHTML = transactions
+                .map(
+                  (tx) =>
+                    `<li class="list-group-item">
+                  $${formatCurrency(tx.amount)} on ${new Date(
+                      tx.payment_date
+                    ).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      timeZone: "UTC",
+                    })} via ${tx.payment_method}
+                </li>`
+                )
+                .join("");
+            }
+            ticketList.innerHTML += `<div class="card mb-3 p-3">
+                  <div class="row">
+                  <div class="col-md-6">
+                    <p><strong>Order #:</strong> ${
+                      ticket.order_number || "N/A"
+                    }</p>
+                    <p><strong>Event:</strong> ${
+                      ticket.events?.name || "Unknown Event"
+                    }</p>
+                    <p><strong>Order Placed:</strong> ${ticketDate.toLocaleDateString(
+                      "en-US",
+                      { year: "numeric", month: "long", day: "numeric" }
+                    )}</p>
+                    <p><strong>Adult Tickets:</strong> ${
+                      ticket.adult_tickets
+                    }, <strong>Child Tickets:</strong> ${ticket.child_tickets}</p>
+                    <p><strong>Donated Adult Tickets:</strong> ${
+                      ticket.adult_donations
+                    }, <strong>Donated Child Tickets:</strong> ${ticket.child_donations}</p>
+
+                  </div>
+                  <div class="col-md-6">
+                    <p><strong>Total:</strong> $${formatCurrency(ticket.total_amount)}</p>
+                    <p><strong>Outstanding:</strong> $${formatCurrency(outstanding)}</p>
+                    <p><strong>Payment Method:</strong> ${
+                      ((ticket.payment_method === 'cash' ? 'Cash/Cheque' : 'Bank Transfer')) || "N/A"
+                    }</p>
+                    <p><strong>Status:</strong> ${
+                      ticket.paid
+                        ? 'Paid <i class="bi bi-check-circle-fill text-success"></i>'
+                        : "Not Paid"
+                    }</p>
+                    <p><strong>Tickets Issued:</strong> ${
+                      ticket.issued
+                        ? 'Yes <i class="bi bi-ticket-fill text-danger"></i>'
+                        : "Not Yet"
+                    }</p>
+                  </div>
+                </div>
+                <button class="btn btn-sm btn-primary mb-2" onclick="showFoodSelections('${
+                  ticket.id
+                }')">View Ticket Details</button>
+                ${
+                  !ticket.paid && new Date(Date.now()) < new Date(cutOffDate)
+                    ? `<button class="btn btn-sm btn-secondary" onclick="openEditModal('${ticket.id}')">Change Ticket Order</button>`
+                    : ""
+                }
+                <h6 class="mt-3">Transaction History</h6>
+                <ul class="list-group mb-3">${historyHTML}</ul>
+              </div>  `;
+          }
+        } else {
+          ticketList.innerHTML = "<p>No ticket orders found.</p>";
+        }
+        resultDiv.style.display = "block";
+        hideLoadingScreen();
+      }
+
+      async function showFoodSelections(id) {
+        orderId = id;
+        const modal = new bootstrap.Modal(
+          document.getElementById("foodSelectionsModal")
+        );
+        modal.show();
+
+        document.getElementById(
+          "ticketSummary"
+        ).innerHTML = `<p>Loading ticket information...</p>`;
+
+        const { data: tickets, error } = await supabaseClient
+          .from("tickets")
+          .select("*")
+          .eq("ticket_order_id", orderId)
+          .order('created_at', { ascending: true });
+
+        if (error || !tickets) {
+          document.getElementById(
+            "ticketSummary"
+          ).innerHTML = `<p>Error fetching tickets.</p>`;
+          return;
+        }
+
+        currentTickets = tickets || [];
+        renderTicketSummary(tickets); // Default view = not editable
+      }
+
+      function renderTicketSummary(tickets) {
+        const container = document.getElementById("ticketSummary");
+        if (!container || !tickets.length) {
+          container.innerHTML = "<p>No tickets found.</p>";
+          return;
+        }
+        container.innerHTML = buildTicketHTML(tickets);
+      }
+
+      // Note: addDropdown, createFoodDropdown, and nextTempId are now in functions.js
+
+      // ...existing code...
+
+      function setupEditFormEventListeners() {
+        // Add button event listeners for dynamically created form
+        const addAdultBtn = document.getElementById("editAddAdultBtn");
+        const addChildBtn = document.getElementById("editAddChildBtn");
+
+        if (addAdultBtn) {
+          addAdultBtn.addEventListener("click", async () => {
+              addTicket("editAdultFoodSelections", "editAdult", "adult", () => {
+                updateEditTotals();
+                setTimeout(() => {
+                  addFormChangeListeners();
+                  updateSaveButtonState();
+                }, 100);
+              });
+          });
+        }
+
+        if (addChildBtn) {
+          addChildBtn.addEventListener("click", async () => {
+              addTicket("editChildFoodSelections", "editChild", "child", () => {
+                updateEditTotals();
+                setTimeout(() => {
+                  addFormChangeListeners();
+                  updateSaveButtonState();
+                }, 100);
+              });
+          });
+        }
+
+        // Add form input event listeners for dynamic calculations
+        const editAdultInput = document.getElementById('editAdult');
+        const editChildInput = document.getElementById('editChild');
+        const editAdultDonatedInput = document.getElementById('editAdultDonations');
+        const editChildDonatedInput = document.getElementById('editChildDonations');
+        
+        if (editAdultInput) {
+          editAdultInput.addEventListener('input', updateEditTotals);
+        }
+        if (editChildInput) {
+          editChildInput.addEventListener('input', updateEditTotals);
+        }
+        if (editAdultDonatedInput) {
+          editAdultDonatedInput.addEventListener('input', updateEditTotals);
+        }
+        if (editChildDonatedInput) {
+          editChildDonatedInput.addEventListener('input', updateEditTotals);
+        }
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ticket Order Form</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      #loadingScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.3); /* lighter background */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(4px); /* optional blur */
+      }
+
+      /* Enhanced ticket section styling - Compact */
+      .ticket-section {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 16px;
+        margin-bottom: 16px;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+        position: relative;
+      }
+
+      .ticket-section::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--section-accent);
+        border-radius: 6px 6px 0 0;
+      }
+
+      .ticket-section:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .adult-tickets {
+        --section-accent: #2563eb;
+      }
+
+      .child-tickets {
+        --section-accent: #ffd600;
+      }
+
+      .ticket-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f3f4f6;
+      }
+
+      .ticket-icon {
+        font-size: 1rem;
+        margin-right: 10px;
+        padding: 8px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: #f8f9fa;
+        color: var(--section-accent);
+      }
+
+      .ticket-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #111827;
+      }
+
+      .ticket-price {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 1px;
+        font-weight: 500;
+      }
+
+      .ticket-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .ticket-section .btn-primary {
+        background: var(--section-accent);
+        border: 1px solid var(--section-accent);
+        color: white;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+      }
+
+      .ticket-section .btn-primary:hover {
+        background: var(--section-accent);
+        border-color: var(--section-accent);
+      }
+
+      .ticket-section .btn-outline-danger {
+        border: 1px solid #d1d5db;
+        color: #6b7280;
+        background: #ffffff;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+      }
+
+      .ticket-section .btn-outline-danger:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+        color: #374151;
+      }
+
+      /* Enhanced ticket dropdown styling */
+      .ticket-section .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .adult-tickets .form-label {
+        color: #1e40af;
+      }
+
+      .child-tickets .form-label {
+        color: #dc2626;
+      }
+
+      /* Individual ticket card styling - Compact Design */
+      .individual-ticket-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+        background: #ffffff;
+        border-left: 3px solid var(--accent-color);
+      }
+
+      .individual-ticket-card:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .ticket-card-header {
+        padding: 8px 12px;
+        background: #fafafa;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .ticket-number-badge {
+        display: flex;
+        align-items: center;
+        color: #374151;
+        font-weight: 600;
+        font-size: 0.8rem;
+      }
+
+      .ticket-number-badge i {
+        margin-right: 6px;
+        font-size: 0.8rem;
+        color: var(--accent-color);
+      }
+
+      .ticket-type-indicator {
+        font-size: 0.7rem;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 1px 6px;
+        border-radius: 8px;
+        font-weight: 500;
+      }
+
+      .ticket-card-content {
+        padding: 12px;
+        background: #ffffff;
+      }
+
+      .adult-ticket-primary,
+      .adult-ticket-secondary,
+      .adult-ticket-tertiary {
+        --accent-color: #2563eb;
+      }
+
+      .child-ticket-primary,
+      .child-ticket-secondary,
+      .child-ticket-tertiary {
+        --accent-color: #ffd600;
+      }
+      /* Child ticket icon yellow */
+      .child-tickets .ticket-icon {
+        color: #ffd600 !important;
+      }
+      /* Child ticket Add button yellow */
+      .child-tickets .btn-primary {
+        background: #ffd600 !important;
+        border-color: #ffd600 !important;
+        color: #111827 !important;
+      }
+      .child-tickets .btn-primary:hover {
+        background: #ffe066 !important;
+        border-color: #ffe066 !important;
+        color: #111827 !important;
+      }
+      /* Remove button always red */
+      .remove-ticket-btn,
+      .remove-ticket-btn i,
+      .remove-ticket-btn span {
+        color: #dc2626 !important;
+        border-color: #dc2626 !important;
+        background: #fff !important;
+      }
+
+      /* Compact form styling */
+      .individual-ticket-card .form-label {
+        color: #111827;
+        font-weight: 600;
+        margin-bottom: 4px;
+        font-size: 0.8rem;
+      }
+
+      .individual-ticket-card .form-check-label {
+        color: #374151;
+        font-weight: 500;
+        font-size: 0.8rem;
+      }
+
+      .individual-ticket-card .form-select {
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        padding: 6px 10px;
+        background: #ffffff;
+      }
+
+      .individual-ticket-card .form-select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        outline: none;
+      }
+
+      .individual-ticket-card .form-check-input:checked {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+      }
+
+      .individual-ticket-card .form-check-input:focus {
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+      }
+
+      /* Compact section labels */
+      .individual-ticket-card .mb-2 {
+        margin-bottom: 8px !important;
+      }
+
+      .individual-ticket-card .mb-2 .form-label.small {
+        color: #6b7280;
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+      }
+
+      .individual-ticket-card .form-check {
+        margin-bottom: 4px;
+      }
+
+      .individual-ticket-card .form-check-inline {
+        margin-right: 12px;
+        margin-bottom: 2px;
+      }
+
+      /* Food selection checkboxes styling */
+      .food-checkboxes {
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 12px;
+        margin-top: 8px;
+      }
+
+      .food-checkboxes .form-check {
+        margin-bottom: 8px;
+        padding-left: 1.5rem;
+      }
+
+      .food-checkboxes .form-check-input {
+        margin-top: 0.25rem;
+      }
+
+      .food-checkboxes .form-check-label {
+        font-size: 0.85rem;
+        color: #374151;
+        line-height: 1.4;
+      }
+
+      .food-checkboxes .form-check:last-child {
+        margin-bottom: 0;
+      }
+    </style>
+  </head>
+  <body style="background-color: #d0f0ff">
+    <div id="loadingScreen" style="display: none">
+      <div
+        class="spinner-border text-primary"
+        role="status"
+        style="width: 3rem; height: 3rem"
+      >
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div class="container bg-white min-vh-100">
+      <!-- NAVBAR -->
+      <nav
+        class="navbar navbar-expand-lg navbar-dark"
+        style="background-color: #2f4f4f"
+      >
+        <div class="container">
+          <a class="navbar-brand" href="index.html"
+            >🎄 Stella Maris Family Day</a
+          >
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div
+            class="collapse navbar-collapse justify-content-end"
+            id="navbarNav"
+          >
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="index.html#about">About Us</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="index.html#expect">What to Expect</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="ticket-form.html"
+                  >Ticket Order Form</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="view-info.html">My Info</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <!-- HERO SECTION -->
+      <header class="bg-light text-center py-2 mb-4">
+        <div class="container">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Ticket Order Form</h2>
+            <div class="text-end mb-3">
+              <button
+                id="userSignOut"
+                class="btn btn-outline-danger"
+                onclick="signOut()"
+                style="display: none"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+      <div class="px-3 pb-5" id="formContent" style="display: none">
+        <h2><span id="eventName"></span></h2>
+        <form id="ticketForm">
+          <div class="mb-3">
+            <input
+              class="form-control"
+              placeholder="Email"
+              name="email"
+              id="email"
+              type="email"
+              required
+            />
+            <div class="invalid-feedback">
+              Please enter a valid email address (e.g., name@example.com).
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <input
+                class="form-control"
+                placeholder="First Name"
+                name="firstName"
+                required
+              />
+            </div>
+            <div class="col-md-6">
+              <input
+                class="form-control"
+                placeholder="Last Name"
+                name="lastName"
+                required
+              />
+            </div>
+          </div>
+          <input
+            class="form-control mb-3"
+            placeholder="Phone Number"
+            id="phoneInput"
+            name="phone"
+            required
+          />
+          <!-- Ticket Selection with Add/Remove Buttons -->
+          <div id="foodSelectionsContainer" class="mb-3">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="ticket-section adult-tickets">
+                  <div class="ticket-header">
+                    <div class="ticket-icon">
+                      <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                      <h5 class="ticket-title">Adult Tickets</h5>
+                      <div class="ticket-price">
+                        <span id="adultTicketPrice"></span> per person
+                      </div>
+                    </div>
+                  </div>
+                  <div id="adult-dropdowns"></div>
+                  <div class="ticket-buttons">
+                    <button
+                      type="button"
+                      id="addAdultBtn"
+                      class="btn btn-primary"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="ticket-section child-tickets">
+                  <div class="ticket-header">
+                    <div class="ticket-icon">
+                      <i class="fas fa-child"></i>
+                    </div>
+                    <div>
+                      <h5 class="ticket-title">Child Tickets</h5>
+                      <div class="ticket-price">
+                        <span id="childTicketPrice"></span> per child (6 &
+                        under)
+                      </div>
+                    </div>
+                  </div>
+                  <div id="child-dropdowns"></div>
+                  <div class="ticket-buttons">
+                    <button
+                      type="button"
+                      id="addChildBtn"
+                      class="btn btn-primary"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hidden inputs to track counts -->
+          <input
+            type="hidden"
+            id="adultTickets"
+            name="adultTickets"
+            value="0"
+          />
+          <input
+            type="hidden"
+            id="childTickets"
+            name="childTickets"
+            value="0"
+          />
+
+          <div class="mb-3">
+            <strong>Total: $<span id="totalDisplay">0</span></strong>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">How would you like to pay?</label>
+            <div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="paymentMethod"
+                  id="paymentCash"
+                  value="cash"
+                  required
+                />
+                <label class="form-check-label" for="paymentCash"
+                  >Cash/Cheque</label
+                >
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="paymentMethod"
+                  id="paymentBank"
+                  value="bank transfer"
+                  required
+                />
+                <label class="form-check-label" for="paymentBank"
+                  >Bank Transfer</label
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="form-check mb-2">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="saveInfoCheckbox"
+            />
+            <label class="form-check-label" for="saveInfoCheckbox"
+              >Save my info for next time (you will be able to change your
+              order)</label
+            >
+          </div>
+          <div id="saveInfoSection" style="display: none">
+            <h5>Memorable Date</h5>
+            <p>Think of a memorable date.</p>
+            <input
+              class="form-control mb-2"
+              id="specialDate"
+              placeholder="YYYY-MM-DD"
+              name="specialDate"
+              type="text"
+              maxlength="10"
+              pattern="\d{4}-\d{2}-\d{2}"
+            />
+            <input
+              class="form-control mb-3"
+              id="specialDateHint"
+              placeholder="Hint for the date (e.g. Our wedding)"
+              name="specialDateHint"
+              type="text"
+            />
+          </div>
+          <button type="submit" class="btn btn-primary mt-3">Submit</button>
+        </form>
+      </div>
+    </div>
+    <!-- FOOTER -->
+    <footer class="text-center py-4 bg-light mt-5">
+      <p class="mb-1">
+        <strong>📍 Stella Maris Church Grounds</strong> |
+        <span id="dateAndTime"></span>
+      </p>
+      <p class="mb-1">
+        📞 876-925-9520 | 📧
+        <a href="mailto:stellamarisfamilyday@gmail.com"
+          >stellamarisfamilyday@gmail.com</a
+        >
+      </p>
+      <small class="text-muted"
+        >#StellaMarisFamilyDay #JamaicanChristmas #FamilyFun</small
+      >
+      <p>
+        &copy; <span id="year"></span> by Stella Maris Catholic Church Jamaica
+      </p>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="functions.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const specialDateInput = document.getElementById("specialDate");
+        const specialDateHintInput = document.getElementById("specialDateHint");
+        const saveInfoCheckbox = document.getElementById("saveInfoCheckbox");
+
+        // ✅ Function to show/hide the date input safely
+        function toggleSpecialDate(show) {
+          const saveSection = document.getElementById("saveInfoSection");
+          if (show) {
+            saveSection.style.display = "block";
+            specialDateInput.setAttribute("required", "required");
+            specialDateHintInput.setAttribute("required", "required");
+          } else {
+            saveSection.style.display = "none";
+            document.getElementById("specialDate").value = "";
+            document.getElementById("specialDateHint").value = "";
+            specialDateInput.removeAttribute("required");
+            specialDateHintInput.removeAttribute("required");
+          }
+        }
+
+        // Hide initially
+        toggleSpecialDate(false);
+
+        // Toggle based on checkbox
+        saveInfoCheckbox.addEventListener("change", (e) => {
+          toggleSpecialDate(e.target.checked);
+        });
+
+        // ✅ Keep your formatter for YYYY-MM-DD
+        specialDateInput.addEventListener("input", function (e) {
+          let v = e.target.value.replace(/[^\d]/g, "");
+          let formatted = "";
+          if (v.length > 0) {
+            formatted += v.slice(0, 4);
+            if (v.length >= 4) {
+              formatted += "-";
+              formatted += v.slice(4, 6);
+              if (v.length >= 6) {
+                formatted += "-";
+                formatted += v.slice(6, 8);
+              }
+            }
+          }
+          e.target.value = formatted.slice(0, 10);
+        });
+      });
+    </script>
+    <script type="module">
+      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+      const supabaseClient = createClient(
+        CONFIG.SUPABASE_URL,
+        CONFIG.SUPABASE_ANON_KEY
+      );
+
+      const form = document.getElementById("ticketForm");
+      const totalDisplay = document.getElementById("totalDisplay");
+      const saveCheckbox = document.getElementById("saveInfoCheckbox");
+      const saveSection = document.getElementById("saveInfoSection");
+      const emailInput = document.getElementById("email");
+      const firstNameInput = form.firstName;
+      const lastNameInput = form.lastName;
+      const phoneInput = form.phone;
+      const specialDateInput = document.getElementById("specialDate");
+      const specialDateHintInput = document.getElementById("specialDateHint");
+      const saveCheckboxContainer = saveCheckbox.closest(".form-check");
+      let adultPrice = 0;
+      let childPrice = 0;
+      const adultInput = document.getElementById("adultTickets");
+      const childInput = document.getElementById("childTickets");
+      let upcomingEvent = null;
+      // Local food options
+      const foodOptions = [
+        { value: "station1", label: "Curry goat, rice & roti" },
+        { value: "station2", label: "Jerk pork & chicken with festival" },
+        { value: "station3", label: "Fish & vegetable pasta" },
+        {
+          value: "station4",
+          label: "Chinese - vegetable lo mein, sweet & sour chicken",
+        },
+      ];
+
+      // Local ticket state
+      let adultTickets = [];
+      let childTickets = [];
+      let nextTempId = 0;
+
+      async function fetchUpcomingEvent() {
+        // Query Supabase for the next upcoming event
+        const { data, error } = await supabaseClient
+          .from("events")
+          .select("*")
+          .order("cutoff_date", { ascending: true })
+          .limit(1);
+        if (error || !data || !data[0]) {
+          console.error("Could not fetch upcoming event", error);
+          return null;
+        }
+        return data[0];
+      }
+
+      async function initializePage() {
+        upcomingEvent = await fetchUpcomingEvent();
+        if (!upcomingEvent) {
+          showToastWithBlur("No upcoming event found.", { type: "error", icon: "fas fa-exclamation-triangle" });
+          hideLoadingScreen();
+          return;
+        }
+        // Set ticket prices from event, with defensive checks
+        adultPrice =
+          typeof upcomingEvent.adult_ticket_price === "number"
+            ? upcomingEvent.adult_ticket_price
+            : 0;
+        childPrice =
+          typeof upcomingEvent.child_ticket_price === "number"
+            ? upcomingEvent.child_ticket_price
+            : 0;
+        document.getElementById(
+          "adultTicketPrice"
+        ).textContent = `$${adultPrice.toLocaleString()}`;
+        document.getElementById(
+          "childTicketPrice"
+        ).textContent = `$${childPrice.toLocaleString()}`;
+        document.getElementById("eventName").textContent =
+          upcomingEvent.name || "";
+      }
+      // Show loading screen immediately
+      showLoadingScreen();
+
+      window.addEventListener("DOMContentLoaded", async () => {
+        try {
+          // Initialize EmailJS
+          emailjs.init("-RrY_RPQHt4a9S2Mc");
+
+          // Wait for all initialization to complete
+          await initializePage();
+
+          // Check cutoff date from upcomingEvent
+          if (upcomingEvent && upcomingEvent.cutoff_date) {
+            const cutoffDate = new Date(upcomingEvent.cutoff_date);
+            const today = new Date();
+            if (today > cutoffDate) {
+              document.getElementById("ticketForm").style.display = "none";
+            }
+          }
+
+          // Hide loading screen and show content
+          hideLoadingScreen();
+          document.getElementById("formContent").style.display = "block";
+        } catch (error) {
+          console.error("Error during initialization:", error);
+          hideLoadingScreen();
+          document.getElementById("formContent").style.display = "block";
+        }
+      });
+
+      function createTicketCard(
+        ticketType,
+        ticketId,
+        attendanceType = "attending",
+        foodOptionsSelected = [],
+        pickupTimeSelected = null
+      ) {
+        const isAdult = ticketType === "adult";
+        const colorClass = isAdult
+          ? "adult-ticket-primary"
+          : "child-ticket-primary";
+        const ticketLabel = isAdult ? "Adult" : "Child";
+        return `
+          <div class="individual-ticket-card ${colorClass}" data-ticket-id="${ticketId}">
+            <div class="ticket-card-header">
+              <div class="ticket-number-badge">
+                <span>${ticketLabel} Ticket</span>
+              </div>
+              <div class="ticket-type-indicator">
+                $${
+                  isAdult
+                    ? `${adultPrice.toLocaleString()}`
+                    : `${childPrice.toLocaleString()}`
+                }
+              </div>
+              <button type="button" class="btn btn-outline-danger btn-xs remove-ticket-btn" data-ticket-id="${ticketId}"><i class="fas fa-trash"></i> <span>Remove</span></button>
+            </div>
+            <div class="ticket-card-content">
+              <div class="mb-2">
+                <label class="form-label small">Attendance Type</label>
+                <div class="mb-2">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="attendance_${ticketId}" id="attending_${ticketId}" value="attending" ${
+          attendanceType === "attending" ? "checked" : ""
+        }>
+                    <label class="form-check-label" for="attending_${ticketId}">Attending Event</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="attendance_${ticketId}" id="takeaway_${ticketId}" value="takeaway" ${
+          attendanceType === "takeaway" ? "checked" : ""
+        }>
+                    <label class="form-check-label" for="takeaway_${ticketId}">Taking Away</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="attendance_${ticketId}" id="donate_${ticketId}" value="donate" ${
+          attendanceType === "donate" ? "checked" : ""
+        }>
+                    <label class="form-check-label" for="donate_${ticketId}">Donate Ticket</label>
+                  </div>
+                </div>
+              </div>
+              <div class="food-option-section mb-2" id="food_${ticketId}" style="display:${
+          attendanceType === "takeaway" ? "block" : "none"
+        };">
+                <label class="form-label small">Food Stations <small class="text-muted">(Select all that apply)</small></label>
+                <div class="food-checkboxes">
+                  ${foodOptions
+                    .map(
+                      (opt) => `
+                    <div class="form-check">
+                        <input class="form-check-input food-station-checkbox" type="checkbox" id="food_${
+                          opt.value
+                        }_${ticketId}" value="${
+                        opt.value
+                      }" data-ticket-id="${ticketId}" ${
+                        foodOptionsSelected.includes(opt.value) ? "checked" : ""
+                      }>
+                      <label class="form-check-label" for="food_${
+                        opt.value
+                      }_${ticketId}">${opt.label}</label>
+                    </div>
+                  `
+                    )
+                    .join("")}
+                </div>
+              </div>
+              <div class="pickup-time-section" id="pickup_${ticketId}" style="display:${
+          attendanceType === "takeaway" ? "block" : "none"
+        };">
+                <label class="form-label small">Pickup Time</label>
+                <div class="mb-2">
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="pickup_${ticketId}" id="time1_${ticketId}" value="12:30" ${
+          attendanceType === "takeaway" ? "required" : ""
+        } ${pickupTimeSelected === "12:30" ? "checked" : ""}>
+                    <label class="form-check-label" for="time1_${ticketId}">12:30 PM</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="pickup_${ticketId}" id="time2_${ticketId}" value="2:00" ${
+          attendanceType === "takeaway" ? "required" : ""
+        } ${pickupTimeSelected === "2:00" ? "checked" : ""}>
+                    <label class="form-check-label" for="time2_${ticketId}">2:00 PM</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="pickup_${ticketId}" id="time3_${ticketId}" value="3:30" ${
+          attendanceType === "takeaway" ? "required" : ""
+        } ${pickupTimeSelected === "3:30" ? "checked" : ""}>
+                    <label class="form-check-label" for="time3_${ticketId}">3:30 PM</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderTickets() {
+        // Preserve state before re-render for all tickets
+        const ticketStates = {};
+        [...adultTickets, ...childTickets].forEach((tid) => {
+          const card = document.querySelector(
+            `.individual-ticket-card[data-ticket-id='${tid}']`
+          );
+          let attendanceType = "attending";
+          let foodOptions = [];
+          let pickupTime = null;
+          if (card) {
+            const attendanceRadios = card.querySelectorAll(
+              `input[name="attendance_${tid}"]`
+            );
+            attendanceRadios.forEach((radio) => {
+              if (radio.checked) attendanceType = radio.value;
+            });
+            card
+              .querySelectorAll(
+                `.food-station-checkbox[data-ticket-id='${tid}']:checked`
+              )
+              .forEach((cb) => {
+                foodOptions.push(cb.value);
+              });
+            // Always preserve pickup time selection, even if attendance type changes
+            const pickupRadios = card.querySelectorAll(
+              `input[name="pickup_${tid}"]`
+            );
+            pickupRadios.forEach((radio) => {
+              if (radio.checked) pickupTime = radio.value;
+            });
+          }
+          ticketStates[tid] = { attendanceType, foodOptions, pickupTime };
+        });
+
+        const adultContainer = document.getElementById("adult-dropdowns");
+        const childContainer = document.getElementById("child-dropdowns");
+        adultContainer.innerHTML = adultTickets
+          .map((tid) => {
+            const state = ticketStates[tid] || {};
+            return createTicketCard(
+              "adult",
+              tid,
+              state.attendanceType,
+              state.foodOptions,
+              state.pickupTime
+            );
+          })
+          .join("");
+        childContainer.innerHTML = childTickets
+          .map((tid) => {
+            const state = ticketStates[tid] || {};
+            return createTicketCard(
+              "child",
+              tid,
+              state.attendanceType,
+              state.foodOptions,
+              state.pickupTime
+            );
+          })
+          .join("");
+        attachRemoveListeners();
+        attachAttendanceListeners();
+        updateTotals();
+        attachAttendanceRequiredListeners();
+        updatePickupRequiredAttributes();
+        // Debug: Log ticket containers and food options after render
+        function logTicketContainersAndFoodOptions() {
+          const adultContainers = document.querySelectorAll(
+            "#adult-dropdowns > div"
+          );
+          const childContainers = document.querySelectorAll(
+            "#child-dropdowns > div"
+          );
+          console.log("Adult Containers:", adultContainers);
+          adultContainers.forEach((container, idx) => {
+            const ticketId = container.dataset.ticketId;
+            const foodCheckboxes = container.querySelectorAll(
+              `.food-station-checkbox[data-ticket-id='${ticketId}']:checked`
+            );
+            const foodOptions = Array.from(foodCheckboxes).map(
+              (cb) => cb.value
+            );
+            console.log(
+              `Adult Ticket #${idx + 1} (${ticketId}) food_options:`,
+              foodOptions
+            );
+          });
+          console.log("Child Containers:", childContainers);
+          childContainers.forEach((container, idx) => {
+            const ticketId = container.dataset.ticketId;
+            const foodCheckboxes = container.querySelectorAll(
+              `.food-station-checkbox[data-ticket-id='${ticketId}']:checked`
+            );
+            const foodOptions = Array.from(foodCheckboxes).map(
+              (cb) => cb.value
+            );
+            console.log(
+              `Child Ticket #${idx + 1} (${ticketId}) food_options:`,
+              foodOptions
+            );
+          });
+        }
+        logTicketContainersAndFoodOptions();
+      }
+
+      function attachRemoveListeners() {
+        document.querySelectorAll(".remove-ticket-btn").forEach((btn) => {
+          btn.onclick = function () {
+            const tid = btn.getAttribute("data-ticket-id");
+            if (adultTickets.includes(tid)) {
+              adultTickets = adultTickets.filter((id) => id !== tid);
+              document.getElementById("adultTickets").value =
+                adultTickets.length;
+            } else if (childTickets.includes(tid)) {
+              childTickets = childTickets.filter((id) => id !== tid);
+              document.getElementById("childTickets").value =
+                childTickets.length;
+            }
+            renderTickets();
+          };
+        });
+      }
+
+      function attachAttendanceListeners() {
+        [...adultTickets, ...childTickets].forEach((tid) => {
+          ["attending", "takeaway", "donate"].forEach((type) => {
+            const radio = document.getElementById(`${type}_${tid}`);
+            if (radio) {
+              radio.onchange = function () {
+                const foodDiv = document.getElementById(`food_${tid}`);
+                const pickupDiv = document.getElementById(`pickup_${tid}`);
+                if (type === "takeaway" && radio.checked) {
+                  foodDiv.style.display = "block";
+                  pickupDiv.style.display = "block";
+                } else {
+                  foodDiv.style.display = "none";
+                  pickupDiv.style.display = "none";
+                }
+              };
+            }
+          });
+        });
+      }
+
+      // Dynamically set pickup time required attribute based on attendance type
+      function updatePickupRequiredAttributes() {
+        [...adultTickets, ...childTickets].forEach((tid) => {
+          const attendanceRadio = document.getElementById(`takeaway_${tid}`);
+          const isTakeaway = attendanceRadio && attendanceRadio.checked;
+          ["time1_", "time2_", "time3_"].forEach((prefix) => {
+            const radio = document.getElementById(`${prefix}${tid}`);
+            if (radio) {
+              radio.required = !!isTakeaway;
+            }
+          });
+        });
+      }
+
+      // Attach change listeners to attendance radios
+      function attachAttendanceRequiredListeners() {
+        [...adultTickets, ...childTickets].forEach((tid) => {
+          ["attending", "takeaway", "donate"].forEach((type) => {
+            const radio = document.getElementById(`${type}_${tid}`);
+            if (radio) {
+              radio.addEventListener("change", updatePickupRequiredAttributes);
+            }
+          });
+        });
+      }
+
+      function updateTotals() {
+        const adultCount = adultTickets.length;
+        const childCount = childTickets.length;
+        document.getElementById("adultTickets").value = adultCount;
+        document.getElementById("childTickets").value = childCount;
+        const total = adultCount * adultPrice + childCount * childPrice;
+        totalDisplay.textContent = total.toLocaleString();
+      }
+
+      document.getElementById("addAdultBtn").onclick = function () {
+        const tid = `adult_${nextTempId}`;
+        nextTempId++;
+        adultTickets.push(tid);
+        renderTickets();
+      };
+      document.getElementById("addChildBtn").onclick = function () {
+        const tid = `child_${nextTempId}`;
+        nextTempId++;
+        childTickets.push(tid);
+        renderTickets();
+      };
+
+      // Initial render
+      renderTickets();
+
+      emailInput.addEventListener("input", () => {
+        if (
+          emailInput.validity.typeMismatch ||
+          emailInput.validity.valueMissing
+        ) {
+          emailInput.classList.add("is-invalid");
+        } else {
+          emailInput.classList.remove("is-invalid");
+        }
+      });
+
+      emailInput.addEventListener("blur", async () => {
+        const email = emailInput.value.trim().toLowerCase();
+        if (!email) return;
+
+        const { data: existingCustomer, error } = await supabaseClient
+          .from("customers")
+          .select("*")
+          .eq("email", email)
+          .maybeSingle();
+
+        if (error) return;
+
+        if (existingCustomer) {
+          firstNameInput.value = existingCustomer.first_name;
+          lastNameInput.value = existingCustomer.last_name;
+          phoneInput.value = formatPhoneNumber(existingCustomer.phone_number);
+          // Hide save info section and checkbox for existing users
+          saveCheckboxContainer.style.display = "none";
+          saveSection.style.display = "none";
+        } else {
+          // Show save info section and checkbox for new users
+          saveCheckboxContainer.style.display = "block";
+          saveSection.style.display = saveCheckbox.checked ? "block" : "none";
+        }
+      });
+
+      phoneInput.addEventListener("input", (e) => {
+        const cursorPos = e.target.selectionStart;
+        const result = formatPhoneNumberWithCursor(e.target.value, cursorPos);
+        e.target.value = result.value;
+        // Set cursor position after formatting
+        setTimeout(() => {
+          e.target.setSelectionRange(result.cursorPos, result.cursorPos);
+        }, 0);
+      });
+
+      let ticketDetailsHTML = "";
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        showLoadingScreen();
+        // Validate at least one food option selected for each takeaway ticket
+        let validFood = true;
+        const allTicketCards = document.querySelectorAll('.individual-ticket-card');
+        allTicketCards.forEach(card => {
+          const attendanceRadio = card.querySelector('input[type="radio"][name^="attendance_"]:checked');
+          if (attendanceRadio && attendanceRadio.value === 'takeaway') {
+            const checkedFood = card.querySelectorAll('.food-station-checkbox:checked');
+            if (checkedFood.length === 0) {
+              validFood = false;
+            }
+          }
+        });
+        if (!validFood) {
+          hideLoadingScreen();
+          showToastWithBlur("Please select at least one food option for all takeaway tickets before submitting.", { type: "warning", icon: "fas fa-exclamation-triangle" });
+          return;
+        }
+        const eventInfo = upcomingEvent || {};
+        const email = form.email.value.trim().toLowerCase();
+        const phone = cleanPhoneNumber(form.phone.value.trim());
+        let customerId = null;
+        if (!validatePhoneNumber(form.phone.value.trim())) {
+          showToastWithBlur("Please enter a valid 10-digit phone number.", { type: "warning", icon: "fas fa-exclamation-triangle" });
+          hideLoadingScreen();
+          return;
+        }
+        const { data: existingCustomer, error: customerError } =
+          await supabaseClient
+            .from("customers")
+            .select("id")
+            .eq("email", email)
+            .maybeSingle();
+        if (existingCustomer) customerId = existingCustomer.id;
+        if (
+          saveCheckbox.checked &&
+          !customerId &&
+          specialDateInput.value &&
+          specialDateHintInput.value
+        ) {
+          const { data: newCustomer } = await supabaseClient
+            .from("customers")
+            .insert([
+              {
+                email: email.toLowerCase(),
+                first_name: form.firstName.value,
+                last_name: form.lastName.value,
+                phone_number: phone,
+                memorable_date: specialDateInput.value,
+                memorable_hint: specialDateHintInput.value,
+              },
+            ])
+            .select("id")
+            .maybeSingle();
+          if (newCustomer) customerId = newCustomer.id;
+        }
+        const adultTicketsCount = parseInt(form.adultTickets.value) || 0;
+        const childTicketsCount = parseInt(form.childTickets.value) || 0;
+        let totalAmount =
+          adultTicketsCount * adultPrice + childTicketsCount * childPrice;
+
+        // Require at least one ticket (regular or donation)
+        if (adultTicketsCount === 0 && childTicketsCount === 0) {
+          showToastWithBlur("Please add at least one ticket.", { type: "warning", icon: "fas fa-exclamation-triangle" });
+          hideLoadingScreen();
+          return;
+        }
+
+        if (totalAmount === 0) {
+          showToastWithBlur("Please add at least one ticket.", { type: "warning", icon: "fas fa-exclamation-triangle" });
+          hideLoadingScreen();
+          return;
+        }
+
+        const orderNumber = await getUniqueOrderNumber(supabaseClient);
+        // Declare containers before usage
+        const adultContainers = document.querySelectorAll(
+          "#adult-dropdowns > div"
+        );
+        const childContainers = document.querySelectorAll(
+          "#child-dropdowns > div"
+        );
+
+        if (adultContainers.length > adultTickets) {
+          for (let i = adultTickets; i < adultContainers.length; i++) {
+            adultContainers[i].remove();
+          }
+        }
+        if (childContainers.length > childTickets) {
+          for (let i = childTickets; i < childContainers.length; i++) {
+            childContainers[i].remove();
+          }
+        }
+
+        const finalAdultContainers = document.querySelectorAll(
+          "#adult-dropdowns > div"
+        );
+        const finalChildContainers = document.querySelectorAll(
+          "#child-dropdowns > div"
+        );
+
+        // Pass DOM containers and ticket counts to processTicketContainers for compatibility with functions.js
+        const adultResult = processTicketContainers(
+          finalAdultContainers,
+          adultTickets.length,
+          "adult"
+        );
+        const childResult = processTicketContainers(
+          finalChildContainers,
+          childTickets.length,
+          "child"
+        );
+
+        const ticketData = [...adultResult.tickets, ...childResult.tickets];
+        const adultDonations = adultResult.adultDonations;
+        const childDonations = childResult.childDonations;
+
+        if (!ticketData || ticketData.length === 0) {
+          hideLoadingScreen();
+          showToastWithBlur("No ticket details found. Please check your ticket selections and try again.", { type: "error", icon: "fas fa-exclamation-triangle" });
+          return;
+        }
+
+        // Insert order and get orderId before building ticket records
+        const formInfo = {
+          event_id: upcomingEvent.id,
+          customer_id: customerId,
+          first_name: form.firstName.value,
+          last_name: form.lastName.value,
+          email,
+          phone_number: phone,
+          adult_tickets: adultTickets.length - (adultDonations || 0),
+          child_tickets: childTickets.length - (childDonations || 0),
+          adult_donations: adultDonations || 0,
+          child_donations: childDonations || 0,
+          total_amount: totalAmount,
+          payment_method: form.paymentMethod.value,
+          order_number: orderNumber,
+          created_at: new Date().toISOString(),
+        };
+
+        const { data, error: orderError } = await supabaseClient
+          .from("orders")
+          .insert([formInfo])
+          .select();
+
+        if (
+          orderError ||
+          !data ||
+          !Array.isArray(data) ||
+          !data[0] ||
+          !data[0].id
+        ) {
+          console.error(
+            "Insert failed or no orderId returned:",
+            orderError,
+            data
+          );
+          hideLoadingScreen();
+          showToastWithBlur("There was an error saving your order. Please try again.", { type: "error", icon: "fas fa-exclamation-triangle" });
+          return;
+        }
+
+        const orderId = data[0].id;
+        const ticketsToInsert = [];
+
+        for (let i = 0; i < ticketData.length; i++) {
+          const ticket = ticketData[i];
+          const ticketLabel = `${
+            ticket.ticketType === "adult" ? "Adult" : "Child"
+          } Ticket #${i + 1}`;
+          const ticketRecord = {
+            ticket_order_id: orderId,
+            ticket_type: ticket.ticketType,
+            attendance_type: ticket.attendanceType,
+            pickup_time: ticket.pickupTime,
+          };
+          if (ticket.attendanceType === "takeaway") {
+            ticketRecord.food_option =
+              ticket.foodOptions.length > 0 ? ticket.foodOptions : null;
+          } else {
+            ticketRecord.food_option = null;
+          }
+          ticketsToInsert.push(ticketRecord);
+        }
+
+        if (!ticketsToInsert || ticketsToInsert.length === 0) {
+          hideLoadingScreen();
+          showToastWithBlur("No tickets to insert. Please check your ticket selections and try again.", { type: "error", icon: "fas fa-exclamation-triangle" });
+          return;
+        }
+
+        let insertedTickets = [];
+        let ticketInsertErr = null;
+
+        if (ticketsToInsert.length > 0) {
+          const { data: ticketData, error: ticketError } = await supabaseClient
+            .from("tickets")
+            .insert(ticketsToInsert)
+            .select();
+
+          ticketInsertErr = ticketError;
+          if (ticketInsertErr) {
+            console.error("Ticket insertion failed:", ticketInsertErr);
+          } else {
+            insertedTickets = ticketData || [];
+          }
+        }
+
+        if (!ticketInsertErr) {
+          ticketDetailsHTML = buildTicketHTML(insertedTickets || []);
+
+          emailjs
+            .send("service_4huc4z9", "template_3ezl67k", {
+              email: email,
+              subject_line: `Order #${orderNumber}: ${upcomingEvent.name}`,
+              name: form.firstName.value + " " + form.lastName.value,
+              email_message: `<p style="font-size: 16px; color: #4b5563; margin-bottom: 20px;">
+          Thank you for your order for the <strong>${upcomingEvent.name}</strong>! 🎉
+        </p>
+
+        <p style="font-size: 15px; color: #6b7280; margin-bottom: 10px;">
+          Here are the details of your order:
+        </p>`,
+              email_end: `<p style="margin-top: 25px; font-size: 15px; color: #6b7280;">
+          If you have any questions, feel free to reply to this email.
+        </p>
+
+        <p style="font-size: 15px; color: #6b7280;">
+          We look forward to seeing you!
+        </p>`,
+              adult_tickets: adultTickets,
+              child_tickets: childTickets,
+              total_amount: formatCurrency(totalAmount),
+              order_number: orderNumber,
+              payment_method:
+                CONFIG.PAYMENT.methods[
+                  form.paymentMethod.value === "cash" ? "cash" : "bank_transfer"
+                ],
+              payment_instructions:
+                CONFIG.PAYMENT.instructions[
+                  form.paymentMethod.value === "cash" ? "cash" : "bank_transfer"
+                ],
+              outstanding_balance: formatCurrency(totalAmount),
+              ticket_details: ticketDetailsHTML,
+            })
+            .then(() => {
+              hideLoadingScreen();
+              // Hide the form
+              document.getElementById("ticketForm").style.display = "none";
+
+              // Insert the confirmation
+              const confirmationDiv = document.createElement("div");
+              confirmationDiv.innerHTML = buildConfirmationHTML(formInfo);
+
+              document
+                .getElementById("ticketForm")
+                .parentNode.appendChild(confirmationDiv);
+            })
+            .catch((err) => {
+              console.error("EmailJS Error:", err);
+              showToastWithBlur(
+                "Failed to send confirmation email. Please try again.",
+                { type: "error", icon: "fas fa-exclamation-triangle" }
+              );
+              hideLoadingScreen();
+            });
+        } else {
+          hideLoadingScreen();
+          if (ticketInsertErr) {
+            console.error("Ticket insertion error:", ticketInsertErr);
+          }
+          showToastWithBlur(
+            "There was an error saving your tickets. Please try again.",
+            { type: "error", icon: "fas fa-exclamation-triangle" }
+          );
+        }
+      });
+
+      function buildConfirmationHTML(formInfo) {
+        let html = `<h2>🎉Order Confirmed!🎉</h2><p>Thank you <strong>${formInfo.first_name} ${formInfo.last_name}</strong> for your order! A confirmation email has been sent to <strong>${formInfo.email}</strong>.</p>
+          <p><strong>Order Number:</strong> ${formInfo.order_number}</p>`;
+        html += ticketDetailsHTML;
+
+        html += `<p><strong>Total Amount:</strong> $${formatCurrency(
+          formInfo.total_amount
+        )}</p>`;
+        html += `<p><strong>Payment Method:</strong>${
+          formInfo.payment_method === "cash" ? " Cash/Cheque" : " Bank Transfer"
+        }</p>`;
+        html +=
+          "<p>Please check your email for confirmation and payment instructions.</p>";
+        return html;
+      }
+    </script>
+  </body>
+</html>

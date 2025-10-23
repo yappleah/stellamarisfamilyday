@@ -1,0 +1,4308 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <style>
+      .toast-blur-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 9998;
+        background: rgba(0, 0, 0, 0.18);
+        backdrop-filter: blur(6px);
+      }
+    </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Event Orders</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      #loadingScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.3); /* lighter background */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(4px); /* optional blur */
+      }
+
+      /* Scoped to orders table only to avoid affecting tickets table */
+      #ordersContainer .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        max-height: 70vh;
+        overflow-x: auto;
+        overflow-y: auto;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      }
+
+      #ordersContainer .table {
+        margin-bottom: 0;
+        width: 100%;
+        min-width: 1500px; /* Force minimum width to enable horizontal scrolling */
+        table-layout: auto; /* Allow flexible column sizing for better scrolling */
+      }
+
+      #ordersContainer .table th {
+        background-color: #f8f9fa;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      /* ==================================================
+     * PROFESSIONAL TICKET FORM STYLING
+     * ================================================== */
+
+      /* Main ticket section styling */
+      .ticket-section {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+      }
+
+      .ticket-section:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .adult-tickets {
+        --section-accent: #2563eb;
+      }
+
+      .child-tickets {
+        --section-accent: #ffd600;
+      }
+
+      .ticket-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f3f4f6;
+      }
+
+      .ticket-icon {
+        font-size: 1rem;
+        margin-right: 10px;
+        padding: 8px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: #f8f9fa;
+        color: var(--section-accent);
+      }
+
+      .ticket-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #111827;
+      }
+
+      .ticket-price {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 1px;
+        font-weight: 500;
+      }
+
+      .ticket-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .ticket-section .btn-primary {
+        background: var(--section-accent);
+        border: 1px solid var(--section-accent);
+        color: white;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+      }
+
+      .ticket-section .btn-primary:hover {
+        background: color-mix(in srgb, var(--section-accent) 85%, black);
+        border-color: color-mix(in srgb, var(--section-accent) 85%, black);
+      }
+
+      .ticket-section .btn-outline-danger {
+        border: 1px solid #d1d5db;
+        color: #6b7280;
+        background: #ffffff;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+      }
+
+      .ticket-section .btn-outline-danger:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+        color: #374151;
+      }
+
+      /* Enhanced ticket dropdown styling */
+      .ticket-section .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .adult-tickets .form-label {
+        color: #1e40af;
+      }
+
+      .child-tickets .form-label {
+        color: #dc2626;
+      }
+
+      /* Individual ticket card styling - Compact Design */
+      .individual-ticket-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+        background: #ffffff;
+        border-left: 3px solid var(--accent-color);
+      }
+
+      .individual-ticket-card:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .ticket-card-header {
+        padding: 8px 12px;
+        background: #fafafa;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .ticket-number-badge {
+        display: flex;
+        align-items: center;
+        color: #374151;
+        font-weight: 600;
+        font-size: 0.8rem;
+      }
+
+      .ticket-number-badge i {
+        margin-right: 6px;
+        font-size: 0.8rem;
+        color: var(--accent-color);
+      }
+
+      .ticket-type-indicator {
+        font-size: 0.7rem;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 1px 6px;
+        border-radius: 8px;
+        font-weight: 500;
+      }
+
+      .ticket-card-content {
+        padding: 12px;
+        background: #ffffff;
+      }
+
+      /* Compact color scheme */
+      .adult-ticket-primary {
+        --accent-color: #2563eb;
+      }
+
+      .adult-ticket-secondary {
+        --accent-color: #2563eb;
+      }
+
+      .adult-ticket-tertiary {
+        --accent-color: #2563eb;
+      }
+
+      .child-ticket-primary {
+        --accent-color: #ffd600;
+      }
+
+      .child-ticket-secondary {
+        --accent-color: #ffe066;
+      }
+
+      .child-ticket-tertiary {
+        --accent-color: #fff9c4;
+      }
+      /* Child ticket icon yellow */
+      .child-tickets .ticket-icon {
+        color: #ffd600 !important;
+      }
+      /* Child ticket Add button yellow */
+      .child-tickets .btn-primary {
+        background: #ffd600 !important;
+        border-color: #ffd600 !important;
+        color: #111827 !important;
+      }
+      .child-tickets .btn-primary:hover {
+        background: #ffe066 !important;
+        border-color: #ffe066 !important;
+        color: #111827 !important;
+      }
+      /* Remove button always red */
+      .remove-ticket-btn,
+      .remove-ticket-btn i,
+      .remove-ticket-btn span {
+        color: #dc2626 !important;
+        border-color: #dc2626 !important;
+        background: #fff !important;
+      }
+      /* Hide remove buttons if parent has .paid-tickets */
+      .paid-tickets .remove-ticket-btn {
+        display: none !important;
+      }
+
+      /* Compact form styling */
+      .individual-ticket-card .form-label {
+        color: #111827;
+        font-weight: 600;
+        margin-bottom: 4px;
+        font-size: 0.8rem;
+      }
+
+      .individual-ticket-card .form-check-label {
+        color: #374151;
+        font-weight: 500;
+        font-size: 0.8rem;
+      }
+
+      .individual-ticket-card .form-select {
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        padding: 6px 10px;
+        background: #ffffff;
+      }
+
+      .individual-ticket-card .form-select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        outline: none;
+      }
+
+      .individual-ticket-card .form-check-input:checked {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+      }
+
+      .individual-ticket-card .form-check-input:focus {
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+      }
+
+      /* Compact section labels */
+      .individual-ticket-card .mb-2 {
+        margin-bottom: 8px !important;
+      }
+
+      .individual-ticket-card .mb-2 .form-label.small {
+        color: #6b7280;
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+      }
+
+      .individual-ticket-card .form-check {
+        margin-bottom: 4px;
+      }
+
+      .individual-ticket-card .form-check-inline {
+        margin-right: 12px;
+        margin-bottom: 2px;
+      }
+
+      #ordersContainer .table td {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+        vertical-align: middle;
+        word-wrap: none;
+      }
+
+      /* scope to orders table so tickets table is unaffected */
+      #ordersContainer .table th:nth-child(1),
+      #ordersContainer .table td:nth-child(1) {
+        width: 100px;
+      } /* Actions */
+      #ordersContainer .table th:nth-child(2),
+      #ordersContainer .table td:nth-child(2) {
+        width: 50px;
+      } /* Order # */
+      #ordersContainer .table th:nth-child(3),
+      #ordersContainer .table td:nth-child(3) {
+        width: 80px;
+      } /* Name */
+      #ordersContainer .table th:nth-child(4),
+      #ordersContainer .table td:nth-child(4) {
+        width: 150px !important;
+        min-width: 150px !important;
+      } /* Email */
+      #ordersContainer .table th:nth-child(5),
+      #ordersContainer .table td:nth-child(5) {
+        width: 130px;
+      } /* Phone */
+      #ordersContainer .table th:nth-child(6),
+      #ordersContainer .table td:nth-child(6) {
+        width: 50px;
+      } /* Adults */
+      #ordersContainer .table th:nth-child(7),
+      #ordersContainer .table td:nth-child(7) {
+        width: 50px;
+      } /* Children */
+      #ordersContainer .table th:nth-child(8),
+      #ordersContainer .table td:nth-child(8) {
+        width: 60px;
+      } /* Donation */
+      #ordersContainer .table th:nth-child(9),
+      #ordersContainer .table td:nth-child(9) {
+        width: 50px;
+      } /* Total */
+      #ordersContainer .table th:nth-child(10),
+      #ordersContainer .table td:nth-child(10) {
+        width: 50px;
+      } /* Amount Paid */
+      #ordersContainer .table th:nth-child(11),
+      #ordersContainer .table td:nth-child(11) {
+        width: 50px;
+      } /* Remaining Balance */
+      #ordersContainer .table th:nth-child(12),
+      #ordersContainer .table td:nth-child(12) {
+        width: 50px;
+      } /* Status */
+      #ordersContainer .table th:nth-child(13),
+      #ordersContainer .table td:nth-child(13) {
+        width: 90px;
+      } /* Payment Method */
+      #ordersContainer .table th:nth-child(14),
+      #ordersContainer .table td:nth-child(14) {
+        width: 50px;
+      } /* Issued */
+      #ordersContainer .table th:nth-child(15),
+      #ordersContainer .table td:nth-child(15) {
+        width: 140px;
+      } /* Ticket Numbers */
+      #ordersContainer .table th:nth-child(16),
+      #ordersContainer .table td:nth-child(16) {
+        width: 120px;
+      } /* Admin Notes */
+
+      /* Smaller action buttons in orders table */
+      #ordersContainer .table .btn-sm {
+        padding: 0.15rem 0.3rem;
+        font-size: 0.7rem;
+        line-height: 1.2;
+        min-width: 24px;
+        height: 24px;
+      }
+
+      #ordersContainer .table .btn-sm i {
+        font-size: 0.65rem;
+      }
+
+      /* Compact tickets table styling (mirrors ordersContainer compactness) */
+      #ticketsContainer .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        max-height: 70vh;
+        overflow-x: auto;
+        overflow-y: auto;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+      }
+
+      #ticketsContainer .table {
+        margin-bottom: 0;
+        width: 100%;
+        min-width: 1200px; /* ensure horizontal scroll at small widths */
+        table-layout: auto;
+        font-size: 0.875rem;
+      }
+
+      #ticketsContainer .table th {
+        background-color: #f8f9fa;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding: 0.5rem 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      #ticketsContainer .table td {
+        padding: 0.4rem 0.4rem;
+        font-size: 0.85rem;
+        vertical-align: middle;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: nowrap;
+      }
+
+      /* Column widths (more compact than before) */
+      #ticketsContainer .table th:nth-child(1),
+      #ticketsContainer .table td:nth-child(1) {
+        width: 60px !important;
+        max-width: 60px !important;
+      } /* Order # */
+      #ticketsContainer .table th:nth-child(2),
+      #ticketsContainer .table td:nth-child(2) {
+        width: 120px !important;
+        max-width: 120px !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      } /* Name */
+      #ticketsContainer .table th:nth-child(3),
+      #ticketsContainer .table td:nth-child(3) {
+        width: 100px !important;
+        max-width: 100px !important;
+        text-align: center;
+      } /* Phone */
+      #ticketsContainer .table th:nth-child(4),
+      #ticketsContainer .table td:nth-child(4) {
+        width: 60px !important;
+        max-width: 60px !important;
+        text-align: center;
+      } /* Ticket Type */
+      #ticketsContainer .table th:nth-child(5),
+      #ticketsContainer .table td:nth-child(5) {
+        width: 70px !important;
+        max-width: 70px !important;
+        text-align: center;
+      } /* Ticket Number */
+      #ticketsContainer .table th:nth-child(6),
+      #ticketsContainer .table td:nth-child(6) {
+        width: 160px !important;
+        max-width: 160px !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      } /* Food Option */
+      #ticketsContainer .table th:nth-child(7),
+      #ticketsContainer .table td:nth-child(7) {
+        width: 80px !important;
+        max-width: 80px !important;
+        text-align: center;
+      } /* Attendance */
+      #ticketsContainer .table th:nth-child(8),
+      #ticketsContainer .table td:nth-child(8) {
+        width: 70px !important;
+        max-width: 70px !important;
+        text-align: center;
+      } /* Pickup Time */
+      #ticketsContainer .table th:nth-child(9),
+      #ticketsContainer .table td:nth-child(9) {
+        width: 70px !important;
+        max-width: 70px !important;
+        text-align: center;
+      } /* Order Status */
+      #ticketsContainer .table th:nth-child(10),
+      #ticketsContainer .table td:nth-child(10) {
+        width: 60px !important;
+        max-width: 60px !important;
+        text-align: center;
+      } /* Issued */
+
+      /* Smaller badges and tighter spacing for compact view */
+      #ticketsContainer .badge {
+        padding: 0.3rem 0.4rem;
+        font-size: 0.75rem;
+      }
+
+      /* Ensure responsiveness: allow wrapping on very small screens */
+      @media (max-width: 768px) {
+        #ticketsContainer .table {
+          min-width: 900px;
+          font-size: 0.82rem;
+        }
+        #ticketsContainer .table th,
+        #ticketsContainer .table td {
+          padding: 0.35rem 0.35rem;
+        }
+      }
+
+      /* Payments table styling (consistent with other containers) */
+      #paymentsContainer .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        max-height: 70vh;
+        overflow-x: auto;
+        overflow-y: auto;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+      }
+
+      #paymentsContainer .table {
+        margin-bottom: 0;
+        width: 100%;
+        min-width: 1100px; /* ensure horizontal scroll at small widths */
+        table-layout: auto;
+        font-size: 0.875rem;
+      }
+
+      #paymentsContainer .table th {
+        background-color: #f8f9fa;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding: 0.5rem 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      #paymentsContainer .table td {
+        padding: 0.4rem 0.4rem;
+        font-size: 0.85rem;
+        vertical-align: middle;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: nowrap;
+      }
+
+      /* Payment table column widths */
+      #paymentsContainer .table th:nth-child(1),
+      #paymentsContainer .table td:nth-child(1) {
+        width: 80px !important;
+        max-width: 80px !important;
+      } /* Date */
+      #paymentsContainer .table th:nth-child(2),
+      #paymentsContainer .table td:nth-child(2) {
+        width: 70px !important;
+        max-width: 70px !important;
+      } /* Order # */
+      #paymentsContainer .table th:nth-child(3),
+      #paymentsContainer .table td:nth-child(3) {
+        width: 130px !important;
+        max-width: 130px !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      } /* Customer Name */
+      #paymentsContainer .table th:nth-child(4),
+      #paymentsContainer .table td:nth-child(4) {
+        width: 140px !important;
+        max-width: 140px !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      } /* Email */
+      #paymentsContainer .table th:nth-child(5),
+      #paymentsContainer .table td:nth-child(5) {
+        width: 80px !important;
+        max-width: 80px !important;
+        text-align: center;
+      } /* Amount */
+      #paymentsContainer .table th:nth-child(6),
+      #paymentsContainer .table td:nth-child(6) {
+        width: 90px !important;
+        max-width: 90px !important;
+        text-align: center;
+      } /* Method */
+      #paymentsContainer .table th:nth-child(7),
+      #paymentsContainer .table td:nth-child(7) {
+        width: 100px !important;
+        max-width: 100px !important;
+        text-align: center;
+      } /* Reference */
+      #paymentsContainer .table th:nth-child(8),
+      #paymentsContainer .table td:nth-child(8) {
+        width: 80px !important;
+        max-width: 80px !important;
+        text-align: center;
+      } /* Order Total */
+
+      /* Smaller badges and tighter spacing for payments view */
+      #paymentsContainer .badge {
+        padding: 0.3rem 0.4rem;
+        font-size: 0.75rem;
+      }
+
+      /* Scrollbar styling */
+      .table-responsive::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+      }
+
+      .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+
+      .table-responsive::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+
+      .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }
+    </style>
+  </head>
+  <body style="background-color: #d0f0ff">
+    <div class="container bg-white min-vh-100">
+      <!-- NAVBAR -->
+      <nav
+        class="navbar navbar-expand-lg navbar-dark"
+        style="background-color: #2f4f4f"
+      >
+        <div class="container">
+          <a class="navbar-brand" href="index.html"
+            >🎄 Stella Maris Family Day</a
+          >
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div
+            class="collapse navbar-collapse justify-content-end"
+            id="navbarNav"
+          >
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="index.html#about">About Us</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="index.html#expect">What to Expect</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="ticket-form.html"
+                  >Ticket Order Form</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="admin-portal-funday-9831.html"
+                  >Admin Dashboard</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <!-- HERO SECTION -->
+      <header class="bg-light text-center py-2 mb-4">
+        <div class="container">
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Event Ticket Orders</h2>
+            <div class="text-end mb-3">
+              <button
+                id="adminSignOut"
+                class="btn btn-outline-danger"
+                onclick="signOut()"
+                style="display: none"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="px-1 pb-5">
+        <div class="mb-3">
+          <span id="editOutstanding" style="display: none"></span>
+          <a
+            href="admin-portal-funday-9831.html"
+            class="btn btn-link text-secondary"
+            >Back</a
+          >
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="mb-0" id="eventTitle">Event Ticket Orders</h2>
+          <div class="btn-group" role="group">
+            <button id="ordersViewBtn" class="btn btn-primary">
+              <i class="bi bi-table"></i> Orders
+            </button>
+            <button id="ticketsViewBtn" class="btn btn-outline-primary">
+              <i class="bi bi-ticket-perforated"></i> Tickets
+            </button>
+            <button id="paymentsViewBtn" class="btn btn-outline-primary">
+              <i class="bi bi-credit-card"></i> Payments
+            </button>
+          </div>
+        </div>
+        <div id="searchFilters">
+          <div class="row mb-3">
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold">Payment Status</label>
+              <select id="filterPaid" class="form-select">
+                <option value="">All Payment Status</option>
+                <option value="paid">Paid</option>
+                <option value="unpaid">Unpaid</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold">Payment Method</label>
+              <select id="filterPaymentMethod" class="form-select">
+                <option value="">All Payment Methods</option>
+                <option value="cash">Cash/Cheque</option>
+                <option value="bank transfer">Bank Transfer</option>
+              </select>
+            </div>
+            <div class="col-md-4 mb-2">
+              <label class="form-label fw-bold">Issued Status</label>
+              <select id="filterIssued" class="form-select">
+                <option value="">All Issued Status</option>
+                <option value="issued">Issued</option>
+                <option value="not_issued">Not Issued</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <input
+              type="text"
+              id="orderSearch"
+              class="form-control"
+              placeholder="Search by order number, name, email, phone or ticket number"
+            />
+          </div>
+        </div>
+
+        <div id="ordersContainer"></div>
+        <div id="ticketsContainer" style="display: none"></div>
+        <div id="paymentsContainer" style="display: none"></div>
+      </div>
+    </div>
+    <!-- FOOTER -->
+    <footer class="text-center py-4 bg-light mt-5">
+      <p class="mb-1">
+        <strong>📍 Stella Maris Church Grounds</strong> |
+        <span id="dateAndTime"></span>
+      </p>
+      <p class="mb-1">
+        📞 876-925-9520 | 📧
+        <a href="mailto:stellamarisfamilyday@gmail.com"
+          >stellamarisfamilyday@gmail.com</a
+        >
+      </p>
+      <small class="text-muted"
+        >#StellaMarisFamilyDay #JamaicanChristmas #FamilyFun</small
+      >
+      <p>
+        &copy; <span id="year"></span> by Stella Maris Catholic Church Jamaica
+      </p>
+    </footer>
+
+    <!-- Payment Modal -->
+    <div
+      class="modal fade"
+      id="paymentModal"
+      tabindex="-1"
+      aria-labelledby="paymentModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <form class="modal-content" id="paymentForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="paymentModalLabel">Record Payment</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="ticketId" />
+            <div class="mb-3">
+              <label class="form-label">Customer Outstanding Balance</label>
+              <p
+                id="paymentOutstanding"
+                class="form-control-plaintext fw-bold text-danger mb-0"
+              >
+                Loading...
+              </p>
+            </div>
+            <div class="mb-3">
+              <label for="paymentDate" class="form-label">Payment Date</label>
+              <input
+                type="date"
+                class="form-control"
+                id="paymentDate"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="paymentAmount" class="form-label"
+                >Payment Amount</label
+              >
+              <input
+                type="number"
+                class="form-control"
+                id="paymentAmount"
+                min="1"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="paymentMethod" class="form-label"
+                >Payment Method</label
+              >
+              <select class="form-select" id="paymentMethod" required>
+                <option value="cash">Cash/Cheque</option>
+                <option value="bank transfer">Bank Transfer</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="referenceNumber" class="form-label"
+                >Reference Number (optional)</label
+              >
+              <input type="text" class="form-control" id="referenceNumber" />
+            </div>
+            <input type="hidden" id="customerEmail" value="" />
+            <input type="hidden" id="customerName" value="" />
+            <input type="hidden" id="orderNumber" value="" />
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+              Submit Payment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Issued Confirmation Modal -->
+    <div
+      class="modal fade"
+      id="issuedModal"
+      tabindex="-1"
+      aria-labelledby="issuedModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="issuedModalLabel">
+              Confirm Ticket Issuance
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>Assign ticket numbers to each ticket:</p>
+            <div class="alert alert-info" style="font-size: 0.875rem">
+              <i class="bi bi-info-circle"></i>
+              <strong>Auto-suggested numbers:</strong> The system suggests the
+              next available ticket numbers based on existing assignments. You
+              can change these numbers as needed.
+            </div>
+            <div id="ticketListContainer" class="mb-3"></div>
+            <!-- will list ticket entries with inputs here -->
+            <small class="text-muted">
+              <i class="bi bi-lightbulb"></i>
+              Adult tickets typically use 4-digit numbers (e.g., 0001), Child
+              tickets use 3-digit numbers (e.g., 001). Suggested numbers are
+              highlighted in blue.
+            </small>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="button" class="btn btn-primary" id="confirmIssuedBtn">
+              Confirm Issuance
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Helper to render one ticket row (label + input). Expects ticket object with id and ticket_type and optional ticket_number.
+      function buildTicketHtml(ticket, idx) {
+        let typeLabel = "";
+        if (ticket.ticket_type === "adult") {
+          typeLabel = "Adult";
+        } else if (ticket.ticket_type === "child") {
+          typeLabel = "Child";
+        } else if (ticket.ticket_type === "adult_donated") {
+          typeLabel = "Adult Donated";
+        } else if (ticket.ticket_type === "child_donated") {
+          typeLabel = "Child Donated";
+        }
+
+        // Handle food options - parse JSON array or use single value
+        let foodLabels = "";
+        if (ticket.food_option) {
+          try {
+            const foodOptions = JSON.parse(ticket.food_option);
+            if (Array.isArray(foodOptions)) {
+              foodLabels = foodOptions
+                .map((option) => {
+                  // Use getFoodLabel if available, else fallback to option
+                  if (typeof getFoodLabel === "function") {
+                    return getFoodLabel(option);
+                  } else {
+                    // Map known station keys to labels manually if needed
+                    switch (option) {
+                      case "station1":
+                        return "Curry goat, rice & roti";
+                      case "station2":
+                        return "Jerk pork & chicken with festival";
+                      case "station3":
+                        return "Fish & vegetable pasta";
+                      case "station4":
+                        return "Chinese - vegetable lo mein, sweet & sour chicken";
+                      default:
+                        return option;
+                    }
+                  }
+                })
+                .join(", ");
+            } else if (typeof foodOptions === "string") {
+              foodLabels =
+                typeof getFoodLabel === "function"
+                  ? getFoodLabel(foodOptions)
+                  : foodOptions;
+            }
+          } catch (e) {
+            // Fallback for old format - single food option as string
+            if (typeof getFoodLabel === "function") {
+              foodLabels = getFoodLabel(ticket.food_option);
+            } else {
+              switch (ticket.food_option) {
+                case "station1":
+                  foodLabels = "Curry goat, rice & roti";
+                  break;
+                case "station2":
+                  foodLabels = "Jerk pork & chicken with festival";
+                  break;
+                case "station3":
+                  foodLabels = "Fish & vegetable pasta";
+                  break;
+                case "station4":
+                  foodLabels =
+                    "Chinese - vegetable lo mein, sweet & sour chicken";
+                  break;
+                default:
+                  foodLabels = ticket.food_option;
+              }
+            }
+          }
+        }
+        // Attendance type label
+        let attendanceLabel = "";
+        if (ticket.attendance_type === "attending") {
+          attendanceLabel = "Attending";
+        } else if (ticket.attendance_type === "takeaway") {
+          attendanceLabel = "Takeaway";
+        } else if (ticket.attendance_type === "donate") {
+          attendanceLabel = "Donate";
+        } else {
+          attendanceLabel = ticket.attendance_type || "";
+        }
+
+        // Show attendance type beside ticket type, not food options
+        const attendanceInfo = ` (${escapeHtml(attendanceLabel)})`;
+        const foodOption = "";
+
+        // Determine the value to use: existing number, suggested number, or empty
+        let inputValue = "";
+        let inputClass = "form-control ticket-number-input";
+        let inputTitle = "Enter ticket number";
+        let inputDisabled = "";
+
+        if (ticket.ticket_number != null) {
+          // Use existing ticket number
+          inputValue = String(ticket.ticket_number);
+          inputTitle = "Current ticket number";
+        } else if (ticket.suggested_number) {
+          // Use suggested number with proper padding
+          inputValue = formatTicketNumber({
+            ticket_number: ticket.suggested_number,
+            ticket_type: ticket.ticket_type,
+          });
+          inputClass += " suggested-number";
+          inputTitle = "Suggested next available number - you can change this";
+        }
+
+        return `
+        <div class="d-flex align-items-center mb-3 ticket-row" data-ticket-id="${
+          ticket.id
+        }">
+          <div class="flex-grow-1">
+            <div><strong>${typeLabel} Ticket</strong>${attendanceInfo}</div>
+            ${
+              ticket.suggested_number
+                ? '<small class="text-muted">Auto-suggested number</small>'
+                : ""
+            }
+          </div>
+          <div class="ms-3">
+            <input type="text" class="${inputClass}" style="max-width: 120px;" 
+                 data-ticket-id="${ticket.id}" 
+                 placeholder="${typeLabel.includes("Adult") ? "0001" : "001"}" 
+                 value="${escapeHtml(inputValue)}"
+                 title="${inputTitle}"
+                 ${inputDisabled}>
+          </div>
+        </div>
+      `;
+      }
+
+      // Simple HTML escape for any displayed values
+      function escapeHtml(str) {
+        if (!str) return "";
+        return String(str).replace(
+          /[&<>"']/g,
+          (m) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            }[m])
+        );
+      }
+
+      // When the modal opens, build the ticket input list from the selected order's tickets
+      document
+        .getElementById("issuedModal")
+        .addEventListener("show.bs.modal", function () {
+          const container = document.getElementById("ticketListContainer");
+          container.innerHTML = "";
+          if (typeof currentTicketId === "undefined" || !currentTicketId) {
+            container.innerHTML =
+              '<div class="text-danger">No order selected.</div>';
+            return;
+          }
+
+          const order = (allOrders || []).find((o) => o.id === currentTicketId);
+          if (!order) {
+            container.innerHTML =
+              '<div class="text-danger">Order not found.</div>';
+            return;
+          }
+
+          // Ensure we have tickets array (tickets were selected with orders earlier)
+          let tickets = Array.isArray(order.tickets)
+            ? order.tickets.slice()
+            : [];
+
+          // Sort so adult tickets come before child tickets, preserving relative order otherwise
+          tickets.sort((a, b) => {
+            // Define sorting order: adult, adult_donated, child, child_donated
+            const order = {
+              adult: 1,
+              adult_donated: 2,
+              child: 3,
+              child_donated: 4,
+            };
+            const aOrder = order[a.ticket_type] || 999;
+            const bOrder = order[b.ticket_type] || 999;
+            return aOrder - bOrder;
+          });
+
+          let adultIdx = 1,
+            childIdx = 1;
+          if (tickets.length === 0) {
+            container.innerHTML =
+              '<div class="text-warning">No ticket records available for this order.</div>';
+            return;
+          }
+
+          // Get suggested ticket numbers for unassigned tickets
+          const suggestions = getSuggestedTicketNumbers(tickets);
+
+          tickets.forEach((ticket) => {
+            let idx;
+            let typeLabel = "";
+            if (ticket.ticket_type === "adult") {
+              typeLabel = "Adult";
+              idx = adultIdx++;
+            } else if (ticket.ticket_type === "child") {
+              typeLabel = "Child";
+              idx = childIdx++;
+            } else if (ticket.ticket_type === "adult_donated") {
+              typeLabel = "Adult Donated";
+              idx = adultIdx++;
+            } else if (ticket.ticket_type === "child_donated") {
+              typeLabel = "Child Donated";
+              idx = childIdx++;
+            } else {
+              idx = 1; // fallback
+            }
+
+            // If ticket doesn't have a number, suggest one
+            if (!ticket.ticket_number && suggestions[ticket.id]) {
+              ticket.suggested_number = suggestions[ticket.id];
+            }
+
+            container.insertAdjacentHTML(
+              "beforeend",
+              buildTicketHtml(ticket, idx)
+            );
+          });
+
+          // After building the HTML, apply styling to suggested numbers
+          setTimeout(() => {
+            const suggestedInputs =
+              container.querySelectorAll(".suggested-number");
+            suggestedInputs.forEach((input) => {
+              input.style.backgroundColor = "#e3f2fd"; // Light blue to indicate it's suggested
+              input.style.borderColor = "#2196f3"; // Blue border
+            });
+          }, 0);
+        });
+
+      // When the confirm button is clicked, save ticket numbers AND mark order as issued
+      document
+        .getElementById("confirmIssuedBtn")
+        .addEventListener("click", async function () {
+          if (!currentTicketId) return;
+
+          // show loading UI
+          showLoadingScreen();
+
+          try {
+            // First, save any entered ticket numbers (excluding donation tickets)
+            const inputs = Array.from(
+              document.querySelectorAll(
+                "#ticketListContainer .ticket-number-input:not([disabled])"
+              )
+            );
+            const updates = inputs
+              .map((i) => {
+                const raw = i.value.trim();
+                const digits = raw.replace(/\D/g, "");
+                return {
+                  id: i.dataset.ticketId,
+                  ticket_number: digits === "" ? null : parseInt(digits, 10),
+                };
+              })
+              .filter((u) => u.ticket_number !== null); // only update entries with numeric values
+
+            // Update ticket numbers if any were entered
+            if (updates.length > 0) {
+              for (const u of updates) {
+                const { error } = await supabaseClient
+                  .from("tickets")
+                  .update({ ticket_number: u.ticket_number })
+                  .eq("id", u.id);
+
+                if (error) {
+                  console.error("Failed updating ticket", u.id, error);
+                  throw new Error(
+                    `Failed to save ticket number for ticket ${u.id}: ${error.message}`
+                  );
+                }
+              }
+            }
+
+            // Then mark the order as issued
+            const { error: issuedError } = await supabaseClient
+              .from("orders")
+              .update({ issued: true })
+              .eq("id", currentTicketId);
+
+            if (issuedError) {
+              throw new Error(
+                `Failed to mark order as issued: ${issuedError.message}`
+              );
+            }
+
+            // Success! Close modal and show success toast
+            hideLoadingScreen();
+            bootstrap.Modal.getInstance(
+              document.getElementById("issuedModal")
+            ).hide();
+
+            // Show success toast for ticket issuance
+            const toastId = `ticketsIssuedToast_${Date.now()}`;
+            const toastHtml = `
+          <div id="${toastId}_blur" class="toast-blur-overlay"></div>
+          <div id="${toastId}" class="toast align-items-center border position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 400px; background-color: white; color: #212529;">
+            <div class="d-flex">
+              <div class="toast-body fs-5 py-3">
+                🎫 Tickets issued successfully! Order marked as complete.
+              </div>
+              <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+          </div>
+        `;
+            document.body.insertAdjacentHTML("beforeend", toastHtml);
+            const toastEl = document.getElementById(toastId);
+            const bsToast = new bootstrap.Toast(toastEl, {
+              delay: 4000,
+              autohide: true,
+            });
+            bsToast.show();
+            // Remove blur overlay when toast is hidden
+            toastEl.addEventListener("hidden.bs.toast", () => {
+              const blurEl = document.getElementById(`${toastId}_blur`);
+              if (blurEl) blurEl.remove();
+            });
+
+            // Reload after toast shows
+            location.reload();
+          } catch (err) {
+            console.error("Error processing ticket issuance:", err);
+            alert(`Failed to process ticket issuance: ${err.message}`);
+          } finally {
+            hideLoadingScreen();
+          }
+        });
+    </script>
+
+    <!-- Admin Edit Modal (or page) -->
+    <div
+      class="modal fade"
+      id="editModal"
+      tabindex="-1"
+      aria-labelledby="editModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">
+              Admin: Edit Ticket Order
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="editForm">
+              <input type="hidden" id="eventId" />
+              <input type="hidden" id="editTicketId" />
+              <input type="hidden" id="adminAmountPaid" />
+              <!-- Customer Information Section -->
+              <div id="adminCustomerFields"></div>
+              <!-- Ticket Sections -->
+              <div id="adminTicketSections"></div>
+              <input type="hidden" id="editAdultDonations" value="0" />
+              <input type="hidden" id="editChildDonations" value="0" />
+              <div class="mb-3">
+                <label for="editPaymentMethod" class="form-label"
+                  >Payment Method</label
+                >
+                <select id="editPaymentMethod" class="form-select">
+                  <option value="cash">Cash/Cheque</option>
+                  <option value="bank transfer">Bank Transfer</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="editNotes" class="form-label">Admin Notes</label>
+                <textarea
+                  id="editNotes"
+                  class="form-control"
+                  rows="3"
+                ></textarea>
+              </div>
+              <p><strong>Total:</strong> $<span id="editTotal"></span></p>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="loadingScreen">
+      <div
+        class="spinner-border text-primary"
+        role="status"
+        style="width: 3rem; height: 3rem"
+      >
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="functions.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+      const adultPrice = CONFIG.PRICING.adult_ticket;
+      const childPrice = CONFIG.PRICING.child_ticket;
+      emailjs.init("GMch0DES4yiVfdanm");
+      document.getElementById("dateAndTime").textContent = CONFIG.EVENT.date;
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      let allOrders = [];
+      const supabaseClient = supabase.createClient(
+        CONFIG.SUPABASE_URL,
+        CONFIG.SUPABASE_ANON_KEY
+      );
+
+      const params = new URLSearchParams(window.location.search);
+      const eventId = params.get("eventId");
+
+      let currentTicketId = null;
+
+      /**
+       * Find the next available ticket number for a given ticket type
+       * @param {string} ticketType - 'adult' or 'child'
+       * @returns {number} Next available ticket number
+       */
+      function getNextTicketNumber(ticketType) {
+        let maxTicketNumber = 0;
+
+        // Search through all orders and their tickets to find the highest ticket number for this type
+        forEachTicket(allOrders, (order, ticket) => {
+          if (
+            ticket.ticket_type.includes(ticketType) &&
+            ticket.ticket_number != null
+          ) {
+            const ticketNum = parseInt(ticket.ticket_number);
+            if (!isNaN(ticketNum) && ticketNum > maxTicketNumber) {
+              maxTicketNumber = ticketNum;
+            }
+          }
+        });
+
+        return maxTicketNumber + 1;
+      }
+
+      /**
+       * Get suggested ticket numbers for an order's unassigned tickets
+       * @param {Array} tickets - Array of ticket objects
+       * @returns {Object} Object with suggested numbers for each ticket ID
+       */
+      function getSuggestedTicketNumbers(tickets) {
+        const suggestions = {};
+        let nextAdultNumber = getNextTicketNumber(["adult", "adult_donated"]);
+        let nextChildNumber = getNextTicketNumber(["child", "child_donated"]);
+
+        tickets.forEach((ticket) => {
+          if (!ticket.ticket_number) {
+            // Only suggest for unassigned tickets
+            if (
+              ticket.ticket_type === "adult" ||
+              ticket.ticket_type === "adult_donated"
+            ) {
+              suggestions[ticket.id] = nextAdultNumber++;
+              console.log(
+                `Suggesting adult ticket number for ticket ${ticket.id}: ${
+                  suggestions[ticket.id]
+                }`
+              );
+            } else if (
+              ticket.ticket_type === "child" ||
+              ticket.ticket_type === "child_donated"
+            ) {
+              suggestions[ticket.id] = nextChildNumber++;
+              console.log(
+                `Suggesting child ticket number for ticket ${ticket.id}: ${
+                  suggestions[ticket.id]
+                }`
+              );
+            }
+          }
+        });
+
+        console.log("All suggested ticket numbers:", suggestions);
+        return suggestions;
+      }
+
+      async function loadEventDetails(id) {
+        const { data: event, error } = await supabaseClient
+          .from("events")
+          .select("name")
+          .eq("id", id)
+          .maybeSingle();
+
+        if (event && event.name) {
+          document.getElementById("eventTitle").textContent = `${event.name}`;
+          loadOrders(id);
+        } else {
+          document.getElementById("ordersContainer").innerHTML =
+            "<p class='text-danger'>No event found for the given ID.</p>";
+        }
+      }
+
+      if (!eventId) {
+        document.getElementById("ordersContainer").innerHTML =
+          "<p class='text-danger'>No event specified.</p>";
+      } else {
+        if (sessionStorage.getItem("adminLoggedIn") !== "true") {
+          window.location.href = "admin-portal-funday-9831.html";
+        }
+        loadEventDetails(eventId);
+      }
+
+      async function loadOrders(eventId) {
+        showLoadingScreen();
+
+        const { data, error } = await supabaseClient
+          .from("orders")
+          .select("*, tickets(*)")
+          .eq("event_id", eventId);
+
+        hideLoadingScreen();
+
+        data.forEach((order) => {
+          if (Array.isArray(order.tickets) && order.tickets.length > 0) {
+            order.ticket_numbers = order.tickets
+              .map((t) => {
+                if (t.ticket_number == null) return ""; // handle null ticket_number
+                return formatTicketNumber(t);
+              })
+              .filter(Boolean) // remove empty entries for null ticket_number
+              .join(", ");
+          } else {
+            order.ticket_numbers = "";
+          }
+        });
+
+        if (error || !data || data.length === 0) {
+          document.getElementById("ordersContainer").innerHTML =
+            "<p class='text-warning'>No ticket orders found for this event.</p>";
+          return;
+        }
+        allOrders = data;
+        renderOrders(allOrders);
+
+        // Initialize the view based on saved state
+        updateViewDisplay();
+      }
+
+      document.getElementById("orderSearch").addEventListener("input", (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const filtered = allOrders.filter((order) => {
+          const nameMatch = `${order.first_name || ""} ${order.last_name || ""}`
+            .toLowerCase()
+            .includes(searchTerm);
+          const emailMatch = (order.email || "")
+            .toLowerCase()
+            .includes(searchTerm);
+          const phoneMatch = (order.phone_number || "")
+            .toLowerCase()
+            .includes(searchTerm);
+          const ticketsMatch = (order.ticket_numbers || "")
+            .toString()
+            .toLowerCase()
+            .includes(searchTerm);
+
+          return nameMatch || emailMatch || phoneMatch || ticketsMatch;
+        });
+
+        renderOrders(filtered);
+      });
+
+      function renderOrders(data) {
+        // Store filtered orders globally for download
+        currentFilteredOrders = data;
+
+        document.getElementById("ordersContainer").innerHTML = `
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <small class="text-muted">
+          <i class="bi bi-arrow-left-right"></i> 
+          Scroll horizontally to see all columns • Total orders: <span>${
+            data.length
+          }</span>
+        </small>
+        <button id="downloadOrdersResults" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-download"></i> Download Orders
+        </button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+          <thead>
+            <tr>
+              <th>Actions</th>
+              <th>Order #</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone Number</th>
+              <th>Adults</th>
+              <th>Children</th>
+              <th>Donated Adults</th>
+              <th>Donated Children</th>
+              <th>Total</th>
+              <th>Amount Paid</th>
+              <th>Remaining Balance</th>
+              <th>Payment Method</th>
+              <th>Issued</th>
+              <th>Ticket Numbers</th>
+              <th>Admin Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .map(
+                (order) => `
+                <tr>
+                  <td>
+                  <button class="btn btn-sm btn-info mb-1" onclick="resendConfirmationEmail('${
+                    order.id
+                  }')" title="Resend confirmation email"> 
+                    <i class="bi bi-envelope"></i>
+                  </button>
+                    ${
+                      !order.paid
+                        ? `<button class="btn btn-sm btn-success mb-1" title="Enter Payment" onclick="openPaymentModal('${
+                            order.id
+                          }', '${
+                            order.payment_method || "cash"
+                          }')"><i class="bi bi-currency-dollar"></i></button>`
+                        : ""
+                    }
+                    ${
+                      order.paid && !order.issued
+                        ? `<button class="btn btn-sm btn-warning mb-1" title="Issue Tickets" onclick="confirmIssued('${order.id}')"><i class="bi bi-ticket-perforated-fill"></i></button>`
+                        : ""
+                    }
+                    <button class="btn btn-sm btn-primary mb-1" title="${
+                      order.paid ? "Edit Notes" : "Edit Order"
+                    }" onclick="openEditModal('${order.id}')">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                  </td>
+                  <td>${order.order_number}</td>
+                  <td>${order.first_name} ${order.last_name}</td>
+                  <td>${order.email}</td>
+                  <td>${
+                    order.phone_number
+                      ? formatPhoneNumber(order.phone_number)
+                      : '<span class="text-muted">N/A</span>'
+                  }</td>
+                  <td>${order.adult_tickets}</td>
+                  <td>${order.child_tickets}</td>
+                  <td>${order.adult_donations}</td>
+                  <td>${order.child_donations}</td>
+                  <td>$${formatCurrency(order.total_amount || 0)}</td>
+                  <td>$${formatCurrency(order.amount_paid || 0)}</td>
+                  <td>
+                    <span class="${
+                      (order.total_amount || 0) - (order.amount_paid || 0) <= 0
+                        ? "text-success"
+                        : "text-danger"
+                    }">
+                      $${formatCurrency(
+                        Math.max(
+                          0,
+                          (order.total_amount || 0) - (order.amount_paid || 0)
+                        )
+                      )}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge ${
+                      order.payment_method === "cash" ? "bg-success" : "bg-info"
+                    }">
+                      ${
+                        order.payment_method === "cash"
+                          ? "Cash/Cheque"
+                          : "Bank Transfer"
+                      }
+                    </span>
+                  </td>
+                  <td>
+                    <span class="${
+                      order.issued ? "text-success" : "text-danger"
+                    }">
+                      ${order.issued ? "Yes" : "No"}
+                    </span>
+                  </td>
+                  <td>${order.ticket_numbers}</td>
+                  <td>${order.admin_notes || " "}</td>
+                </tr>
+              `
+              )
+              .join("")}
+          </tbody>
+        </table>
+        </div>
+      `;
+
+        // Add download functionality for orders
+        setTimeout(() => {
+          document
+            .getElementById("downloadOrdersResults")
+            ?.addEventListener("click", downloadOrdersResults);
+        }, 0);
+      }
+
+      // Store filtered orders globally for download
+      let currentFilteredOrders = [];
+
+      // Download function for filtered orders
+      function downloadOrdersResults() {
+        if (currentFilteredOrders.length === 0) {
+          showToastWithBlur(
+            "No orders to download. Please adjust your filters.",
+            { type: "error", icon: "fas fa-exclamation-triangle" }
+          );
+          return;
+        }
+
+        // Create CSV content with specified columns in exact order requested
+        const headers = [
+          "Order #",
+          "Name",
+          "Email",
+          "Phone Number",
+          "Adults",
+          "Children",
+          "Donated Adults",
+          "Donated Child",
+          "Total",
+          "Amount Paid",
+          "Remaining Balance",
+          "Payment Method",
+          "Issued",
+          "Ticket Numbers",
+          "Admin Notes",
+        ];
+        const csvRows = [headers.join(",")];
+
+        currentFilteredOrders.forEach((order) => {
+          // Helper function to escape CSV values
+          const escapeCSV = (value) => {
+            if (value == null) return "";
+            const str = String(value);
+            // Remove or replace newlines and carriage returns
+            const cleaned = str.replace(/[\r\n]+/g, " ").trim();
+            // Escape quotes by doubling them
+            const escaped = cleaned.replace(/"/g, '""');
+            return escaped;
+          };
+
+          const row = [
+            `"${escapeCSV(order.order_number)}"`,
+            `"${escapeCSV(order.first_name + " " + order.last_name)}"`,
+            `"${escapeCSV(order.email)}"`,
+            `"${escapeCSV(order.phone_number)}"`,
+            `"${escapeCSV(order.adult_tickets || 0)}"`,
+            `"${escapeCSV(order.child_tickets || 0)}"`,
+            `"${escapeCSV(order.adult_donations || 0)}"`,
+            `"${escapeCSV(order.child_donations || 0)}"`,
+            `"${escapeCSV(formatCurrency(order.total_amount || 0))}"`,
+            `"${escapeCSV(formatCurrency(order.amount_paid || 0))}"`,
+            `"${escapeCSV(
+              formatCurrency(
+                Math.max(
+                  0,
+                  (order.total_amount || 0) - (order.amount_paid || 0)
+                )
+              )
+            )}"`,
+            `"${escapeCSV(
+              order.payment_method === "cash" ? "Cash/Cheque" : "Bank Transfer"
+            )}"`,
+            `"${escapeCSV(order.issued ? "Yes" : "No")}"`,
+            `"${escapeCSV(order.ticket_numbers || "Not assigned")}"`,
+            `"${escapeCSV(order.admin_notes || "")}"`,
+          ];
+          csvRows.push(row.join(","));
+        });
+
+        // Create and download CSV file
+        const csvContent = csvRows.join("\n");
+        const blob = new Blob([csvContent], {
+          type: "text/csv;charset=utf-8;",
+        });
+        const link = document.createElement("a");
+
+        const currentDate = new Date().toISOString().split("T")[0];
+        const filename = `orders-${currentDate}.csv`;
+
+        if (link.download !== undefined) {
+          const url = URL.createObjectURL(blob);
+          link.setAttribute("href", url);
+          link.setAttribute("download", filename);
+          link.style.visibility = "hidden";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      }
+
+      document
+        .getElementById("orderSearch")
+        .addEventListener("input", filterAndRender);
+      document
+        .getElementById("filterPaid")
+        .addEventListener("change", filterAndRender);
+      document
+        .getElementById("filterPaymentMethod")
+        .addEventListener("change", filterAndRender);
+      document
+        .getElementById("filterIssued")
+        .addEventListener("change", filterAndRender);
+
+      function filterAndRender() {
+        const searchTerm = document
+          .getElementById("orderSearch")
+          .value.toLowerCase();
+        const paidFilter = document.getElementById("filterPaid").value;
+        const paymentMethodFilter = document.getElementById(
+          "filterPaymentMethod"
+        ).value;
+        const issuedFilter = document.getElementById("filterIssued").value;
+
+        const filtered = allOrders.filter((order) => {
+          const matchesSearch =
+            `${order.first_name || ""} ${order.last_name || ""}`
+              .toLowerCase()
+              .includes(searchTerm) ||
+            (order.email || "").toLowerCase().includes(searchTerm) ||
+            (order.order_number || "").toLowerCase().includes(searchTerm) ||
+            (order.phone_number || "").toLowerCase().includes(searchTerm) ||
+            (order.ticket_numbers || "")
+              .toString()
+              .toLowerCase()
+              .includes(searchTerm);
+
+          const matchesPaid =
+            paidFilter === "" ||
+            (paidFilter === "paid" && order.paid) ||
+            (paidFilter === "unpaid" && !order.paid);
+
+          const matchesPaymentMethod =
+            paymentMethodFilter === "" ||
+            (order.payment_method || "cash") === paymentMethodFilter;
+
+          const matchesIssued =
+            issuedFilter === "" ||
+            (issuedFilter === "issued" && order.issued) ||
+            (issuedFilter === "not_issued" && !order.issued);
+
+          return (
+            matchesSearch &&
+            matchesPaid &&
+            matchesPaymentMethod &&
+            matchesIssued
+          );
+        });
+
+        renderOrders(filtered);
+      }
+
+      // ==================================================
+      // VIEW MANAGEMENT FUNCTIONALITY
+      // ==================================================
+
+      let currentView = localStorage.getItem("eventDetailsView") || "orders";
+
+      // View button event listeners
+      document
+        .getElementById("ordersViewBtn")
+        .addEventListener("click", function () {
+          currentView = "orders";
+          localStorage.setItem("eventDetailsView", currentView);
+          updateViewDisplay();
+        });
+
+      document
+        .getElementById("ticketsViewBtn")
+        .addEventListener("click", function () {
+          currentView = "tickets";
+          localStorage.setItem("eventDetailsView", currentView);
+          updateViewDisplay();
+        });
+
+      document
+        .getElementById("paymentsViewBtn")
+        .addEventListener("click", function () {
+          currentView = "payments";
+          localStorage.setItem("eventDetailsView", currentView);
+          updateViewDisplay();
+        });
+
+      function updateViewDisplay() {
+        const ordersContainer = document.getElementById("ordersContainer");
+        const ticketsContainer = document.getElementById("ticketsContainer");
+        const paymentsContainer = document.getElementById("paymentsContainer");
+        const searchFilters = document.getElementById("searchFilters");
+        const ordersBtn = document.getElementById("ordersViewBtn");
+        const ticketsBtn = document.getElementById("ticketsViewBtn");
+        const paymentsBtn = document.getElementById("paymentsViewBtn");
+
+        // Reset all buttons to outline style
+        ordersBtn.className = "btn btn-outline-primary";
+        ticketsBtn.className = "btn btn-outline-primary";
+        paymentsBtn.className = "btn btn-outline-primary";
+
+        // Hide all containers
+        ordersContainer.style.display = "none";
+        ticketsContainer.style.display = "none";
+        paymentsContainer.style.display = "none";
+
+        if (currentView === "tickets") {
+          // Show tickets view
+          ticketsContainer.style.display = "block";
+          ticketsBtn.className = "btn btn-primary";
+          searchFilters.style.display = "none";
+          if (allOrders && allOrders.length > 0) {
+            renderTicketsTable();
+          }
+        } else if (currentView === "payments") {
+          // Show payments view
+          paymentsContainer.style.display = "block";
+          paymentsBtn.className = "btn btn-primary";
+          searchFilters.style.display = "none";
+          if (allOrders && allOrders.length > 0) {
+            renderPaymentsTable();
+          }
+        } else {
+          // Show orders view (default)
+          ordersContainer.style.display = "block";
+          ordersBtn.className = "btn btn-primary";
+          searchFilters.style.display = "block";
+        }
+      }
+
+      function renderTicketsTable() {
+        const container = document.getElementById("ticketsContainer");
+
+        // Flatten all tickets from all orders
+        const allTickets = [];
+        forEachTicket(allOrders, (order, ticket) => {
+          allTickets.push({
+            ...ticket,
+            order_number: order.order_number,
+            customer_name: getCustomerName(order),
+            customer_phone: order.phone_number,
+            attendance_type: ticket.attendance_type || "attending",
+            pickup_time: ticket.pickup_time,
+            order_paid: order.paid,
+            order_issued: order.issued,
+            order_created: order.created_at,
+          });
+        });
+
+        container.innerHTML = `
+        <div class="row mb-3">
+          <div class="col-md-2 mb-2">
+            <label class="form-label fw-bold">Payment Status</label>
+            <select id="ticketPaymentFilter" class="form-select">
+              <option value="">All Payment Status</option>
+              <option value="paid">Paid</option>
+              <option value="unpaid">Unpaid</option>
+            </select>
+          </div>
+          <div class="col-md-2 mb-2">
+            <label class="form-label fw-bold">Attendance Type</label>
+            <select id="ticketAttendanceFilter" class="form-select">
+              <option value="">All</option>
+              <option value="attending">Attending</option>
+              <option value="takeaway">Takeaway</option>
+              <option value="donate">Donate</option>
+            </select>
+          </div>
+          <div class="col-md-2 mb-2" id="pickupTimeFilterContainer" style="display: none;">
+            <label class="form-label fw-bold">Pickup Time</label>
+            <select id="ticketPickupTimeFilter" class="form-select">
+              <option value="">All Pickup Times</option>
+              <option value="12:30 PM">12:30 PM</option>
+              <option value="2:00 PM">2:00 PM</option>
+              <option value="3:30 PM">3:30 PM</option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-2">
+            <label class="form-label fw-bold">Food Option</label>
+            <select id="ticketFoodFilter" class="form-select">
+              <option value="">All Food Options</option>
+              <option value="station1">Station 1</option>
+              <option value="station2">Station 2</option>
+              <option value="station3">Station 3</option>
+              <option value="station4">Station 4</option>
+            </select>
+          </div>
+        </div>
+        <div class="mb-3">
+          <input type="text" id="ticketSearch" class="form-control" placeholder="Search tickets by order number, customer name, phone, ticket number, or food option">
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <small class="text-muted">
+            <i class="bi bi-arrow-left-right"></i> 
+            Scroll horizontally to see all columns • Total tickets: <span id="ticketCount">${
+              allTickets.length
+            }</span>
+          </small>
+          <button id="downloadFilteredResults" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-download"></i> Download Results
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Customer Name</th>
+                <th>Phone Number</th>
+                <th>Ticket Type</th>
+                <th>Ticket Number</th>
+                <th style="white-space:normal; word-break:break-word; max-width:180px;">Food Option</th>
+                <th>Attendance</th>
+                <th>Pickup Time</th>
+                <th>Order Status</th>
+                <th>Issued</th>
+              </tr>
+            </thead>
+            <tbody id="ticketsTableBody">
+              ${renderTicketRows(allTickets)}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+        // Add filtering functionality for tickets
+        function filterTickets() {
+          const searchTerm = document
+            .getElementById("ticketSearch")
+            .value.toLowerCase();
+          const paymentFilter = document.getElementById(
+            "ticketPaymentFilter"
+          ).value;
+          const attendanceFilter = document.getElementById(
+            "ticketAttendanceFilter"
+          ).value;
+          const foodFilter = document.getElementById("ticketFoodFilter").value;
+          const pickupTimeFilter = document.getElementById(
+            "ticketPickupTimeFilter"
+          ).value;
+
+          const filteredTickets = allTickets.filter((ticket) => {
+            // Text search filter
+            const formattedTicketNumber = ticket.ticket_number
+              ? formatTicketNumber(ticket)
+              : "";
+
+            // Handle food options search - check all selected food options
+            let foodSearchText = "";
+            if (ticket.food_option) {
+              let foodOptions = ticket.food_option;
+              let foodDisplay = "";
+              // Helper: format station key as 'Station 1', etc.
+              const formatStation = (key) => {
+                const match = key.match(/^station(\d)$/i);
+                return match ? `Station ${match[1]}` : key;
+              };
+              if (Array.isArray(foodOptions)) {
+                foodDisplay = foodOptions.map(formatStation).join(", ");
+              } else if (typeof foodOptions === "string") {
+                let parsed = null;
+                try {
+                  parsed = JSON.parse(foodOptions);
+                } catch {
+                  if (foodOptions.includes(",")) {
+                    parsed = foodOptions.split(",").map((s) => s.trim());
+                  }
+                }
+                if (Array.isArray(parsed)) {
+                  foodDisplay = parsed.map(formatStation).join(", ");
+                } else {
+                  foodDisplay = formatStation(foodOptions);
+                }
+              } else {
+                foodDisplay = formatStation(foodOptions);
+              }
+              foodSearchText = foodDisplay; // FIX: assign parsed/labelled food options to foodSearchText
+            }
+
+            const matchesSearch =
+              !searchTerm ||
+              (ticket.order_number || "").toLowerCase().includes(searchTerm) ||
+              (ticket.customer_name || "").toLowerCase().includes(searchTerm) ||
+              (ticket.customer_phone || "")
+                .toLowerCase()
+                .includes(searchTerm) ||
+              (ticket.ticket_number || "")
+                .toString()
+                .toLowerCase()
+                .includes(searchTerm) ||
+              formattedTicketNumber.toLowerCase().includes(searchTerm) ||
+              foodSearchText.toLowerCase().includes(searchTerm) ||
+              (ticket.ticket_type || "").toLowerCase().includes(searchTerm);
+
+            // Payment status filter
+            const matchesPayment =
+              !paymentFilter ||
+              (paymentFilter === "paid" && ticket.order_paid) ||
+              (paymentFilter === "unpaid" && !ticket.order_paid);
+
+            // Attendance type filter
+            const matchesAttendance =
+              !attendanceFilter ||
+              (ticket.attendance_type || "attending") === attendanceFilter;
+
+            // Food option filter - check if food_option contains the selected foodFilter value (raw station key)
+            let matchesFood = !foodFilter;
+            if (foodFilter && ticket.food_option) {
+              let foodOptions = ticket.food_option;
+              let rawOptions = [];
+              if (Array.isArray(foodOptions)) {
+                rawOptions = foodOptions;
+              } else if (typeof foodOptions === "string") {
+                try {
+                  rawOptions = JSON.parse(foodOptions);
+                } catch {
+                  if (foodOptions.includes(",")) {
+                    rawOptions = foodOptions.split(",").map((s) => s.trim());
+                  } else {
+                    rawOptions = [foodOptions];
+                  }
+                }
+              } else {
+                rawOptions = [foodOptions];
+              }
+              matchesFood = rawOptions.some((option) => option === foodFilter);
+            }
+
+            // Pickup time filter (only applies to takeaway orders)
+            const matchesPickupTime =
+              !pickupTimeFilter ||
+              (ticket.attendance_type === "takeaway" &&
+                ticket.pickup_time === pickupTimeFilter);
+
+            return (
+              matchesSearch &&
+              matchesPayment &&
+              matchesAttendance &&
+              matchesFood &&
+              matchesPickupTime
+            );
+          });
+
+          currentFilteredTickets = filteredTickets; // Store for download
+          document.getElementById("ticketsTableBody").innerHTML =
+            renderTicketRows(filteredTickets);
+          document.getElementById("ticketCount").textContent =
+            filteredTickets.length;
+        }
+
+        // Function to show/hide pickup time filter based on attendance selection
+        function togglePickupTimeFilter() {
+          const attendanceFilter = document.getElementById(
+            "ticketAttendanceFilter"
+          ).value;
+          const pickupTimeContainer = document.getElementById(
+            "pickupTimeFilterContainer"
+          );
+          const pickupTimeSelect = document.getElementById(
+            "ticketPickupTimeFilter"
+          );
+
+          if (attendanceFilter === "takeaway") {
+            pickupTimeContainer.style.display = "block";
+          } else {
+            pickupTimeContainer.style.display = "none";
+            pickupTimeSelect.value = ""; // Reset pickup time filter when hidden
+          }
+
+          filterTickets(); // Re-filter after showing/hiding
+        }
+
+        // Store filtered results globally for download
+        let currentFilteredTickets = allTickets;
+
+        // Download function for filtered results
+        function downloadFilteredResults() {
+          if (currentFilteredTickets.length === 0) {
+            showToastWithBlur(
+              "No tickets to download. Please adjust your filters.",
+              { type: "error", icon: "fas fa-exclamation-triangle" }
+            );
+            return;
+          }
+
+          // Create CSV content
+          const headers = [
+            "Order #",
+            "Customer Name",
+            "Phone Number",
+            "Type",
+            "Ticket Number",
+            "Food Option",
+            "Attendance",
+            "Pickup Time",
+            "Order Status",
+            "Issued",
+          ];
+          const csvRows = [headers.join(",")];
+
+          currentFilteredTickets.forEach((ticket) => {
+            // Helper function to escape CSV values
+            const escapeCSV = (value) => {
+              if (value == null) return "";
+              const str = String(value);
+              // Remove or replace newlines and carriage returns
+              const cleaned = str.replace(/[\r\n]+/g, " ").trim();
+              // Escape quotes by doubling them
+              const escaped = cleaned.replace(/"/g, '""');
+              return escaped;
+            };
+
+            // Handle food options for CSV export
+            let foodExportText = "";
+            if (ticket.attendance_type === "takeaway" && ticket.food_option) {
+              const formatStation = (key) => {
+                if (typeof key !== "string") key = String(key);
+                const match = key.match(/^station(\d)$/i);
+                return match ? `Station ${match[1]}` : key;
+              };
+              try {
+                const foodOptions = JSON.parse(ticket.food_option);
+                if (Array.isArray(foodOptions)) {
+                  foodExportText = foodOptions.map(formatStation).join("; ");
+                } else {
+                  foodExportText = formatStation(ticket.food_option);
+                }
+              } catch (e) {
+                if (
+                  typeof ticket.food_option === "string" &&
+                  ticket.food_option.includes(",")
+                ) {
+                  foodExportText = ticket.food_option
+                    .split(",")
+                    .map((s) => formatStation(s.trim()))
+                    .join("; ");
+                } else {
+                  foodExportText = formatStation(ticket.food_option);
+                }
+              }
+            }
+
+            const row = [
+              `"${escapeCSV(ticket.order_number)}"`,
+              `"${escapeCSV(ticket.customer_name)}"`,
+              `"${escapeCSV(
+                ticket.customer_phone
+                  ? formatPhoneNumber(ticket.customer_phone)
+                  : "N/A"
+              )}"`,
+              `"${escapeCSV(
+                ticket.ticket_type === "adult"
+                  ? "Adult"
+                  : ticket.ticket_type === "child"
+                  ? "Child"
+                  : ticket.ticket_type === "adult_donated"
+                  ? "Adult Donated"
+                  : ticket.ticket_type === "child_donated"
+                  ? "Child Donated"
+                  : ticket.ticket_type
+              )}"`,
+              `"${escapeCSV(
+                ticket.ticket_number ? formatTicketNumber(ticket) : ""
+              )}"`,
+              `"${escapeCSV(foodExportText)}"`,
+              `"${escapeCSV(ticket.attendance_type)}"`,
+              `"${escapeCSV(
+                ticket.attendance_type === "takeaway" && ticket.pickup_time
+                  ? ticket.pickup_time
+                  : " "
+              )}"`,
+              `"${escapeCSV(ticket.order_paid ? "Paid" : "Unpaid")}"`,
+              `"${escapeCSV(ticket.order_issued ? "Yes" : "No")}"`,
+            ];
+            csvRows.push(row.join(","));
+          });
+
+          // Create and download CSV file
+          const csvContent = csvRows.join("\n");
+          const blob = new Blob([csvContent], {
+            type: "text/csv;charset=utf-8;",
+          });
+          const link = document.createElement("a");
+
+          const currentDate = new Date().toISOString().split("T")[0];
+          const filename = `filtered-tickets-${currentDate}.csv`;
+
+          if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = "hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        }
+
+        // Add event listeners to all filter controls
+        document
+          .getElementById("ticketSearch")
+          .addEventListener("input", filterTickets);
+        document
+          .getElementById("ticketPaymentFilter")
+          .addEventListener("change", filterTickets);
+        document
+          .getElementById("ticketAttendanceFilter")
+          .addEventListener("change", togglePickupTimeFilter);
+        document
+          .getElementById("ticketFoodFilter")
+          .addEventListener("change", filterTickets);
+        document
+          .getElementById("ticketPickupTimeFilter")
+          .addEventListener("change", filterTickets);
+
+        // Add download functionality
+        document
+          .getElementById("downloadFilteredResults")
+          .addEventListener("click", downloadFilteredResults);
+      }
+
+      async function resendConfirmationEmail(orderId) {
+        const { data: order, error } = await supabaseClient
+          .from("orders")
+          .select("*")
+          .eq("id", orderId)
+          .single();
+
+        const { data: allCurrentTickets } = await supabaseClient
+          .from("tickets")
+          .select("*")
+          .eq("ticket_order_id", orderId);
+
+        let ticketDetailsHTML = buildTicketHTML(allCurrentTickets);
+
+         const { data: event } = await supabaseClient
+          .from("events")
+          .select("*")
+          .eq("id", order.event_id);
+
+        // Build the information to display
+        const infoHtml = `
+          <ul class="list-group mb-3">
+        <li class="list-group-item"><strong>Order Number:</strong> ${
+          order.order_number
+        }</li>        
+        <li class="list-group-item"><strong>Total Amount:</strong> $${formatCurrency(
+          order.total_amount || 0
+        )}</li>
+        <li class="list-group-item"><strong>Outstanding Amount:</strong> $${formatCurrency(
+          order.total_amount - order.amount_paid || 0
+        )}</li>
+        <li class="list-group-item"><strong>Payment Method:</strong> ${
+          order.payment_method === "cash" ? "Cash/Cheque" : "Bank Transfer"
+        }</li>
+        <li class="list-group-item"><strong>Ticket Details:</strong><br/>${ticketDetailsHTML}</li>
+          </ul>
+        `;
+
+        // Create modal HTML
+        let modal = document.getElementById("resendEmailModal");
+        if (!modal) {
+          modal = document.createElement("div");
+          modal.id = "resendEmailModal";
+          modal.className = "modal fade";
+          modal.innerHTML = `
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+          <h5 class="modal-title">Resend Confirmation Email</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+          <p>The following information will be sent to the customer's email: <strong>${order.email}</strong></p>
+          <div id="resendEmailInfo"></div>
+            </div>
+            <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary" id="confirmResendEmailBtn">Send Email</button>
+            </div>
+          </div>
+        </div>
+          `;
+          document.body.appendChild(modal);
+        }
+
+        // Fill in the info
+        document.getElementById("resendEmailInfo").innerHTML = infoHtml;
+
+        // Show modal
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+
+        // Remove previous event listener if any
+        const confirmBtn = document.getElementById("confirmResendEmailBtn");
+        confirmBtn.onclick = null;
+
+        // On confirm, send the email
+        confirmBtn.onclick = function () {
+          confirmBtn.disabled = true;
+
+          confirmBtn.textContent = "Sending...";
+          
+          emailjs
+            .send("service_4huc4z9", "template_3ezl67k", {
+              email: order.email,
+              subject_line: `Order #${order.order_number}: ${event[0].name}`,
+              name: order.first_name + " " + order.last_name,
+              email_message: `<p style="font-size: 16px; color: #4b5563; margin-bottom: 20px;">
+          Thank you for your order for the <strong>${event[0].name}</strong>! 🎉
+        </p>
+
+        <p style="font-size: 15px; color: #6b7280; margin-bottom: 10px;">
+          Here are the details of your order:
+        </p>`,
+              email_end: `<p style="margin-top: 25px; font-size: 15px; color: #6b7280;">
+          If you have any questions, feel free to reply to this email.
+        </p>
+
+        <p style="font-size: 15px; color: #6b7280;">
+          We look forward to seeing you!
+        </p>`,
+              total_amount: formatCurrency(order.total_amount || 0),
+              order_number: order.order_number,
+              payment_method:
+                CONFIG.PAYMENT.methods[
+                  order.payment_method === "cash" ? "cash" : "bank_transfer"
+                ],
+              payment_instructions:
+                CONFIG.PAYMENT.instructions[
+                  order.payment_method === "cash" ? "cash" : "bank_transfer"
+                ],
+              outstanding_balance: formatCurrency(
+                order.total_amount - order.amount_paid || 0
+              ),
+              ticket_details: ticketDetailsHTML,
+            })
+            .then(() => {
+              bsModal.hide();
+              showToastWithBlur("Confirmation email sent successfully!", {
+                type: "success",
+                icon: "bi bi-envelope",
+              });
+            })
+            .catch((err) => {
+              bsModal.hide();
+              showToastWithBlur("Failed to send email.", {
+                type: "error",
+                icon: "fas fa-exclamation-triangle",
+              });
+              console.error(err);
+            })
+            .finally(() => {
+              confirmBtn.disabled = false;
+              confirmBtn.textContent = "Send Email";
+            });
+        };
+      }
+
+      function renderTicketRows(tickets) {
+        return tickets
+          .sort((a, b) => new Date(b.order_created) - new Date(a.order_created))
+          .map((ticket) => {
+            const ticketNumber = ticket.ticket_number
+              ? formatTicketNumber(ticket)
+              : "";
+            const attendanceType = ticket.attendance_type || "attending";
+            let attendanceDisplay = "";
+            if (attendanceType === "attending") {
+              attendanceDisplay =
+                '<span class="badge bg-info">Attending</span>';
+            } else if (attendanceType === "takeaway") {
+              attendanceDisplay =
+                '<span class="badge bg-warning text-dark">Takeaway</span>';
+            } else if (attendanceType === "donate") {
+              attendanceDisplay =
+                '<span class="badge bg-secondary">Donate</span>';
+            } else {
+              attendanceDisplay = `<span class="badge bg-secondary">${attendanceType}</span>`;
+            }
+            const pickupTimeDisplay =
+              attendanceType === "takeaway" && ticket.pickup_time
+                ? ticket.pickup_time + " PM"
+                : '<span class="text-muted"> </span>';
+            // Handle food options display - robust parsing and mapping
+            let foodDisplay = "";
+            if (attendanceType === "takeaway" && ticket.food_option) {
+              let foodOptions = ticket.food_option;
+              const formatStation = (key) => {
+                const match = key.match(/^station(\d)$/i);
+                return match ? `Station ${match[1]}` : key;
+              };
+              if (Array.isArray(foodOptions)) {
+                foodDisplay = foodOptions.map(formatStation).join(", ");
+              } else if (typeof foodOptions === "string") {
+                let parsed = null;
+                try {
+                  parsed = JSON.parse(foodOptions);
+                } catch {
+                  if (foodOptions.includes(",")) {
+                    parsed = foodOptions.split(",").map((s) => s.trim());
+                  }
+                }
+                if (Array.isArray(parsed)) {
+                  foodDisplay = parsed.map(formatStation).join(", ");
+                } else {
+                  foodDisplay = formatStation(foodOptions);
+                }
+              } else {
+                foodDisplay = formatStation(foodOptions);
+              }
+            }
+            // Support new ticket types with dual badge for donated
+            let typeLabel = "";
+            let badgeClass = "bg-secondary";
+            let donated = false;
+            switch (ticket.ticket_type) {
+              case "adult":
+                typeLabel = "Adult";
+                badgeClass = "bg-primary";
+                break;
+              case "child":
+                typeLabel = "Child";
+                badgeClass = "bg-success";
+                break;
+              case "adult_donated":
+                typeLabel = "Adult";
+                badgeClass = "bg-primary";
+                donated = true;
+                break;
+              case "child_donated":
+                typeLabel = "Child";
+                badgeClass = "bg-success";
+                donated = true;
+                break;
+              default:
+                typeLabel = ticket.ticket_type;
+            }
+            return `
+            <tr style="min-height:48px; vertical-align:middle;">
+              <td>${ticket.order_number}</td>
+              <td>${ticket.customer_name}</td>
+              <td>${
+                ticket.customer_phone
+                  ? formatPhoneNumber(ticket.customer_phone)
+                  : '<span class="text-muted">N/A</span>'
+              }</td>
+              <td>
+                <span class="badge ${badgeClass}">${typeLabel}</span>
+                ${
+                  donated
+                    ? '<span class="badge bg-secondary ms-1">D</span>'
+                    : ""
+                }
+              </td>
+              <td>${ticketNumber}</td>
+              <td>${foodDisplay}</td>
+              <td>${attendanceDisplay}</td>
+              <td>${pickupTimeDisplay} </td>
+              <td>
+                <span class="${
+                  ticket.order_paid ? "text-success" : "text-danger"
+                }">
+                  ${ticket.order_paid ? "Paid" : "Unpaid"}
+                </span>
+              </td>
+              <td>
+                <span class="${
+                  ticket.order_issued ? "text-success" : "text-danger"
+                }">
+                  ${ticket.order_issued ? "Yes" : "No"}
+                </span>
+              </td>
+            </tr>
+          `;
+          })
+          .join("");
+      }
+
+      // ==================================================
+      // PAYMENTS TABLE FUNCTIONALITY
+      // ==================================================
+
+      async function renderPaymentsTable() {
+        const container = document.getElementById("paymentsContainer");
+
+        // Get all payment transactions for this event
+        const { data: payments, error } = await supabaseClient
+          .from("payment_transactions")
+          .select(
+            `
+          *,
+          orders!inner(
+            order_number,
+            first_name,
+            last_name,
+            email,
+            total_amount,
+            amount_paid,
+            event_id
+          )
+        `
+          )
+          .eq("orders.event_id", eventId)
+          .order("payment_date", { ascending: false });
+
+        if (error) {
+          container.innerHTML =
+            "<p class='text-danger'>Error loading payment history.</p>";
+          return;
+        }
+
+        if (!payments || payments.length === 0) {
+          container.innerHTML =
+            "<p class='text-warning'>No payments found for this event.</p>";
+          return;
+        }
+
+        container.innerHTML = `
+        <div class="row mb-3">
+          <div class="col-md-4 mb-2">
+            <label class="form-label fw-bold">Payment Method</label>
+            <select id="paymentMethodFilter" class="form-select">
+              <option value="">All Payment Methods</option>
+              <option value="cash">Cash/Cheque</option>
+              <option value="bank transfer">Bank Transfer</option>
+            </select>
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label fw-bold">Date From</label>
+            <input type="date" id="paymentDateFrom" class="form-control" placeholder="From">
+          </div>
+          <div class="col-md-4 mb-2">
+            <label class="form-label fw-bold">Date To</label>
+            <input type="date" id="paymentDateTo" class="form-control" placeholder="To">
+          </div>
+        </div>
+        <div class="mb-3">
+          <input type="text" id="paymentSearch" class="form-control" placeholder="Search by order number, customer name, email, or reference number">
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <small class="text-muted">
+            <i class="bi bi-arrow-left-right"></i> 
+            Scroll horizontally to see all columns • Total payments: <span id="paymentCount">${
+              payments.length
+            }</span> • Total amount: $<span id="paymentTotal">${formatCurrency(
+          payments.reduce((sum, p) => sum + (p.amount || 0), 0)
+        )}</span>
+          </small>
+          <button id="downloadPaymentsResults" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-download"></i> Download Payments
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Payment Date</th>
+                <th>Order #</th>
+                <th>Customer Name</th>
+                <th>Email</th>
+                <th>Amount</th>
+                <th>Payment Method</th>
+                <th>Reference</th>
+                <th>Order Total</th>
+              </tr>
+            </thead>
+            <tbody id="paymentsTableBody">
+              ${renderPaymentRows(payments)}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+        // Add filtering functionality for payments
+        function filterPayments() {
+          const searchTerm = document
+            .getElementById("paymentSearch")
+            .value.toLowerCase();
+          const methodFilter = document.getElementById(
+            "paymentMethodFilter"
+          ).value;
+          const dateFrom = document.getElementById("paymentDateFrom").value;
+          const dateTo = document.getElementById("paymentDateTo").value;
+
+          const filteredPayments = payments.filter((payment) => {
+            // Text search filter
+            const matchesSearch =
+              !searchTerm ||
+              (payment.orders.order_number || "")
+                .toLowerCase()
+                .includes(searchTerm) ||
+              `${payment.orders.first_name} ${payment.orders.last_name}`
+                .toLowerCase()
+                .includes(searchTerm) ||
+              (payment.orders.email || "").toLowerCase().includes(searchTerm) ||
+              (payment.reference_number || "")
+                .toLowerCase()
+                .includes(searchTerm);
+
+            // Payment method filter
+            const matchesMethod =
+              !methodFilter || payment.payment_method === methodFilter;
+
+            // Date range filter
+            const paymentDate = new Date(payment.payment_date);
+            const matchesDateFrom =
+              !dateFrom || paymentDate >= new Date(dateFrom);
+            const matchesDateTo = !dateTo || paymentDate <= new Date(dateTo);
+
+            return (
+              matchesSearch && matchesMethod && matchesDateFrom && matchesDateTo
+            );
+          });
+
+          currentFilteredPayments = filteredPayments; // Store for download
+          document.getElementById("paymentsTableBody").innerHTML =
+            renderPaymentRows(filteredPayments);
+          document.getElementById("paymentCount").textContent =
+            filteredPayments.length;
+          document.getElementById("paymentTotal").textContent = formatCurrency(
+            filteredPayments.reduce((sum, p) => sum + (p.amount || 0), 0)
+          );
+        }
+
+        // Store filtered results globally for download
+        let currentFilteredPayments = payments;
+
+        // Download function for filtered payments
+        function downloadPaymentsResults() {
+          if (currentFilteredPayments.length === 0) {
+            showToastWithBlur(
+              "No payments to download. Please adjust your filters.",
+              { type: "error", icon: "fas fa-exclamation-triangle" }
+            );
+            return;
+          }
+
+          // Create CSV content
+          const headers = [
+            "Payment Date",
+            "Order #",
+            "Customer Name",
+            "Email",
+            "Amount",
+            "Payment Method",
+            "Reference",
+            "Order Total",
+          ];
+          const csvRows = [headers.join(",")];
+
+          currentFilteredPayments.forEach((payment) => {
+            // Helper function to escape CSV values
+            const escapeCSV = (value) => {
+              if (value == null) return "";
+              const str = String(value);
+              const cleaned = str.replace(/[\r\n]+/g, " ").trim();
+              const escaped = cleaned.replace(/"/g, '""');
+              return escaped;
+            };
+
+            const row = [
+              `"${escapeCSV(
+                new Date(payment.payment_date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                  timeZone: "UTC",
+                })
+              )}"`,
+              `"${escapeCSV(payment.orders.order_number)}"`,
+              `"${escapeCSV(
+                `${payment.orders.first_name} ${payment.orders.last_name}`
+              )}"`,
+              `"${escapeCSV(payment.orders.email)}"`,
+              `"${escapeCSV(formatCurrency(payment.amount))}"`,
+              `"${escapeCSV(
+                payment.payment_method === "cash"
+                  ? "Cash/Cheque"
+                  : "Bank Transfer"
+              )}"`,
+              `"${escapeCSV(payment.reference_number || "N/A")}"`,
+              `"${escapeCSV(formatCurrency(payment.orders.total_amount))}"`,
+            ];
+            csvRows.push(row.join(","));
+          });
+
+          // Create and download CSV file
+          const csvContent = csvRows.join("\n");
+          const blob = new Blob([csvContent], {
+            type: "text/csv;charset=utf-8;",
+          });
+          const link = document.createElement("a");
+
+          const currentDate = new Date().toISOString().split("T")[0];
+          const filename = `payment-history-${currentDate}.csv`;
+
+          if (link.download !== undefined) {
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            link.style.visibility = "hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        }
+
+        // Add event listeners to all filter controls
+        document
+          .getElementById("paymentSearch")
+          .addEventListener("input", filterPayments);
+        document
+          .getElementById("paymentMethodFilter")
+          .addEventListener("change", filterPayments);
+        document
+          .getElementById("paymentDateFrom")
+          .addEventListener("change", filterPayments);
+        document
+          .getElementById("paymentDateTo")
+          .addEventListener("change", filterPayments);
+
+        // Add download functionality
+        document
+          .getElementById("downloadPaymentsResults")
+          .addEventListener("click", downloadPaymentsResults);
+      }
+
+      function renderPaymentRows(payments) {
+        return payments
+          .map((payment) => {
+            return `
+            <tr>
+              <td>${new Date(payment.payment_date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                timeZone: "UTC",
+              })}</td>
+              <td>${payment.orders.order_number}</td>
+              <td>${payment.orders.first_name} ${payment.orders.last_name}</td>
+              <td>${payment.orders.email}</td>
+              <td><strong>$${formatCurrency(payment.amount)}</strong></td>
+              <td>
+                <span class="badge ${
+                  payment.payment_method === "cash" ? "bg-success" : "bg-info"
+                }">
+                  ${
+                    payment.payment_method === "cash"
+                      ? "Cash/Cheque"
+                      : "Bank Transfer"
+                  }
+                </span>
+              </td>
+              <td>${
+                payment.reference_number ||
+                '<span class="text-muted">N/A</span>'
+              }</td>
+              <td>$${formatCurrency(payment.orders.total_amount)}</td>
+            </tr>
+          `;
+          })
+          .join("");
+      }
+
+      async function openPaymentModal(ticketId, method) {
+        document.getElementById("ticketId").value = ticketId;
+        document.getElementById("paymentMethod").value = method;
+
+        const { data: ticket, error } = await supabaseClient
+          .from("orders")
+          .select("*")
+          .eq("id", ticketId)
+          .maybeSingle();
+
+        if (!ticket || error) {
+          document.getElementById("paymentOutstanding").textContent =
+            "Error loading balance";
+          return;
+        }
+
+        document.getElementById("customerEmail").value = ticket.email || "";
+        document.getElementById("customerName").value = `${
+          ticket.first_name || ""
+        } ${ticket.last_name || ""}`.trim();
+        document.getElementById("orderNumber").value =
+          ticket.order_number || "";
+        const outstanding = calculateOutstanding(ticket.total_amount || 0, [
+          { amount: ticket.amount_paid || 0 },
+        ]);
+        document.getElementById(
+          "paymentOutstanding"
+        ).textContent = `$${formatCurrency(outstanding)}`;
+
+        const modal = new bootstrap.Modal(
+          document.getElementById("paymentModal")
+        );
+        modal.show();
+      }
+
+      document
+        .getElementById("paymentModal")
+        .addEventListener("hidden.bs.modal", () => {
+          document.getElementById("paymentForm").reset();
+          document.getElementById("paymentOutstanding").textContent =
+            "Loading...";
+        });
+
+      document
+        .getElementById("paymentForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const ticketId = document.getElementById("ticketId").value;
+          const paymentDate = document.getElementById("paymentDate").value;
+          const paymentAmount = parseFloat(
+            document.getElementById("paymentAmount").value
+          );
+          const paymentMethod = document.getElementById("paymentMethod").value;
+          const referenceNumber =
+            document.getElementById("referenceNumber").value;
+          const email = document.getElementById("customerEmail").value;
+          const name = document.getElementById("customerName").value;
+
+          // Insert new payment transaction
+          showLoadingScreen();
+          const { error: insertError } = await supabaseClient
+            .from("payment_transactions")
+            .insert({
+              ticket_id: ticketId,
+              payment_date: paymentDate,
+              amount: paymentAmount,
+              payment_method: paymentMethod,
+              reference_number: referenceNumber || null,
+            });
+
+          const { data: event } = await supabaseClient
+            .from("events")
+            .select("name")
+            .eq("id", eventId)
+            .maybeSingle();
+
+          if (!insertError) {
+            emailjs
+              .send("service_4huc4z9", "template_bk2n0nk", {
+                name: name,
+                email: email,
+                event_name: event.name,
+                order_number: document.getElementById("orderNumber").value,
+                payment_method:
+                  paymentMethod === "cash" ? "Cash/Cheque" : "Bank Transfer",
+                payment_date: paymentDate,
+                outstanding_balance: formatCurrency(
+                  parseFloat(
+                    document
+                      .getElementById("paymentOutstanding")
+                      .textContent.replace(/[$,]/g, "")
+                  ) - paymentAmount
+                ),
+                payment_amount: formatCurrency(paymentAmount),
+                reference_number: referenceNumber || "",
+              })
+              .then(() => {
+                // Show a centered success modal with a check icon (auto-hides)
+                let successModal = document.getElementById(
+                  "paymentSuccessModal"
+                );
+                if (!successModal) {
+                  successModal = document.createElement("div");
+                  successModal.id = "paymentSuccessModal";
+                  successModal.className = "modal fade";
+                  successModal.innerHTML = `
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-center p-4" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 0.5rem; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);">
+                <div class="modal-body">
+                  <div style="font-size: 4rem; color: #28a745;">
+                  <i class="bi bi-check-circle-fill"></i>
+                  </div>
+                  <h5 class="mt-3 mb-1">Payment recorded</h5>
+                  <p class="text-muted small mb-0">The customer will receive an email confirmation shortly.</p>
+                </div>
+                </div>
+              </div>`;
+                  document.body.appendChild(successModal);
+                }
+
+                const bm = new bootstrap.Modal(successModal, {
+                  backdrop: true,
+                  keyboard: true,
+                });
+                bm.show();
+
+                // Auto-hide after 2.2 seconds
+                setTimeout(() => {
+                  try {
+                    bm.hide();
+                  } catch (e) {
+                    /* ignore */
+                  }
+                }, 2200);
+              })
+              .catch((err) => {
+                console.error("EmailJS Error:", err);
+                showToastWithBlur(
+                  "Failed to send payment confirmation email. Please try again.",
+                  { type: "error", icon: "fas fa-exclamation-triangle" }
+                );
+              });
+          } else {
+            showToastWithBlur("Failed to record payment.", {
+              type: "error",
+              icon: "fas fa-exclamation-triangle",
+            });
+            console.error(insertError);
+            hideLoadingScreen();
+            return;
+          }
+
+          // Get current ticket order
+          const { data: ticket, error: ticketError } = await supabaseClient
+            .from("orders")
+            .select("amount_paid, total_amount")
+            .eq("id", ticketId)
+            .maybeSingle();
+
+          if (ticketError || !ticket) {
+            showToastWithBlur("Could not find ticket order.", {
+              type: "error",
+              icon: "fas fa-exclamation-triangle",
+            });
+            return;
+          }
+
+          const newAmountPaid = (ticket.amount_paid || 0) + paymentAmount;
+          const isPaid = newAmountPaid >= ticket.total_amount;
+
+          const { error: updateError } = await supabaseClient
+            .from("orders")
+            .update({
+              amount_paid: newAmountPaid,
+              paid: isPaid,
+            })
+            .eq("id", ticketId);
+
+          if (updateError) {
+            showToastWithBlur("Failed to update ticket order.", {
+              type: "error",
+              icon: "fas fa-exclamation-triangle",
+            });
+            console.error(updateError);
+            return;
+          }
+          hideLoadingScreen();
+          bootstrap.Modal.getInstance(
+            document.getElementById("paymentModal")
+          ).hide();
+          document.getElementById("paymentForm").reset();
+          loadOrders(eventId);
+        });
+
+      function confirmIssued(orderId) {
+        currentTicketId = orderId;
+        // Show the modal - the modal event listener will handle the rest
+        const modal = new bootstrap.Modal(
+          document.getElementById("issuedModal")
+        );
+        modal.show();
+      }
+
+      let total = 0;
+      let originalOrder = null; // Store original order data for comparison
+
+      async function openEditModal(orderId) {
+        const { data: order } = await supabaseClient
+          .from("orders")
+          .select("*, tickets(*)")
+          .eq("id", orderId)
+          .maybeSingle();
+
+        if (!order) {
+          showToastWithBlur("Order not found", {
+            type: "error",
+            icon: "fas fa-exclamation-triangle",
+          });
+          return;
+        }
+
+        // Store original order data for later comparison
+        originalOrder = order;
+
+        // Generate customer form fields with professional styling
+        const customerFieldsContainer = document.getElementById(
+          "adminCustomerFields"
+        );
+        customerFieldsContainer.innerHTML = createCustomerFormFields({
+          prefix: "edit",
+          includeOrderNumber: true,
+          values: {
+            orderNumber: order.order_number || "",
+            email: order.email,
+            firstName: order.first_name,
+            lastName: order.last_name,
+            phoneNumber: formatPhoneNumber(order.phone_number || ""),
+          },
+        });
+
+        // Generate ticket sections with professional styling
+        const ticketSectionsContainer = document.getElementById(
+          "adminTicketSections"
+        );
+        ticketSectionsContainer.innerHTML = createTicketSections({
+          prefix: "edit",
+          showPricing: false,
+        });
+
+        // Set up form IDs and populate hidden fields
+        document.getElementById("eventId").value = order.event_id;
+        document.getElementById("editTicketId").value = order.id;
+        document.getElementById("editPaymentMethod").value =
+          order.payment_method;
+        document.getElementById("editNotes").value = order.admin_notes || "";
+        document.getElementById("adminAmountPaid").value =
+          order.amount_paid || 0;
+        total = order.total_amount || 0;
+
+        // Render ticket sections using shared function (matches view-info)
+        document.getElementById("adminTicketSections").innerHTML =
+          createTicketSections({ prefix: "edit", showPricing: false });
+
+        // Populate tickets with food dropdowns
+        if (order.tickets && order.tickets.length > 0) {
+          populateEditExistingTickets(order.tickets); // use the same function as view-info
+        } else {
+          // Clear containers if no tickets
+          document.getElementById("editAdultFoodSelections").innerHTML = "";
+          document.getElementById("editChildFoodSelections").innerHTML = "";
+          document.getElementById("editAdult").value = 0;
+          document.getElementById("editChild").value = 0;
+        }
+
+        // Add button event listeners for dynamically created form
+        document
+          .getElementById("editAddAdultBtn")
+          .addEventListener("click", () => {
+            addTicket(
+              "editAdultFoodSelections",
+              "editAdult",
+              "adult",
+              updateEditTotal
+            );
+          });
+
+        document
+          .getElementById("editAddChildBtn")
+          .addEventListener("click", () => {
+            addTicket(
+              "editChildFoodSelections",
+              "editChild",
+              "child",
+              updateEditTotal
+            );
+          });
+
+        // Add form input event listeners for dynamic calculations
+        document
+          .getElementById("editAdult")
+          .addEventListener("input", updateEditTotal);
+        document
+          .getElementById("editChild")
+          .addEventListener("input", updateEditTotal);
+
+        // Add phone number formatting event listener (same as ticket-form.html)
+        const phoneInput = document.getElementById("editPhoneNumber");
+        phoneInput.addEventListener("input", (e) => {
+          const cursorPos = e.target.selectionStart;
+          const result = formatPhoneNumberWithCursor(e.target.value, cursorPos);
+          e.target.value = result.value;
+          // Set cursor position after formatting
+          setTimeout(() => {
+            e.target.setSelectionRange(result.cursorPos, result.cursorPos);
+          }, 0);
+        });
+
+        // Disable form fields if order is paid (except notes)
+        const isPaid = order.paid;
+        const fieldsToDisable = [
+          "editFirstName",
+          "editLastName",
+          "editEmail",
+          "editPhoneNumber",
+          "editPaymentMethod",
+          "editAddAdultBtn",
+          "editAddChildBtn",
+        ];
+
+        fieldsToDisable.forEach((fieldId) => {
+          const field = document.getElementById(fieldId);
+          if (field) {
+            field.disabled = isPaid;
+          }
+        });
+
+        // Add/remove .paid-tickets class to modal body for CSS control
+        const modalBody = document.querySelector("#editModal .modal-body");
+        if (modalBody) {
+          if (isPaid) {
+            modalBody.classList.add("paid-tickets");
+          } else {
+            modalBody.classList.remove("paid-tickets");
+          }
+        }
+
+        // Disable all food selection dropdowns if paid
+        document
+          .querySelectorAll(
+            "#editAdultFoodSelections select, #editChildFoodSelections select"
+          )
+          .forEach((select) => {
+            select.disabled = isPaid;
+          });
+
+        // Disable all attendance type radio buttons if paid
+        document
+          .querySelectorAll(
+            '#editAdultFoodSelections input[type="radio"], #editChildFoodSelections input[type="radio"]'
+          )
+          .forEach((radio) => {
+            radio.disabled = isPaid;
+          });
+
+        // Disable donation inputs if paid
+        const adminAdultDonations =
+          document.getElementById("editAdultDonations");
+        const adminChildDonations =
+          document.getElementById("editChildDonations");
+        if (adminAdultDonations) adminAdultDonations.disabled = isPaid;
+        if (adminChildDonations) adminChildDonations.disabled = isPaid;
+
+        // Update modal title and submit button based on payment status
+        document.getElementById("editModalLabel").textContent = isPaid
+          ? "Admin: Edit Notes"
+          : "Admin: Edit Ticket Order";
+        const submitBtn = document.querySelector(
+          '#editModal .btn-primary[type="submit"]'
+        );
+        if (submitBtn) {
+          submitBtn.textContent = isPaid ? "Save Notes" : "Save Changes";
+          submitBtn.style.display = isPaid ? "block" : "block"; // Always show button
+        }
+
+        updateEditTotal();
+
+        // Initialize change monitoring system
+        initializeChangeMonitoring();
+
+        new bootstrap.Modal(document.getElementById("editModal")).show();
+      }
+
+      // Global variables to track original state
+      let originalTicketState = {};
+      let originalDonationState = {};
+      let originalCustomerState = {};
+
+      function initializeChangeMonitoring() {
+        const saveButton = document.querySelector(
+          '#editModal .btn-primary[type="submit"]'
+        );
+
+        // Capture initial ticket state
+        originalTicketState = {
+          adultCount: parseInt(document.getElementById("editAdult").value) || 0,
+          childCount: parseInt(document.getElementById("editChild").value) || 0,
+          tickets: captureCurrentTicketState(),
+        };
+
+        // Capture initial donation state
+        const adultDonations = document.getElementById("editAdultDonations");
+        const childDonations = document.getElementById("editChildDonations");
+        originalDonationState = {
+          adultDonations: adultDonations
+            ? parseInt(adultDonations.value) || 0
+            : 0,
+          childDonations: childDonations
+            ? parseInt(childDonations.value) || 0
+            : 0,
+        };
+
+        // Capture initial customer state
+        originalCustomerState = {
+          email: document.getElementById("editEmail").value || "",
+          firstName: document.getElementById("editFirstName").value || "",
+          lastName: document.getElementById("editLastName").value || "",
+          phoneNumber: document.getElementById("editPhoneNumber").value || "",
+          adminNotes: document.getElementById("editNotes").value || "",
+        };
+
+        // Initially disable save button (no changes yet)
+        if (saveButton) {
+          saveButton.disabled = false;
+          saveButton.classList.remove("disabled");
+        }
+
+        // Set up event listeners for all changes
+        setupTicketChangeListeners();
+        setupDonationChangeListeners();
+        setupCustomerChangeListeners();
+      }
+
+      function captureCurrentTicketState() {
+        const tickets = {};
+
+        // Capture adult tickets
+        document
+          .querySelectorAll("#editAdultFoodSelections > div")
+          .forEach((container, index) => {
+            const ticketId = container.dataset.ticketId;
+            if (ticketId) {
+              tickets[ticketId] = {
+                type: "adult",
+                attendance: getTicketAttendance(ticketId),
+                food: getTicketFood(ticketId),
+                pickup: getTicketPickup(ticketId),
+              };
+            }
+          });
+
+        // Capture child tickets
+        document
+          .querySelectorAll("#editChildFoodSelections > div")
+          .forEach((container, index) => {
+            const ticketId = container.dataset.ticketId;
+            if (ticketId) {
+              tickets[ticketId] = {
+                type: "child",
+                attendance: getTicketAttendance(ticketId),
+                food: getTicketFood(ticketId),
+                pickup: getTicketPickup(ticketId),
+              };
+            }
+          });
+
+        return tickets;
+      }
+
+      function getTicketAttendance(ticketId) {
+        const radio = document.querySelector(
+          `input[name="attendance_${ticketId}"]:checked`
+        );
+        return radio ? radio.value : "attending";
+      }
+
+      function getTicketFood(ticketId) {
+        const select = document.querySelector(
+          `select[data-ticket-id="${ticketId}"]`
+        );
+        return select ? select.value : "";
+      }
+
+      function getTicketPickup(ticketId) {
+        const radio = document.querySelector(
+          `input[name="pickup_${ticketId}"]:checked`
+        );
+        return radio ? radio.value : "";
+      }
+
+      function setupTicketChangeListeners() {
+        // Listen for add/remove button clicks
+        document
+          .getElementById("editAddAdultBtn")
+          ?.addEventListener("click", checkForChanges);
+        document
+          .getElementById("editRemoveAdultBtn")
+          ?.addEventListener("click", checkForChanges);
+        document
+          .getElementById("editAddChildBtn")
+          ?.addEventListener("click", checkForChanges);
+        document
+          .getElementById("editRemoveChildBtn")
+          ?.addEventListener("click", checkForChanges);
+
+        // Listen for changes in existing tickets (use event delegation)
+        document
+          .getElementById("editAdultFoodSelections")
+          ?.addEventListener("change", checkForChanges);
+        document
+          .getElementById("editChildFoodSelections")
+          ?.addEventListener("change", checkForChanges);
+      }
+
+      function setupDonationChangeListeners() {
+        const adultDonations = document.getElementById("editAdultDonations");
+        const childDonations = document.getElementById("editChildDonations");
+
+        if (adultDonations) {
+          adultDonations.addEventListener("input", checkForChanges);
+        }
+        if (childDonations) {
+          childDonations.addEventListener("input", checkForChanges);
+        }
+      }
+
+      function setupCustomerChangeListeners() {
+        const emailField = document.getElementById("editEmail");
+        const firstNameField = document.getElementById("editFirstName");
+        const lastNameField = document.getElementById("editLastName");
+        const phoneNumberField = document.getElementById("editPhoneNumber");
+        const adminNotesField = document.getElementById("editNotes");
+
+        if (emailField) {
+          emailField.addEventListener("input", checkForChanges);
+        }
+        if (firstNameField) {
+          firstNameField.addEventListener("input", checkForChanges);
+        }
+        if (lastNameField) {
+          lastNameField.addEventListener("input", checkForChanges);
+        }
+        if (phoneNumberField) {
+          phoneNumberField.addEventListener("input", checkForChanges);
+        }
+        if (adminNotesField) {
+          adminNotesField.addEventListener("input", checkForChanges);
+        }
+      }
+
+      function checkForChanges() {
+        // Small delay to allow DOM updates to complete
+        setTimeout(() => {
+          const hasTicketChanges = detectTicketChanges();
+          const hasDonationChanges = detectDonationChanges();
+          const hasCustomerChanges = detectCustomerChanges();
+          const hasAnyChanges =
+            hasTicketChanges || hasDonationChanges || hasCustomerChanges;
+
+          const saveButton = document.querySelector(
+            '#editModal .btn-primary[type="submit"]'
+          );
+          if (saveButton) {
+            saveButton.disabled = false;
+            saveButton.classList.remove("disabled");
+          }
+        }, 100);
+      }
+
+      function detectTicketChanges() {
+        // Use DOM to count tickets for change detection
+        const currentAdultCount = document.querySelectorAll(
+          "#editAdultFoodSelections > div"
+        ).length;
+        const currentChildCount = document.querySelectorAll(
+          "#editChildFoodSelections > div"
+        ).length;
+        const currentTickets = captureCurrentTicketState();
+
+        // Check if ticket counts changed
+        if (
+          currentAdultCount !== originalTicketState.adultCount ||
+          currentChildCount !== originalTicketState.childCount
+        ) {
+          return true;
+        }
+
+        // Check if ticket details changed
+        const originalTicketIds = Object.keys(originalTicketState.tickets);
+        const currentTicketIds = Object.keys(currentTickets);
+
+        // Different number of tickets
+        if (originalTicketIds.length !== currentTicketIds.length) {
+          return true;
+        }
+
+        // Check each ticket for changes
+        for (const ticketId of originalTicketIds) {
+          const original = originalTicketState.tickets[ticketId];
+          const current = currentTickets[ticketId];
+
+          if (
+            !current ||
+            original.attendance !== current.attendance ||
+            original.food !== current.food ||
+            original.pickup !== current.pickup
+          ) {
+            return true;
+          }
+        }
+
+        // Check for new tickets
+        for (const ticketId of currentTicketIds) {
+          if (!originalTicketState.tickets[ticketId]) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      function detectDonationChanges() {
+        const adultDonations = document.getElementById("editAdultDonations");
+        const childDonations = document.getElementById("editChildDonations");
+
+        const currentAdultDonations = adultDonations
+          ? parseInt(adultDonations.value) || 0
+          : 0;
+        const currentChildDonations = childDonations
+          ? parseInt(childDonations.value) || 0
+          : 0;
+
+        return (
+          currentAdultDonations !== originalDonationState.adultDonations ||
+          currentChildDonations !== originalDonationState.childDonations
+        );
+      }
+
+      function detectCustomerChanges() {
+        const currentEmail = document.getElementById("editEmail").value || "";
+        const currentFirstName =
+          document.getElementById("editFirstName").value || "";
+        const currentLastName =
+          document.getElementById("editLastName").value || "";
+        const currentPhoneNumber =
+          document.getElementById("editPhoneNumber").value || "";
+        const currentAdminNotes =
+          document.getElementById("editNotes").value || "";
+
+        return (
+          currentEmail !== originalCustomerState.email ||
+          currentFirstName !== originalCustomerState.firstName ||
+          currentLastName !== originalCustomerState.lastName ||
+          currentPhoneNumber !== originalCustomerState.phoneNumber ||
+          currentAdminNotes !== originalCustomerState.adminNotes
+        );
+      }
+
+      window.updateEditTotal = function updateEditTotal() {
+        // Count tickets by DOM elements
+        const adultTickets = document.querySelectorAll(
+          "#editAdultFoodSelections > div"
+        ).length;
+        const childTickets = document.querySelectorAll(
+          "#editChildFoodSelections > div"
+        ).length;
+        const adultDonations =
+          parseInt(document.getElementById("editAdultDonations").value) || 0;
+        const childDonations =
+          parseInt(document.getElementById("editChildDonations").value) || 0;
+
+        // Update hidden counters to match DOM
+        document.getElementById("editAdult").value = adultTickets;
+        document.getElementById("editChild").value = childTickets;
+
+        // Calculate total including donations
+        let new_total = calculateTotal(
+          adultTickets - adultDonations + adultDonations,
+          childTickets - childDonations + childDonations
+        );
+        console.log(adultTickets, childTickets, adultDonations, childDonations);
+        console.log(new_total);
+
+        document.getElementById("editTotal").textContent =
+          formatCurrency(new_total);
+      };
+
+      document
+        .getElementById("editForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const orderId = document.getElementById("editTicketId").value;
+          const notes = document.getElementById("editNotes").value.trim();
+
+          // Get current order to check payment status
+          const { data: currentOrder } = await supabaseClient
+            .from("orders")
+            .select("paid")
+            .eq("id", orderId)
+            .maybeSingle();
+
+          showLoadingScreen();
+
+          // If order is paid, only update notes
+          if (currentOrder && currentOrder.paid) {
+            const { error } = await supabaseClient
+              .from("orders")
+              .update({ admin_notes: notes })
+              .eq("id", orderId);
+
+            if (error) {
+              showToastWithBlur("Failed to update notes.", {
+                type: "error",
+                icon: "fas fa-exclamation-triangle",
+              });
+              console.error(error);
+              hideLoadingScreen();
+              return;
+            }
+
+            hideLoadingScreen();
+            bootstrap.Modal.getInstance(
+              document.getElementById("editModal")
+            ).hide();
+
+            // Show success toast
+            const toastId = `notesUpdatedToast_${Date.now()}`;
+            const toastHtml = `
+        <div id="${toastId}" class="toast align-items-center border position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 350px; background-color: white; color: #212529;">
+          <div class="d-flex">
+            <div class="toast-body fs-5 py-3">
+              📝 Admin notes updated successfully!
+            </div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+        </div>
+      `;
+            document.body.insertAdjacentHTML("beforeend", toastHtml);
+            const toastEl = document.getElementById(toastId);
+            const bsToast = new bootstrap.Toast(toastEl, {
+              delay: 3000,
+              autohide: true,
+            });
+            bsToast.show();
+
+            // Reload after toast shows
+            setTimeout(() => {
+              location.reload();
+            }, 3000);
+            return;
+          }
+
+          // If order is not paid, proceed with full edit logic
+          const orderNumber = document.getElementById("editOrderNumber").value;
+          const firstName = document.getElementById("editFirstName").value;
+          const lastName = document.getElementById("editLastName").value;
+          const email = document.getElementById("editEmail").value;
+          const phoneNumber = cleanPhoneNumber(
+            document.getElementById("editPhoneNumber").value
+          );
+          const ticketId = document.getElementById("editTicketId").value;
+
+          // Calculate actual ticket counts based on what's currently in the form
+          const adultTicketContainers = document.querySelectorAll(
+            "#editAdultFoodSelections > div"
+          );
+          const childTicketContainers = document.querySelectorAll(
+            "#editChildFoodSelections > div"
+          );
+          const adult = adultTicketContainers.length;
+          const child = childTicketContainers.length;
+
+          const payment_method =
+            document.getElementById("editPaymentMethod").value;
+          const admin_notes = document.getElementById("editNotes").value.trim();
+
+          // Get donation amounts
+          const adultDonationsInput =
+            document.getElementById("editAdultDonations");
+          const childDonationsInput =
+            document.getElementById("editChildDonations");
+          const adultDonations = adultDonationsInput
+            ? parseInt(adultDonationsInput.value) || 0
+            : 0;
+          const childDonations = childDonationsInput
+            ? parseInt(childDonationsInput.value) || 0
+            : 0;
+
+          // Get the original donation amounts for comparison
+          const originalAdultDonations = originalOrder
+            ? originalOrder.adult_donations || 0
+            : 0;
+          const originalChildDonations = originalOrder
+            ? originalOrder.child_donations || 0
+            : 0;
+          const donationChanged =
+            adultDonations !== originalAdultDonations ||
+            childDonations !== originalChildDonations;
+
+          // Get the original payment method for comparison
+          const originalPaymentMethod = originalOrder
+            ? originalOrder.payment_method || "cash"
+            : "cash";
+          const paymentMethodChanged = payment_method !== originalPaymentMethod;
+
+          let new_total = calculateTotal(
+            adult + adultDonations,
+            child + childDonations
+          );
+
+          const amountPaid =
+            parseFloat(document.getElementById("adminAmountPaid").value) || 0;
+          const paid = new_total <= amountPaid;
+
+          if (new_total < amountPaid) {
+            showToastWithBlur(
+              "Tickets have already been paid for. Cannot change ticket quantities to less than amount paid.",
+              { type: "error", icon: "fas fa-exclamation-triangle" }
+            );
+            hideLoadingScreen();
+            return;
+          }
+
+          showLoadingScreen();
+
+          // Collect ticket data from dropdowns (same approach as view-info.html)
+          const ticketsToInsert = [];
+          const ticketsToUpdate = [];
+
+          // Process all ticket containers (both adult and child)
+          const adultContainers = document.querySelectorAll(
+            "#editAdultFoodSelections > div"
+          );
+          const childContainers = document.querySelectorAll(
+            "#editChildFoodSelections > div"
+          );
+          const allContainers = [...adultContainers, ...childContainers];
+
+          allContainers.forEach((container) => {
+            const ticketIdAttr = container.dataset.ticketId;
+            const isAdult =
+              container.closest("#editAdultFoodSelections") !== null;
+
+            // Get attendance type from radio buttons
+            const attendanceRadio = container.querySelector(
+              `input[name="attendance_${ticketIdAttr}"]:checked`
+            );
+            const attendanceType = attendanceRadio
+              ? attendanceRadio.value
+              : "attending";
+
+            // Get food options (only if takeaway) - now supports multiple selections
+            let foodOptions = [];
+            if (attendanceType === "takeaway") {
+              const foodCheckboxes = container.querySelectorAll(
+                `input.food-station-checkbox[data-ticket-id="${ticketIdAttr}"]:checked`
+              );
+              foodOptions = Array.from(foodCheckboxes).map(
+                (checkbox) => checkbox.value
+              );
+            }
+            // Store as array for Supabase/Postgres compatibility
+            const foodOption =
+              attendanceType === "takeaway" ? foodOptions : null;
+
+            // Get pickup time (only if takeaway)
+            const pickupRadio = container.querySelector(
+              `input[name="pickup_${ticketIdAttr}"]:checked`
+            );
+            const pickupTime =
+              attendanceType === "takeaway" && pickupRadio
+                ? pickupRadio.value
+                : null;
+
+            if (ticketIdAttr && ticketIdAttr.startsWith("temp_")) {
+              // New ticket - insert
+              const newTicket = {
+                food_option: foodOption,
+                ticket_order_id: ticketId,
+                ticket_type: isAdult ? "adult" : "child",
+                attendance_type: attendanceType,
+                pickup_time: pickupTime,
+              };
+              ticketsToInsert.push(newTicket);
+            } else if (ticketIdAttr && !ticketIdAttr.includes("temp")) {
+              // Existing ticket - check if it actually changed before adding to update
+              const originalTicket = originalOrder.tickets.find(
+                (t) => t.id === ticketIdAttr
+              );
+              const currentTicket = {
+                id: ticketIdAttr,
+                ticket_order_id: ticketId,
+                food_option: foodOption,
+                ticket_type: isAdult ? "adult" : "child",
+                attendance_type: attendanceType,
+                pickup_time: pickupTime,
+              };
+
+              // Only add to update if ticket actually changed
+              const ticketChanged =
+                !originalTicket ||
+                originalTicket.food_option !== foodOption ||
+                originalTicket.attendance_type !== attendanceType ||
+                originalTicket.pickup_time !== pickupTime;
+
+              if (ticketChanged) {
+                ticketsToUpdate.push(currentTicket);
+              }
+            }
+          });
+
+          // Detect ticket deletions by comparing original tickets with current tickets
+          const originalTicketIds = Object.keys(originalTicketState.tickets);
+          const currentTicketIds = [];
+          const currentContainers = [
+            ...document.querySelectorAll("#editAdultFoodSelections > div"),
+            ...document.querySelectorAll("#editChildFoodSelections > div"),
+          ];
+          currentContainers.forEach((container) => {
+            const ticketIdAttr = container.dataset.ticketId;
+            if (ticketIdAttr && !ticketIdAttr.startsWith("temp_")) {
+              currentTicketIds.push(ticketIdAttr);
+            }
+          });
+
+          const ticketsToDelete = originalTicketIds.filter(
+            (id) => !currentTicketIds.includes(id)
+          );
+
+          console.log("DEBUG - Ticket change detection:", {
+            ticketsToInsert: ticketsToInsert.length,
+            ticketsToUpdate: ticketsToUpdate.length,
+            ticketsToDelete: ticketsToDelete.length,
+            originalTicketIds,
+            currentTicketIds,
+          });
+
+          // Only process ticket deletions if there were actual ticket changes
+          // Don't delete tickets when only customer info changed
+          const hasTicketChanges =
+            ticketsToInsert.length > 0 ||
+            ticketsToUpdate.length > 0 ||
+            ticketsToDelete.length > 0;
+
+          console.log("DEBUG - hasTicketChanges:", hasTicketChanges);
+
+          if (hasTicketChanges) {
+            console.log("DEBUG - Entering ticket deletion logic");
+            // Delete tickets that are no longer selected (same logic as view-info.html)
+            const keepTicketIds = ticketsToUpdate
+              .map((t) => t.id)
+              .filter(Boolean);
+
+            // Get all current ticket IDs to determine which should be kept
+            const allCurrentTicketIds = [];
+            const allContainers = [
+              ...document.querySelectorAll("#editAdultFoodSelections > div"),
+              ...document.querySelectorAll("#editChildFoodSelections > div"),
+            ];
+            allContainers.forEach((container) => {
+              const ticketIdAttr = container.dataset.ticketId;
+              if (ticketIdAttr && !ticketIdAttr.startsWith("temp_")) {
+                allCurrentTicketIds.push(ticketIdAttr);
+              }
+            });
+
+            if (allCurrentTicketIds.length > 0) {
+              const { error: deleteError } = await supabaseClient
+                .from("tickets")
+                .delete()
+                .eq("ticket_order_id", ticketId)
+                .not("id", "in", `(${allCurrentTicketIds.join(",")})`);
+
+              if (deleteError) {
+                console.error("Error deleting removed tickets:", deleteError);
+              }
+            } else {
+              // Only delete all tickets if user actually removed all tickets from UI
+              const { error: deleteAllError } = await supabaseClient
+                .from("tickets")
+                .delete()
+                .eq("ticket_order_id", ticketId);
+
+              if (deleteAllError) {
+                console.error("Error deleting all tickets:", deleteAllError);
+              }
+            }
+          }
+
+          console.log(
+            "DEBUG - Completed ticket deletion logic, proceeding to inserts/updates"
+          );
+
+          // Insert new tickets
+          console.log(
+            "DEBUG - Checking for ticket inserts, count:",
+            ticketsToInsert.length
+          );
+          if (ticketsToInsert.length > 0) {
+            console.log("DEBUG - Inserting tickets:", ticketsToInsert);
+            const { data: insertData, error: insertError } =
+              await supabaseClient
+                .from("tickets")
+                .insert(ticketsToInsert)
+                .select();
+
+            if (insertError) {
+              console.error("Error inserting new tickets:", insertError);
+              showToastWithBlur(
+                "Failed to save new tickets: " + insertError.message,
+                { type: "error", icon: "fas fa-exclamation-triangle" }
+              );
+              hideLoadingScreen();
+              return;
+            }
+            console.log("DEBUG - Successfully inserted tickets");
+          }
+
+          // Update existing tickets
+          console.log(
+            "DEBUG - Checking for ticket updates, count:",
+            ticketsToUpdate.length
+          );
+          if (ticketsToUpdate.length > 0) {
+            console.log("DEBUG - Updating tickets:", ticketsToUpdate);
+            const { error: updateError } = await supabaseClient
+              .from("tickets")
+              .upsert(ticketsToUpdate, { onConflict: "id" });
+
+            if (updateError) {
+              console.error("Error updating existing tickets:", updateError);
+              showToastWithBlur(
+                "Failed to update existing tickets: " + updateError.message,
+                { type: "error", icon: "fas fa-exclamation-triangle" }
+              );
+              hideLoadingScreen();
+              return;
+            }
+            console.log("DEBUG - Successfully updated tickets");
+          }
+
+          console.log("DEBUG - Proceeding to order update");
+
+          // Update order
+          // Recalculate adult_tickets and adult_donations based on attendance type
+          let recalculatedAdultTickets = 0;
+          let recalculatedAdultDonations = 0;
+          let recalculatedChildTickets = 0;
+          let recalculatedChildDonations = 0;
+          allContainers.forEach((container) => {
+            const ticketIdAttr = container.dataset.ticketId;
+            const isAdult =
+              container.closest("#editAdultFoodSelections") !== null;
+            const attendanceRadio = container.querySelector(
+              `input[name="attendance_${ticketIdAttr}"]:checked`
+            );
+            const attendanceType = attendanceRadio
+              ? attendanceRadio.value
+              : "attending";
+            if (isAdult) {
+              if (attendanceType === "donate") {
+                recalculatedAdultDonations++;
+              } else {
+                recalculatedAdultTickets++;
+              }
+            } else {
+              if (attendanceType === "donate") {
+                recalculatedChildDonations++;
+              } else {
+                recalculatedChildTickets++;
+              }
+            }
+          });
+
+          const { error } = await supabaseClient
+            .from("orders")
+            .update({
+              first_name: firstName,
+              last_name: lastName,
+              email: email,
+              phone_number: phoneNumber,
+              adult_tickets: recalculatedAdultTickets,
+              child_tickets: recalculatedChildTickets,
+              adult_donations: recalculatedAdultDonations,
+              child_donations: recalculatedChildDonations,
+              total_amount: new_total,
+              payment_method,
+              paid,
+              admin_notes,
+            })
+            .eq("id", ticketId);
+
+          if (error) {
+            showToastWithBlur("Failed to update order.", {
+              type: "error",
+              icon: "fas fa-exclamation-triangle",
+            });
+            console.error(error);
+            hideLoadingScreen();
+            return;
+          }
+
+          const { data: event } = await supabaseClient
+            .from("events")
+            .select("name")
+            .eq("id", document.getElementById("eventId").value)
+            .maybeSingle();
+
+          // Fetch customer info & event name to email
+          const { data: ticket } = await supabaseClient
+            .from("orders")
+            .select("*")
+            .eq("id", ticketId)
+            .maybeSingle();
+
+          if (!ticket) {
+            showToastWithBlur("Failed to fetch updated ticket for email.", {
+              type: "error",
+              icon: "fas fa-exclamation-triangle",
+            });
+            hideLoadingScreen();
+            return;
+          }
+
+          // Send email if tickets are updated OR donation amount changed
+          console.log("DEBUG - Email condition check:", {
+            ticketsToUpdate: ticketsToUpdate.length,
+            ticketsToInsert: ticketsToInsert.length,
+            ticketsToDelete: ticketsToDelete.length,
+            donationChanged,
+            shouldSendEmail:
+              ticketsToUpdate.length > 0 ||
+              ticketsToInsert.length > 0 ||
+              ticketsToDelete.length > 0 ||
+              donationChanged,
+          });
+
+          if (
+            ticketsToUpdate.length > 0 ||
+            ticketsToInsert.length > 0 ||
+            ticketsToDelete.length > 0 ||
+            donationChanged
+          ) {
+            // After all ticket operations are complete, fetch ALL current tickets and order by form position
+            const { data: allCurrentTickets } = await supabaseClient
+              .from("tickets")
+              .select("*")
+              .eq("ticket_order_id", ticketId);
+
+            // Build ticket data in the order they appear in the form (not database order)
+            const formOrderedTickets = [];
+
+            // Create a map for quick lookup
+            const ticketMap = {};
+            allCurrentTickets.forEach((ticket) => {
+              ticketMap[ticket.id] = ticket;
+            });
+
+            // Process adult tickets in form order
+            document
+              .querySelectorAll("#editAdultFoodSelections > div")
+              .forEach((container) => {
+                const ticketIdAttr = container.dataset.ticketId;
+                if (ticketIdAttr) {
+                  // For new tickets, they should now have real IDs after insert
+                  // For existing tickets, use the existing ID
+                  let actualTicketId = ticketIdAttr;
+
+                  // If this was a temp ticket, find the corresponding inserted ticket by matching form data
+                  if (ticketIdAttr.startsWith("temp_")) {
+                    // Find the ticket that matches this form position
+                    const attendanceRadio = container.querySelector(
+                      `input[name="attendance_${ticketIdAttr}"]:checked`
+                    );
+                    const attendanceType = attendanceRadio
+                      ? attendanceRadio.value
+                      : "attending";
+                    const foodSelect = container.querySelector(
+                      "select[data-ticket-id]"
+                    );
+                    const foodOption =
+                      attendanceType === "takeaway" && foodSelect
+                        ? foodSelect.value
+                        : null;
+                    const pickupRadio = container.querySelector(
+                      `input[name="pickup_${ticketIdAttr}"]:checked`
+                    );
+                    const pickupTime =
+                      attendanceType === "takeaway" && pickupRadio
+                        ? pickupRadio.value
+                        : null;
+
+                    // Find matching ticket in database
+                    const matchingTicket = allCurrentTickets.find(
+                      (ticket) =>
+                        ticket.ticket_type === "adult" &&
+                        ticket.attendance_type === attendanceType &&
+                        ticket.food_option === foodOption &&
+                        ticket.pickup_time === pickupTime &&
+                        !formOrderedTickets.includes(ticket) // Not already added
+                    );
+
+                    if (matchingTicket) {
+                      formOrderedTickets.push(matchingTicket);
+                    }
+                  } else {
+                    // Existing ticket
+                    const ticket = ticketMap[ticketIdAttr];
+                    if (ticket) {
+                      formOrderedTickets.push(ticket);
+                    }
+                  }
+                }
+              });
+
+            // Process child tickets in form order
+            document
+              .querySelectorAll("#editChildFoodSelections > div")
+              .forEach((container) => {
+                const ticketIdAttr = container.dataset.ticketId;
+                if (ticketIdAttr) {
+                  let actualTicketId = ticketIdAttr;
+
+                  // If this was a temp ticket, find the corresponding inserted ticket
+                  if (ticketIdAttr.startsWith("temp_")) {
+                    const attendanceRadio = container.querySelector(
+                      `input[name="attendance_${ticketIdAttr}"]:checked`
+                    );
+                    const attendanceType = attendanceRadio
+                      ? attendanceRadio.value
+                      : "attending";
+                    const foodSelect = container.querySelector(
+                      "select[data-ticket-id]"
+                    );
+                    const foodOption =
+                      attendanceType === "takeaway" && foodSelect
+                        ? foodSelect.value
+                        : null;
+                    const pickupRadio = container.querySelector(
+                      `input[name="pickup_${ticketIdAttr}"]:checked`
+                    );
+                    const pickupTime =
+                      attendanceType === "takeaway" && pickupRadio
+                        ? pickupRadio.value
+                        : null;
+
+                    // Find matching ticket in database
+                    const matchingTicket = allCurrentTickets.find(
+                      (ticket) =>
+                        ticket.ticket_type === "child" &&
+                        ticket.attendance_type === attendanceType &&
+                        ticket.food_option === foodOption &&
+                        ticket.pickup_time === pickupTime &&
+                        !formOrderedTickets.includes(ticket) // Not already added
+                    );
+
+                    if (matchingTicket) {
+                      formOrderedTickets.push(matchingTicket);
+                    }
+                  } else {
+                    // Existing ticket
+                    const ticket = ticketMap[ticketIdAttr];
+                    if (ticket) {
+                      formOrderedTickets.push(ticket);
+                    }
+                  }
+                }
+              });
+
+            // Build ticket details HTML from form-ordered tickets
+            const ticketDetailsHTML = buildTicketHTML(formOrderedTickets);
+
+            // Send email using emailjs
+            emailjs
+              .send("service_4huc4z9", "template_3ezl67k", {
+                subject_line: `Your ${event.name} Order Has Been Updated`,
+                name: `${ticket.first_name} ${ticket.last_name}`,
+                email: ticket.email,
+                email_message: `<p style="font-size: 16px; color: #555;">Your ticket order for <strong>${event.name}</strong> has been <span style="color: #2c7be5;  "><strong>updated</strong></span>.</p>
+                <p style="font-size: 15px; color: #666;">Here are your revised order details:</p>`,
+                email_end: `<p style="font-size: 14px; color: #555;">
+                If you've already made a payment, any outstanding balance will be updated accordingly.
+              </p>
+
+              <p style="font-size: 14px; color: #555;">
+                We look forward to seeing you at the event!
+              </p>`,
+                adult_tickets: adult,
+                child_tickets: child,
+                adult_donations: adultDonations,
+                child_donations: childDonations,
+                total_amount: formatCurrency(new_total),
+                order_number: orderNumber,
+                payment_method:
+                  payment_method === "cash" ? "Cash/Cheque" : "Bank Transfer",
+                outstanding_balance: formatCurrency(
+                  Math.max(0, new_total - amountPaid)
+                ),
+                ticket_details: ticketDetailsHTML,
+                payment_instructions:
+                  payment_method === "cash"
+                    ? `Cash should be paid at the Stella Maris Church office (a receipt will be provided) and Cheques should be made payable to <strong>STELLA MARIS CHURCH</strong>.`
+                    : `Bank transfer to the Stella Maris CIBC account. Please use the following details:<br>
+                <ul>
+                  <li><strong>Bank Name:</strong> CIBC</li>
+                  <li><strong>Account Name:</strong> Stella Maris Church</li>
+                  <li><strong>Account Number:</strong> 1002355932 (Savings)</li>
+                  <li><strong>Branch:</strong> Manor Park</li>
+                  <li><strong>Reference:</strong> Your full name or order number</li>
+                </ul>`,
+              })
+              .then(() => {
+                bootstrap.Modal.getInstance(
+                  document.getElementById("editModal")
+                ).hide();
+                hideLoadingScreen();
+                // Show success toast
+                const toastId = `orderUpdatedToast_${Date.now()}`;
+                const toastHtml = `
+          <div id="${toastId}_blur" class="toast-blur-overlay"></div>
+          <div id="${toastId}" class="toast align-items-center border position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 400px; background-color: white; color: #212529;">
+            <div class="d-flex">
+              <div class="toast-body fs-5 py-3">
+                ✅ Order updated successfully!🎉 Confirmation email sent to customer.
+              </div>
+              <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+          </div>
+        `;
+                document.body.insertAdjacentHTML("beforeend", toastHtml);
+                const toastEl = document.getElementById(toastId);
+                const bsToast = new bootstrap.Toast(toastEl, {
+                  delay: 4000,
+                  autohide: true,
+                });
+                bsToast.show();
+
+                // Reload after toast shows
+                location.reload();
+              })
+              .catch((err) => {
+                console.error("DEBUG: Email send error:", err);
+                hideLoadingScreen();
+                bootstrap.Modal.getInstance(
+                  document.getElementById("editModal")
+                ).hide();
+
+                // Show warning toast for email failure
+                const toastId = `emailFailedToast_${Date.now()}`;
+                const toastHtml = `
+          <div id="${toastId}" class="toast align-items-center text-bg-warning border-0 position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 400px;">
+            <div class="d-flex">
+              <div class="toast-body fs-5 py-3 text-dark">
+                ⚠️ Order updated but failed to send email notification.
+              </div>
+              <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+          </div>
+        `;
+                document.body.insertAdjacentHTML("beforeend", toastHtml);
+                const toastEl = document.getElementById(toastId);
+                const bsToast = new bootstrap.Toast(toastEl, {
+                  delay: 4000,
+                  autohide: true,
+                });
+                bsToast.show();
+
+                // Reload after toast shows
+                setTimeout(() => {
+                  location.reload();
+                }, 3000);
+              });
+          } else {
+            // Close modal and hide loading screen even when no email is sent
+            bootstrap.Modal.getInstance(
+              document.getElementById("editModal")
+            ).hide();
+            hideLoadingScreen();
+
+            // Show simple success toast for customer information changes
+            const toastId = `customerInfoUpdatedToast_${Date.now()}`;
+            const toastHtml = `
+        <div id="${toastId}" class="toast align-items-center border position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 400px; background-color: white; color: #212529;">
+          <div class="d-flex">
+            <div class="toast-body fs-5 py-3">
+              ✅ Customer information updated successfully.
+            </div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+          </div>
+        </div>
+      `;
+            document.body.insertAdjacentHTML("beforeend", toastHtml);
+            const toastEl = document.getElementById(toastId);
+            const bsToast = new bootstrap.Toast(toastEl, {
+              delay: 3000,
+              autohide: true,
+            });
+            bsToast.show();
+          } // End of if (ticketsToUpdate.length > 0 || ticketsToInsert.length > 0 || donationChanged || paymentMethodChanged)
+        }); // End of editForm event listener
+
+      function populateAdminExistingTickets(tickets) {
+        const adultContainer = document.getElementById(
+          "editAdultFoodSelections"
+        );
+        const childContainer = document.getElementById(
+          "editChildFoodSelections"
+        );
+
+        // Clear containers
+        adultContainer.innerHTML = "";
+        childContainer.innerHTML = "";
+
+        let adultCount = 0;
+        let childCount = 0;
+
+        tickets.forEach((t) => {
+          // Pass ticket type explicitly to ensure correct styling
+          const dropdownHTML = createFoodDropdown(
+            t.id,
+            t.food_option,
+            t.attendance_type || "attending",
+            t.pickup_time || "",
+            t.ticket_type // Pass explicit ticket type
+          );
+
+          // Wrap in container div with data-ticket-id for form submission logic
+          const wrapperHTML = `<div data-ticket-id="${t.id}">${dropdownHTML}</div>`;
+
+          if (t.ticket_type === "adult") {
+            adultContainer.insertAdjacentHTML("beforeend", wrapperHTML);
+            adultCount++;
+          } else if (t.ticket_type === "child") {
+            childContainer.insertAdjacentHTML("beforeend", wrapperHTML);
+            childCount++;
+          }
+        });
+
+        // Update hidden counters
+        document.getElementById("editAdult").value = adultCount;
+        document.getElementById("editChild").value = childCount;
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
