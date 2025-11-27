@@ -1,14 +1,9 @@
 const CONFIG = {
-  SUPABASE_URL: 'https://eppezsyplvtwldhuchsy.supabase.co',
-  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwcGV6c3lwbHZ0d2xkaHVjaHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyMzMxMjQsImV4cCI6MjA2ODgwOTEyNH0.5JP6V_n5HNLjeehG7f0ioL8GMy9ZnUynL6x57RnnZGg',
+  SUPABASE_URL: 'https://yvzrwopqylimchzpbxqg.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2enJ3b3BxeWxpbWNoenBieHFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3OTEzNDgsImV4cCI6MjA3ODM2NzM0OH0.FwqHGigLlpLcSe-ar477rf7Cszzr-ptqgjbiBAe6Tuo',
 
-  // Public variables
-  PRICING: {
-    adult_ticket: 5000,
-    child_ticket: 2500
-  },
   SITE: {
-    name: "Stella Maris Family Day",
+    name: "Stella Maris Lights of Hope",
     supportEmail: "stellamarisfamilyday@gmail.com"
   },
   ADMIN: {
@@ -16,7 +11,7 @@ const CONFIG = {
     password: "admin123"
   },
   EVENT: {
-    date: "Sunday, December 7, 2025 | 12:00 PM – 6:00 PM",
+    date: "Sunday, December 7, 2025 | 4:00 PM – 6:00 PM",
     cutoffDate: "2025-11-29",
   },
   PAYMENT: {
@@ -32,18 +27,8 @@ const CONFIG = {
             <li><strong>Account Name:</strong> Stella Maris Church</li>
             <li><strong>Account Number:</strong> 1002355932 (Savings)</li>
             <li><strong>Branch:</strong> Manor Park</li>
-            <li><strong>Reference:</strong> Your full name or order number</li>
-          </ul>`
+          </ul>
+          After making the transfer, please email a copy of the bank transfer information or the transfer reference number to Frederick Williams: <a href="mailto:fredandwill1@gmail.com">fredandwill1@gmail.com</a>`
     }
   },
-  IMAGES_DIR: 'images/',
-    IMAGES: [
-      'funday1.jpg',
-      'funday2.jpg',
-      'funday3.jpg',
-      'funday4.jpeg',
-      'funday5.jpeg',
-      'funday6.jpg',
-      'funday7.jpg'
-    ],
 };

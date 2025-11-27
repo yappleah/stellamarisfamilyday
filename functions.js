@@ -1,153 +1,3 @@
-/**
- * Create ticket sections for edit/admin modals (shared between view-info and event-details)
- * @param {Object} options - { prefix: string, showPricing: boolean }
- * @returns {string} HTML for ticket sections
- */
-function createTicketSections({ prefix = "", showPricing = false } = {}) {
-  // Use prefix to distinguish between edit/admin modals
-  const adultSectionId = `${prefix}AdultFoodSelections`;
-  const childSectionId = `${prefix}ChildFoodSelections`;
-  const adultInputId = `${prefix}Adult`;
-  const childInputId = `${prefix}Child`;
-  const addAdultBtnId = `${prefix}AddAdultBtn`;
-  const addChildBtnId = `${prefix}AddChildBtn`;
-  const adultPriceId = `${prefix}AdultTicketPrice`;
-  const childPriceId = `${prefix}ChildTicketPrice`;
-
-  return `
-  <div class="row">
-  <div class="col-md-6">
-    <div class="ticket-section adult-tickets mb-4">
-      <div class="ticket-header">
-        <div class="ticket-icon"><i class="bi bi-person-fill"></i></div>
-        <div>
-        <h5 class="ticket-title">Adult Tickets</h5>
-        ${
-          showPricing
-            ? `<div class="ticket-price">$<span id="${adultPriceId}"></span> per person</div>`
-            : ""
-        }
-        </div>
-      </div>
-      <div id="${adultSectionId}"></div>
-      <button type="button" class="btn btn-primary btn-sm ms-auto" id="${addAdultBtnId}">Add</button>
-      <input type="hidden" id="${adultInputId}" value="" />
-    </div>
-  </div>
-  <div class="col-md-6">
-    <div class="ticket-section child-tickets mb-4">
-      <div class="ticket-header">
-        <div class="ticket-icon"><i class="bi bi-person-fill"></i></div>
-        <div>
-        <h5 class="ticket-title">Child Tickets</h5>
-        ${
-          showPricing
-            ? `<div class="ticket-price">$<span id="${childPriceId}"></span> per child (6 & under)</div>`
-            : ""
-        }
-      </div>
-      </div>
-      <div id="${childSectionId}"></div>
-      <button type="button" class="btn btn-primary btn-sm ms-auto" id="${addChildBtnId}">Add</button>
-      <input type="hidden" id="${childInputId}" value="" />
-    </div>
-  </div>
-  </div>
-  `;
-}
-// ==================================================
-// STELLA MARIS FAMILY DAY - COMMON FUNCTIONS
-// ==================================================
-// This file contains all shared functions used throughout the project
-// to maintain consistency and reduce code duplication.
-
-// ==================================================
-// TICKET VISUAL DIFFERENTIATION HELPERS
-// ==================================================
-// Shared function to populate ticket dropdowns in edit modals
-function populateEditExistingTickets(tickets) {
-  // Use 'edit' prefix for both admin and user modals
-  const adultContainer = document.getElementById("editAdultFoodSelections");
-  const childContainer = document.getElementById("editChildFoodSelections");
-  // Clear containers
-  adultContainer.innerHTML = "";
-  childContainer.innerHTML = "";
-  let adultCount = 0;
-  let childCount = 0;
-  let adultDonatedCount = 0;
-  let childDonatedCount = 0;
-  tickets.forEach((t) => {
-    // Fix: ensure correct ticketType for dropdown rendering
-    let dropdownTicketType = t.ticket_type;
-    if (t.ticket_type === "adult_donated") dropdownTicketType = "adult";
-    if (t.ticket_type === "child_donated") dropdownTicketType = "child";
-    const dropdownHTML = createFoodDropdown(
-      t.id,
-      t.food_option,
-      t.attendance_type || "attending",
-      t.pickup_time || "",
-      dropdownTicketType
-    );
-    const wrapperHTML = `<div data-ticket-id="${t.id}">${dropdownHTML}</div>`;
-    if (t.ticket_type === "adult") {
-      adultContainer.insertAdjacentHTML("beforeend", wrapperHTML);
-      adultCount++;
-    } else if (t.ticket_type === "adult_donated") {
-      adultContainer.insertAdjacentHTML("beforeend", wrapperHTML);
-      adultDonatedCount++;
-    } else if (t.ticket_type === "child") {
-      childContainer.insertAdjacentHTML("beforeend", wrapperHTML);
-      childCount++;
-    } else if (t.ticket_type === "child_donated") {
-      childContainer.insertAdjacentHTML("beforeend", wrapperHTML);
-      childDonatedCount++;
-    }
-  });
-  // Update hidden counters for regular and donated tickets
-  document.getElementById("editAdult").value = adultCount;
-  document.getElementById("editChild").value = childCount;
-  if (document.getElementById("editAdultDonations")) {
-    document.getElementById("editAdultDonations").value = adultDonatedCount;
-  }
-  if (document.getElementById("editChildDonations")) {
-    document.getElementById("editChildDonations").value = childDonatedCount;
-  }
-}
-
-/**
- * Get ticket number from ticket ID for visual differentiation
- * @param {string} ticketId - The ticket ID
- * @param {boolean} isAdult - Whether this is an adult ticket
- * @returns {number} The ticket number within its type
- */
-function getTicketNumber(ticketId, isAdult) {
-  // Try different container naming patterns
-  const possibleContainers = isAdult
-    ? ["adult-dropdowns", "editAdultFoodSelections"]
-    : ["child-dropdowns", "editChildFoodSelections"];
-
-  let container = null;
-  for (const containerId of possibleContainers) {
-    container = document.getElementById(containerId);
-    if (container) break;
-  }
-
-  if (!container) return 1;
-
-  const existingTickets = container.querySelectorAll(".individual-ticket-card");
-  return existingTickets.length + 1;
-}
-
-/**
- * Get color class for ticket based on number and type
- * @param {number} ticketNumber - The ticket number
- * @param {boolean} isAdult - Whether this is an adult ticket
- * @returns {string} CSS class for ticket styling
- */
-function getTicketColorClass(isAdult) {
-  return isAdult ? "adult-ticket-primary" : "child-ticket-primary";
-}
-
 // ==================================================
 // LOADING SCREEN MANAGEMENT
 // ==================================================
@@ -262,23 +112,6 @@ function cleanPhoneNumber(phone) {
   return phone.replace(/\D/g, "").slice(0, 10);
 }
 
-// ==================================================
-// PRICING CALCULATIONS
-// ==================================================
-
-/**
- * Calculate total price for tickets
- * @param {number} adultCount - Number of adult tickets
- * @param {number} childCount - Number of child tickets
- * @returns {number} Total amount
- */
-function calculateTotal(adultCount, childCount) {
-  return (
-    adultCount * CONFIG.PRICING.adult_ticket +
-    childCount * CONFIG.PRICING.child_ticket
-  );
-}
-
 /**
  * Calculate total amount paid from payment transactions
  * @param {Array} transactions - Array of payment transaction objects
@@ -298,707 +131,6 @@ function calculateOutstanding(totalAmount, transactions) {
   return totalAmount - calculateTotalPaid(transactions);
 }
 
-// ==================================================
-// DOM QUERY UTILITIES
-// ==================================================
-
-/**
- * Get selected attendance type value
- * @returns {string|null} Selected attendance type or null
- */
-function getSelectedAttendanceType() {
-  return (
-    document.querySelector('input[name="attendanceType"]:checked')?.value ||
-    null
-  );
-}
-
-/**
- * Get selected pickup time value
- * @returns {string|null} Selected pickup time or null
- */
-function getSelectedPickupTime() {
-  return (
-    document.querySelector('input[name="pickupTime"]:checked')?.value || null
-  );
-}
-
-// ==================================================
-// FOOD OPTIONS
-// ==================================================
-
-/**
- * Standard food options for the event
- */
-const FOOD_OPTIONS = [
-  { value: "station1", label: "Curry goat, rice & roti" },
-  { value: "station2", label: "Jerk pork & chicken with festival" },
-  { value: "station3", label: "Fish & vegetable pasta" },
-  {
-    value: "station4",
-    label: "Chinese - vegetable lo mein, sweet & sour chicken",
-  },
-];
-
-/**
- * Get food option label by value
- * @param {string|number|null|undefined} value - Food option value
- * @returns {string} Food option label or a fallback string
- */
-function getFoodLabel(value) {
-  // Handle null, undefined, or empty values
-  if (value == null || value === "") {
-    return "No food selection";
-  }
-
-  // Convert to string and normalize
-  const normalizedValue = String(value).toLowerCase().trim();
-
-  // Handle numeric values (1-4 maps to station1-station4)
-  if (!isNaN(normalizedValue) && normalizedValue >= 1 && normalizedValue <= 4) {
-    const stationValue = `station${normalizedValue}`;
-    const option = FOOD_OPTIONS.find((opt) => opt.value === stationValue);
-    return option ? option.label : `Station ${normalizedValue}`;
-  }
-
-  // Handle "station" prefixed values (case insensitive)
-  if (normalizedValue.startsWith("station")) {
-    const option = FOOD_OPTIONS.find(
-      (opt) => opt.value.toLowerCase() === normalizedValue
-    );
-    return option ? option.label : value;
-  }
-
-  // Direct lookup by value (case insensitive)
-  const option = FOOD_OPTIONS.find(
-    (opt) => opt.value.toLowerCase() === normalizedValue
-  );
-  if (option) {
-    return option.label;
-  }
-
-  // Fallback: return the original value if no match found
-  return String(value);
-}
-
-// ==================================================
-// DROPDOWN MANAGEMENT FUNCTIONS
-// ==================================================
-
-// Global counter for generating unique temporary IDs
-let nextTempId = 0;
-
-/**
- * Create a complete ticket editing interface with attendance type and conditional food options
- * @param {string} ticketId - Unique identifier for the ticket
- * @param {string} selectedFoodValue - Currently selected food option
- * @param {string} attendanceType - Current attendance type ('attending' or 'takeaway')
- * @param {string} pickupTime - Current pickup time if takeaway
- * @param {string} ticketType - Explicit ticket type ('adult' or 'child') - optional, will be inferred if not provided
- * @returns {string} HTML string for the complete ticket interface
- */
-function createFoodDropdown(
-  ticketId,
-  selectedFoodValue = "",
-  attendanceType = "attending",
-  pickupTime = "",
-  ticketType = null
-) {
-  const isTemp = ticketId.toString().startsWith("temp_");
-
-  // Determine ticket type - use explicit parameter if provided, otherwise infer from ID
-  let isAdult;
-  if (ticketType) {
-    isAdult = ticketType === "adult";
-  } else {
-    isAdult =
-      ticketId.toString().includes("adult") ||
-      ticketId.toString().includes("Adult");
-  }
-
-  const ticketNumber = getTicketNumber(ticketId, isAdult);
-  const colorClass = getTicketColorClass(isAdult);
-  const ticketLabel = isAdult ? "Adult" : "Child";
-
-  // Attendance type section
-  let attendanceHTML = `
-    <div class="mb-2">
-      <label class="form-label small">Attendance Type</label>
-      <div class="mb-2">
-        <div class="form-check">
-          <input class="form-check-input" type="radio" 
-                 name="attendance_${ticketId}" 
-                 id="attending_${ticketId}" 
-                 value="attending" 
-                 data-ticket-id="${ticketId}"
-                 ${attendanceType === "attending" ? "checked" : ""}>
-          <label class="form-check-label" for="attending_${ticketId}">Attending Event</label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" 
-                 name="attendance_${ticketId}" 
-                 id="takeaway_${ticketId}" 
-                 value="takeaway" 
-                 data-ticket-id="${ticketId}"
-                 ${attendanceType === "takeaway" ? "checked" : ""}>
-          <label class="form-check-label" for="takeaway_${ticketId}">Taking Away</label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" 
-                 name="attendance_${ticketId}" 
-                 id="donate_${ticketId}" 
-                 value="donate" 
-                 data-ticket-id="${ticketId}"
-                 ${attendanceType === "donate" ? "checked" : ""}>
-          <label class="form-check-label" for="donate_${ticketId}">Donate Ticket</label>
-        </div>
-        <small class="text-muted">
-          <span id="message_${ticketId}"></span>
-        </small>
-      </div>
-    </div>
-  `;
-
-  // Food option section (conditional) - Now using checkboxes for multiple selections
-  let foodHTML = "";
-  // selectedFoodValue could be a string or array - handle both cases
-  const selectedFoodArray = Array.isArray(selectedFoodValue)
-    ? selectedFoodValue
-    : selectedFoodValue
-    ? [selectedFoodValue]
-    : [];
-
-  FOOD_OPTIONS.forEach((opt) => {
-    const isChecked = selectedFoodArray.includes(opt.value);
-    foodHTML += `
-      <div class="form-check">
-        <input class="form-check-input food-station-checkbox" 
-               type="checkbox" 
-               id="food_${opt.value}_${ticketId}" 
-               value="${opt.value}"
-               data-ticket-id="${ticketId}"
-               ${isChecked ? "checked" : ""}>
-        <label class="form-check-label" for="food_${opt.value}_${ticketId}">
-          ${opt.label}
-        </label>
-      </div>`;
-  });
-
-  const foodSection = `
-    <div class="food-option-section mb-2" id="food_${ticketId}" style="display: ${
-    attendanceType === "takeaway" ? "block" : "none"
-  }">
-      <label class="form-label small">Food Stations <small class="text-muted">(Select all that apply)</small></label>
-      <div class="food-checkboxes" data-ticket-id="${ticketId}">
-        ${foodHTML}
-      </div>
-    </div>
-  `;
-
-  // Pickup time section (conditional)
-  const pickupSection = `
-    <div class="pickup-time-section" id="pickup_${ticketId}" style="display: ${
-    attendanceType === "takeaway" ? "block" : "none"
-  }">
-      <label class="form-label small">Pickup Time</label>
-      <div class="mb-2">
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" 
-                 name="pickup_${ticketId}" 
-                 id="time1_${ticketId}" 
-                 value="12:30" 
-                 data-ticket-id="${ticketId}"
-                 ${pickupTime === "12:30" ? "checked" : ""}
-                 ${attendanceType === "takeaway" ? "required" : ""}>
-          <label class="form-check-label" for="time1_${ticketId}">12:30 PM</label>
-        </div>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" 
-                 name="pickup_${ticketId}" 
-                 id="time2_${ticketId}" 
-                 value="2:00" 
-                 data-ticket-id="${ticketId}"
-                 ${pickupTime === "2:00" ? "checked" : ""}
-                 ${attendanceType === "takeaway" ? "required" : ""}>
-          <label class="form-check-label" for="time2_${ticketId}">2:00 PM</label>
-        </div>
-        <div class="form-check form-check-inline">
-          <input class="form-check-input" type="radio" 
-                 name="pickup_${ticketId}" 
-                 id="time3_${ticketId}" 
-                 value="3:30" 
-                 data-ticket-id="${ticketId}"
-                 ${pickupTime === "3:30" ? "checked" : ""}
-                 ${attendanceType === "takeaway" ? "required" : ""}>
-          <label class="form-check-label" for="time3_${ticketId}">3:30 PM</label>
-        </div>
-      </div>
-    </div>
-  `;
-
-  const completeHTML = `
-    <div class="individual-ticket-card ${colorClass}" data-ticket-id="${ticketId}">
-      <div class="ticket-card-header">
-        <div class="ticket-number-badge">
-          <span>${ticketLabel} Ticket ${ticketNumber}</span>
-        </div>
-        <div class="ticket-type-indicator">
-          ${
-            isAdult
-              ? `$${CONFIG.PRICING.adult_ticket.toLocaleString()}`
-              : `$${CONFIG.PRICING.child_ticket.toLocaleString()}`
-          }
-        </div>
-  <button type="button" class="btn btn-outline-danger btn-xs remove-ticket-btn" style="margin-left:8px; font-size:0.75rem; padding:2px 8px; background:#fff; color:#dc2626; border:1px solid #dc2626;" data-ticket-id="${ticketId}"><i class="fas fa-trash" style="color:#dc2626;"></i> <span style="color:#dc2626;">Remove</span></button>
-      </div>
-      <div class="ticket-card-content">
-        ${attendanceHTML}
-        ${attendanceType === "donate" ? "" : foodSection}
-        ${attendanceType === "donate" ? "" : pickupSection}
-      </div>
-    </div>
-  `;
-
-  // Add event listeners after the HTML is inserted (this will be handled by the calling function)
-  setTimeout(() => {
-    const attendingRadio = document.getElementById(`attending_${ticketId}`);
-    const takeawayRadio = document.getElementById(`takeaway_${ticketId}`);
-    const donateRadio = document.getElementById(`donate_${ticketId}`);
-    const foodDiv = document.getElementById(`food_${ticketId}`);
-    const pickupDiv = document.getElementById(`pickup_${ticketId}`);
-    const messageDiv = document.getElementById(`message_${ticketId}`);
-    const foodCheckboxes = foodDiv?.querySelectorAll('input[type="checkbox"]');
-    const pickupInputs = pickupDiv?.querySelectorAll('input[type="radio"]');
-
-    const removeBtn = document.querySelector(
-      `.remove-ticket-btn[data-ticket-id='${ticketId}']`
-    );
-    if (removeBtn) {
-      removeBtn.addEventListener("click", function () {
-        const currentBalanceEl = document.getElementById("outstandingBalance");
-        let currentBalance = 0;
-
-        if (currentBalanceEl) {
-          currentBalance =
-            parseFloat(currentBalanceEl.textContent.replace(/[^\d.-]/g, "")) ||
-            0;
-        }
-        // Remove the ticket card from DOM
-        let card = document.querySelector(
-          `#editChildFoodSelections > div[data-ticket-id='${ticketId}']`
-        );
-        if (!card) {
-          card = document.querySelector(
-            `#editAdultFoodSelections > div[data-ticket-id='${ticketId}']`
-          );
-        }
-        if (!card) {
-          card =
-            removeBtn.closest(".individual-ticket-card") ||
-            removeBtn.closest(`div[data-ticket-id='${ticketId}']`);
-        }
-        if (card) card.remove();
-
-        // Update ticket counters based on attendance type
-        let attendanceType = "attending";
-        const donateRadio = card.querySelector(
-          `input[name="attendance_${ticketId}"][value="donate"]`
-        );
-        if (donateRadio && donateRadio.checked) {
-          attendanceType = "donate";
-        }
-        let typeKey = ticketType || "";
-        if (!typeKey) {
-          const idStr = ticketId.toString().toLowerCase();
-          if (idStr.includes("adult") && idStr.includes("donated"))
-            typeKey = "adult_donated";
-          else if (idStr.includes("child") && idStr.includes("donated"))
-            typeKey = "child_donated";
-          else if (idStr.includes("adult")) typeKey = "adult";
-          else if (idStr.includes("child")) typeKey = "child";
-        }
-        let counterId = "";
-        if (attendanceType === "donate") {
-          if (typeKey === "adult" || typeKey === "adult_donated")
-            counterId = "editAdultDonations";
-          else if (typeKey === "child" || typeKey === "child_donated")
-            counterId = "editChildDonations";
-        } else {
-          if (typeKey === "adult") counterId = "editAdult";
-          else if (typeKey === "child") counterId = "editChild";
-        }
-        if (counterId) {
-          const counterInput = document.getElementById(counterId);
-          if (counterInput) {
-            let currentVal = parseInt(counterInput.value || "0");
-            if (currentVal > 0) {
-              counterInput.value = currentVal - 1;
-              counterInput.dispatchEvent(new Event("change"));
-            }
-          }
-        }
-
-        // Recalculate totals
-        if (typeof window.updateEditTotals === "function")
-          window.updateEditTotals();
-        if (typeof window.updateRemoveButtonStates === "function")
-          window.updateRemoveButtonStates();
-        if (typeof window.addFormChangeListeners === "function")
-          window.addFormChangeListeners();
-
-        // Track tickets to delete
-        if (!ticketId.toString().startsWith("temp_")) {
-          window.ticketsToDelete = window.ticketsToDelete || [];
-          if (!window.ticketsToDelete.includes(ticketId)) {
-            window.ticketsToDelete.push(ticketId);
-          }
-        }
-      });
-    }
-
-    if (
-      attendingRadio &&
-      takeawayRadio &&
-      donateRadio &&
-      foodDiv &&
-      pickupDiv
-    ) {
-      attendingRadio.addEventListener("change", function () {
-        if (this.checked) {
-          foodDiv.style.display = "none";
-          pickupDiv.style.display = "none";
-          messageDiv.textContent = "";
-          if (foodCheckboxes) {
-            foodCheckboxes.forEach((checkbox) => {
-              checkbox.checked = false;
-            });
-          }
-          if (pickupInputs) {
-            pickupInputs.forEach((input) => {
-              input.required = false;
-              input.checked = false;
-            });
-          }
-        }
-      });
-
-      takeawayRadio.addEventListener("change", function () {
-        if (this.checked) {
-          foodDiv.style.display = "block";
-          pickupDiv.style.display = "block";
-          messageDiv.textContent = "";
-          if (pickupInputs) {
-            pickupInputs.forEach((input) => (input.required = true));
-          }
-        }
-      });
-
-      donateRadio.addEventListener("change", function () {
-        if (this.checked) {
-          foodDiv.style.display = "none";
-          pickupDiv.style.display = "none";
-          messageDiv.textContent =
-            "The Men’s Executive Committee will identify a charity for the donation and we will advise in due course of our selection";
-          if (foodCheckboxes) {
-            foodCheckboxes.forEach((checkbox) => {
-              checkbox.checked = false;
-            });
-          }
-          if (pickupInputs) {
-            pickupInputs.forEach((input) => {
-              input.required = false;
-              input.checked = false;
-            });
-          }
-          // Dispatch custom event for donate selection
-          const donateEvent = new CustomEvent("donateTicketSelected", {
-            detail: {
-              ticketId,
-              ticketType,
-            },
-          });
-          donateRadio.dispatchEvent(donateEvent);
-        }
-      });
-    }
-  }, 100);
-
-  return completeHTML;
-}
-
-async function updateEditTotals() {
-  // Count tickets by attendance type
-  let adultTickets = 0;
-  let childTickets = 0;
-  let adultDonations = 0;
-  let childDonations = 0;
-
-  // Adult tickets
-  const adultCards = document.querySelectorAll(
-    "#editAdultFoodSelections > div"
-  );
-  adultCards.forEach((card) => {
-    const ticketId = card.getAttribute("data-ticket-id");
-    const donateRadio = card.querySelector(
-      `input[name="attendance_${ticketId}"][value="donate"]`
-    );
-    if (donateRadio && donateRadio.checked) {
-      adultDonations++;
-    } else {
-      adultTickets++;
-    }
-  });
-
-  // Child tickets
-  const childCards = document.querySelectorAll(
-    "#editChildFoodSelections > div"
-  );
-  console.log("Child Cards:", childCards);
-  childCards.forEach((card) => {
-    const ticketId = card.getAttribute("data-ticket-id");
-    const donateRadio = card.querySelector(
-      `input[name="attendance_${ticketId}"][value="donate"]`
-    );
-    if (donateRadio && donateRadio.checked) {
-      childDonations++;
-    } else {
-      childTickets++;
-    }
-  });
-
-  // Update hidden fields
-  document.getElementById("editAdult").value = adultTickets;
-  document.getElementById("editChild").value = childTickets;
-  document.getElementById("editAdultDonations").value = adultDonations;
-  document.getElementById("editChildDonations").value = childDonations;
-
-  // Calculate total including tickets and donations
-  let total = calculateTotal(
-    adultTickets + adultDonations,
-    childTickets + childDonations
-  );
-  console.log(
-    "Updated totals - Adult:",
-    adultTickets,
-    "Child:",
-    childTickets,
-    "Adult Donations:",
-    adultDonations,
-    "Child Donations:",
-    childDonations,
-    "Total:",
-    total
-  );
-  document.getElementById("editTotal").textContent = formatCurrency(total);
-
-  const ticketId = document.getElementById("editTicketId").value;
-  const { data: transactions } = await supabaseClient
-    .from("payment_transactions")
-    .select("amount")
-    .eq("ticket_id", ticketId);
-
-  const totalPaid = calculateTotalPaid(transactions || []);
-  const outstanding = total - totalPaid;
-  const outstandingElem = document.getElementById("editOutstanding");
-  if (outstandingElem) {
-    outstandingElem.textContent = formatCurrency(outstanding);
-  }
-}
-
-function processTicketContainers(containers, count, ticketType) {
-  const tickets = [];
-  let adultDonations = 0;
-  let childDonations = 0;
-
-  Array.from(containers)
-    .slice(0, count)
-    .forEach((container) => {
-      const ticketId = container.dataset.ticketId || container.dataset.tempId;
-      if (!ticketId) return;
-
-      const attendanceRadios = container.querySelectorAll(
-        `input[name="attendance_${ticketId}"]`
-      );
-      const selectedAttendance = Array.from(attendanceRadios).find(
-        (radio) => radio.checked
-      );
-      const attendanceType = selectedAttendance
-        ? selectedAttendance.value
-        : "attending";
-
-      let foodOptions = [];
-      let pickupTime = null;
-
-      if (attendanceType === "takeaway") {
-        const foodCheckboxes = container.querySelectorAll(
-          `input.food-station-checkbox[data-ticket-id="${ticketId}"]:checked`
-        );
-        foodOptions = Array.from(foodCheckboxes).map((cb) => cb.value);
-
-        const pickupRadios = container.querySelectorAll(
-          `input[name="pickup_${ticketId}"]`
-        );
-        const selectedPickup = Array.from(pickupRadios).find(
-          (radio) => radio.checked
-        );
-        pickupTime = selectedPickup ? selectedPickup.value : null;
-      }
-
-      let finalTicketType = ticketType;
-      if (attendanceType === "donate" && ticketType === "adult") {
-        adultDonations++;
-        finalTicketType = "adult_donated";
-      } else if (attendanceType === "donate" && ticketType === "child") {
-        childDonations++;
-        finalTicketType = "child_donated";
-      }
-
-      tickets.push({
-        ticketType: finalTicketType,
-        attendanceType,
-        foodOptions,
-        pickupTime,
-      });
-    });
-
-  return {
-    tickets,
-    adultDonations,
-    childDonations,
-  };
-}
-
-/**
- * Add a new ticket interface to a container
- * @param {string} containerId - ID of the container element
- * @param {string} ticketType - Type of ticket ('adult' or 'child')
- * @param {string} selectedValue - Pre-selected food value (optional)
- */
-function addDropdown(containerId, ticketType, selectedValue = "") {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  const tempId = `temp_${ticketType}_${nextTempId++}`; // include ticket type in ID
-
-  // Pass ticket type explicitly to ensure correct styling
-  const dropdownHTML = createFoodDropdown(
-    tempId,
-    selectedValue,
-    "attending",
-    "",
-    ticketType
-  );
-
-  // Wrap in container div with data-ticket-id for form submission logic
-  const wrapperHTML = `<div data-ticket-id="${tempId}">${dropdownHTML}</div>`;
-
-  container.insertAdjacentHTML("beforeend", wrapperHTML);
-}
-
-/**
- * Add a ticket and update counters
- * @param {string} containerId - ID of the dropdown container
- * @param {string} counterId - ID of the hidden counter input
- * @param {string} ticketType - Type of ticket ('adult' or 'child')
- * @param {Function} updateTotalsCallback - Optional callback to update totals
- */
-function addTicket(
-  containerId,
-  counterId,
-  ticketType,
-  updateTotalsCallback = null
-) {
-  addDropdown(containerId, ticketType);
-  const counterInput = document.getElementById(counterId);
-  counterInput.value = parseInt(counterInput.value || "0") + 1;
-  counterInput.dispatchEvent(new Event("change")); // trigger update totals
-
-  if (updateTotalsCallback) {
-    updateTotalsCallback();
-  }
-
-  // Update button states after addition
-  updateRemoveButtonStates();
-}
-/**
- * Update the state of remove buttons based on current ticket counts
- */
-function updateRemoveButtonStates() {
-  // Check for adult tickets
-  const adultCounter = document.getElementById("adultTickets");
-  const adultRemoveBtn = document.getElementById("removeAdultBtn");
-  console.log("here", adultRemoveBtn);
-  if (adultCounter && adultRemoveBtn) {
-    const adultCount = parseInt(adultCounter.value || "0");
-    adultRemoveBtn.style.display = adultCount === 0 ? "none" : "inline-block";
-  }
-
-  // Check for child tickets
-  const childCounter = document.getElementById("childTickets");
-  const childRemoveBtn = document.getElementById("removeChildBtn");
-  if (childCounter && childRemoveBtn) {
-    const childCount = parseInt(childCounter.value || "0");
-    childRemoveBtn.style.display = childCount === 0 ? "none" : "inline-block";
-  }
-}
-
-/**
- * Remove the last dropdown from a container
- * @param {string} containerId - ID of the container element
- */
-function removeLastDropdown(containerId) {
-  const container = document.getElementById(containerId);
-  if (container && container.lastElementChild) {
-    container.removeChild(container.lastElementChild);
-  }
-}
-
-// ==================================================
-// ORDER NUMBER GENERATION
-// ==================================================
-
-/**
- * Generate a random order number
- * @param {number} length - Length of the order number (default: 6)
- * @returns {string} Generated order number
- */
-function generateOrderNumber(length = 6) {
-  let number = "";
-  for (let i = 0; i < length; i++) {
-    number += Math.floor(Math.random() * 10);
-  }
-  return number;
-}
-
-/**
- * Generate a unique order number by checking against existing orders
- * @param {Object} supabaseClient - Supabase client instance
- * @returns {Promise<string>} Unique order number
- */
-async function getUniqueOrderNumber(supabaseClient) {
-  let orderNumber;
-  let exists = true;
-
-  while (exists) {
-    orderNumber = generateOrderNumber();
-    const { data } = await supabaseClient
-      .from("orders")
-      .select("order_number")
-      .eq("order_number", orderNumber)
-      .maybeSingle();
-
-    exists = !!data;
-  }
-  return orderNumber;
-}
-
-// ==================================================
-// DATE AND TIME UTILITIES
-// ==================================================
-
-/**
- * Initialize common page elements like year and date
- */
 function initializePageElements() {
   const yearElement = document.getElementById("year");
   const dateElement = document.getElementById("dateAndTime");
@@ -1046,244 +178,255 @@ function validateEmail(email) {
  * @returns {string} Formatted currency string
  */
 function formatCurrency(amount) {
-  return amount.toLocaleString();
+  const num = parseFloat(amount);
+  if (isNaN(num)) return '0.00';
+  return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 // ==================================================
-// TICKET HTML GENERATION
+// THERMOMETER ANIMATION FUNCTIONS
 // ==================================================
 
 /**
- * Build HTML representation of tickets for email templates and confirmations
- * @param {Array} tickets - Array of ticket objects with ticket_type and food_option
- * @returns {string} HTML string representing the tickets
+ * Animate number counting with easing
+ * @param {string} elementId - ID of element to animate
+ * @param {number} start - Starting value
+ * @param {number} end - Ending value
+ * @param {number} duration - Animation duration in ms
+ * @param {boolean} isLarge - If true, adds "JMD $" prefix
+ * @param {string} suffix - Suffix to add (e.g., "%")
  */
-function buildTicketHTML(tickets) {
-  // Sort all tickets by ID first, then separate by type to maintain creation order
-  const sortedTickets = tickets.sort((a, b) => a.id - b.id);
-  const adults = sortedTickets.filter((t) => t.ticket_type === "adult");
-  const children = sortedTickets.filter((t) => t.ticket_type === "child");
-  const donatedAdults = sortedTickets.filter(
-    (t) => t.ticket_type === "adult_donated"
-  );
-  const donatedChildren = sortedTickets.filter(
-    (t) => t.ticket_type === "child_donated"
-  );
-
-  let html = "";
-
-  if (adults.length) {
-    html += `<p><strong>Adult Tickets (${adults.length}):</strong></p><ul>`;
-    adults.forEach((t, i) => {
-      let ticketInfo = `Adult #${i + 1}`;
-      if (t.attendance_type === "takeaway") {
-        const foodLabels = parseFoodOptions(t.food_option);
-        ticketInfo += ` — ${
-          foodLabels || "No food selections"
-        } | Taking Away - Pickup: ${t.pickup_time} PM`;
-      } else {
-        ticketInfo += ` | Attending Event`;
-      }
-      html += `<li>${ticketInfo}</li>`;
-    });
-    html += "</ul>";
-  }
-
-  if (children.length) {
-    html += `<p><strong>Child Tickets (${children.length}):</strong></p><ul>`;
-    children.forEach((t, i) => {
-      let ticketInfo = `Child #${i + 1}`;
-      if (t.attendance_type === "takeaway") {
-        const foodLabels = parseFoodOptions(t.food_option);
-        ticketInfo += ` — ${
-          foodLabels || "No food selections"
-        } | Taking Away - Pickup: ${t.pickup_time} PM`;
-      } else {
-        ticketInfo += ` | Attending Event`;
-      }
-      html += `<li>${ticketInfo}</li>`;
-    });
-    html += "</ul>";
-  }
-
-  if (donatedAdults.length) {
-    html += `<p><strong>Donated Adult Tickets (${donatedAdults.length})</strong></p>`;
-  }
-
-  if (donatedChildren.length) {
-    html += `<p><strong>Donated Child Tickets (${donatedChildren.length})</strong></p>`;
-  }
-
-  return html;
-}
-
-/**
- * Parse food options from various stored formats and return formatted labels
- * @param {string|array|number|object} foodOption - Raw food option data
- * @returns {string} Formatted food labels joined with semicolons
- */
-function parseFoodOptions(foodOption) {
-  let foodOptions = [];
-
-  try {
-    const raw = foodOption ?? "[]";
-
-    if (Array.isArray(raw)) {
-      foodOptions = raw;
-    } else if (typeof raw === "string") {
-      try {
-        // Try parsing as JSON first
-        const parsed = JSON.parse(raw);
-        foodOptions = Array.isArray(parsed) ? parsed : [parsed];
-      } catch (e) {
-        // Not JSON - treat as comma-separated or single string
-        foodOptions = raw
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-      }
+function animateThermometerValue(elementId, start, end, duration, isLarge = false, suffix = "") {
+  const element = document.getElementById(elementId);
+  if (!element) return;
+  
+  const range = end - start;
+  const increment = range / (duration / 16);
+  let current = start;
+  
+  const timer = setInterval(() => {
+    current += increment;
+    if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+      current = end;
+      clearInterval(timer);
+    }
+    
+    if (isLarge) {
+      const value = Math.floor(current);
+      const formattedValue = value.toLocaleString('en-US');
+      element.textContent = "JMD $" + formattedValue;
+    } else if (suffix === "%") {
+      // Show 1 decimal place for percentages, capped at 100.0%
+      const cappedValue = Math.min(current, 100);
+      element.textContent = cappedValue.toFixed(1) + suffix;
+    } else if (suffix) {
+      element.textContent = Math.floor(current) + suffix;
     } else {
-      // Number, object, or other type
-      foodOptions = [raw];
+      const value = Math.floor(current);
+      const formattedValue = value.toLocaleString('en-US');
+      element.textContent = formattedValue;
     }
-  } catch (e) {
-    foodOptions = [];
-  }
-
-  // Use the robust getFoodLabel function for all options
-  const foodLabels = foodOptions
-    .map((opt) => getFoodLabel(opt))
-    .filter((label) => label && label !== "No food selection")
-    .join("; ");
-
-  return foodLabels || "No food selections";
+  }, 16);
 }
 
-// ==================================================
-// TICKET PROCESSING UTILITIES
-// ==================================================
+/**
+ * Create falling coins animation
+ * @param {string} containerId - ID of container element for coins
+ * @param {number} duration - Total duration in milliseconds to keep coins falling
+ */
+function createCoinAnimation(containerId, duration = 2250) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  const coinEmojis = ['🪙', '💰', '💵', '💴', '💶', '💷'];
+  const coinInterval = 150; // Time between each coin
+  const coinFallDuration = 1600; // How long each coin takes to fall
+  
+  let elapsed = 0;
+  let coinCount = 0;
+  
+  const coinTimer = setInterval(() => {
+    if (elapsed >= duration) {
+      clearInterval(coinTimer);
+      return;
+    }
+    
+    const coin = document.createElement('div');
+    coin.textContent = coinEmojis[Math.floor(Math.random() * coinEmojis.length)];
+    coin.style.position = 'absolute';
+    coin.style.fontSize = (20 + Math.random() * 20) + 'px';
+    coin.style.left = Math.random() * 100 + '%';
+    coin.style.top = '-50px';
+    coin.style.opacity = '0.8';
+    coin.style.transition = 'all 1.5s ease-in';
+    coin.style.transform = 'rotate(0deg)';
+    
+    container.appendChild(coin);
+    
+    // Animate coin falling
+    setTimeout(() => {
+      coin.style.top = '100%';
+      coin.style.transform = 'rotate(' + (360 + Math.random() * 360) + 'deg)';
+      coin.style.opacity = '0';
+    }, 50);
+    
+    // Remove coin after animation
+    setTimeout(() => {
+      coin.remove();
+    }, coinFallDuration);
+    
+    elapsed += coinInterval;
+    coinCount++;
+  }, coinInterval);
+}
 
 /**
- * Iterate through all tickets in orders with validation and optional filtering
- * @param {Array} orders - Array of order objects
- * @param {Function} callback - Function to call for each ticket (order, ticket)
- * @param {Function} filter - Optional filter function (order, ticket) => boolean
+ * Load and animate donation progress thermometer
+ * @param {object} supabaseClient - Supabase client instance
+ * @param {object} elementIds - Object containing element IDs
+ * @param {string} elementIds.coinContainer - Coin animation container ID
+ * @param {string} elementIds.totalRaised - Total raised display ID
+ * @param {string} elementIds.totalRaisedLarge - Large total raised display ID
+ * @param {string} elementIds.goalPercentage - Percentage display ID
+ * @param {string} elementIds.thermometerReceived - Received funds bar ID
+ * @param {string} elementIds.thermometerPledged - Pledged funds bar ID
+ * @param {string} elementIds.loadingStatus - Loading status label ID
  */
-function forEachTicket(orders, callback, filter = null) {
-  orders.forEach((order) => {
-    if (order.tickets && Array.isArray(order.tickets)) {
-      order.tickets.forEach((ticket) => {
-        if (!filter || filter(order, ticket)) {
-          callback(order, ticket);
+async function loadDonationProgress(supabaseClient, elementIds) {
+  try {
+    const { data: donations, error } = await supabaseClient
+      .from("donations")
+      .select("pledge_amount, amount_paid, paid")
+      .eq('event_id', '4');
+    
+    if (error) {
+      console.error("Error loading donations:", error);
+      return;
+    }
+
+    // Calculate received funds (amount_paid)
+    const receivedFunds = donations ? donations.reduce((sum, d) => sum + (d.amount_paid || 0), 0) : 0;
+    
+    // Calculate total pledged amount
+    const totalPledged = donations ? donations.reduce((sum, d) => sum + (d.pledge_amount || 0), 0) : 0;
+    
+    // Calculate pledged but not yet paid (total pledged - total received)
+    const pledgedFunds = totalPledged - receivedFunds;
+    
+    const totalDonations = receivedFunds + pledgedFunds;
+    const goal = 5000000; // $5 million
+    const receivedPercentage = Math.min((receivedFunds / goal) * 100, 100);
+    const pledgedPercentage = Math.min((pledgedFunds / goal) * 100, 100);
+    const totalPercentage = Math.min((totalDonations / goal) * 100, 100);
+
+    // Calculate proportional animation durations
+    const totalAnimationTime = 4000;
+    const receivedDuration = totalDonations > 0 ? Math.max(1500, (receivedFunds / totalDonations) * totalAnimationTime) : 2000;
+    const pledgedDuration = totalDonations > 0 ? Math.max(1500, (pledgedFunds / totalDonations) * totalAnimationTime) : 2000;
+
+    // Start coin animation if container exists - coins fall for entire animation duration
+    if (elementIds.coinContainer) {
+      const totalAnimationDuration = receivedDuration + pledgedDuration + 200;
+      createCoinAnimation(elementIds.coinContainer, totalAnimationDuration);
+    }
+    
+    const statusLabel = document.getElementById(elementIds.loadingStatus);
+    
+    // If no received funds, skip straight to pledged animation
+    if (receivedFunds === 0) {
+      // Show "Pledged Funds" label
+      if (statusLabel) {
+        statusLabel.style.opacity = "1";
+        statusLabel.textContent = "Adding Pledged Funds...";
+      }
+      
+      // Animate pledged funds from 0 to total
+      animateThermometerValue(elementIds.totalRaised, 0, totalDonations, pledgedDuration, false, "");
+      if (elementIds.totalRaisedLarge) {
+        animateThermometerValue(elementIds.totalRaisedLarge, 0, totalDonations, pledgedDuration, true);
+      }
+      animateThermometerValue(elementIds.goalPercentage, 0, totalPercentage, pledgedDuration, false, "%");
+      
+      // Pledged layer fills from bottom
+      setTimeout(() => {
+        const pledgedBar = document.getElementById(elementIds.thermometerPledged);
+        if (pledgedBar) {
+          pledgedBar.style.bottom = "0%";
+          pledgedBar.style.height = totalPercentage + "%";
         }
-      });
+      }, 100);
+      
+      // Hide the label after animation completes
+      setTimeout(() => {
+        if (statusLabel) {
+          statusLabel.style.opacity = "0";
+          setTimeout(() => {
+            statusLabel.textContent = "\u00A0";
+          }, 300);
+        }
+      }, pledgedDuration + 500);
+      
+      return;
     }
-  });
-}
-
-/**
- * Format customer name consistently from order data
- * @param {Object} order - Order object with first_name and last_name
- * @returns {string} Formatted customer name
- */
-function getCustomerName(order) {
-  return `${order.first_name || ""} ${order.last_name || ""}`.trim();
-}
-
-/**
- * Format ticket number with proper padding
- * @param {Object} ticket - Ticket object with ticket_number and ticket_type
- * @returns {string} Formatted ticket number with padding
- */
-function formatTicketNumber(ticket) {
-  let pad = 3;
-  if (
-    ticket.ticket_type === "adult" ||
-    ticket.ticket_type === "adult_donated"
-  ) {
-    pad = 4;
+    
+    // Show "Funds Received" label and animate first layer
+    if (statusLabel) {
+      statusLabel.style.opacity = "1";
+      statusLabel.textContent = "Adding Funds Received...";
+    }
+    
+    // First stage: animate received funds only
+    animateThermometerValue(elementIds.totalRaised, 0, receivedFunds, receivedDuration, false, "");
+    if (elementIds.totalRaisedLarge) {
+      animateThermometerValue(elementIds.totalRaisedLarge, 0, receivedFunds, receivedDuration, true);
+    }
+    animateThermometerValue(elementIds.goalPercentage, 0, receivedPercentage, receivedDuration, false, "%");
+    
+    setTimeout(() => {
+      const receivedBar = document.getElementById(elementIds.thermometerReceived);
+      if (receivedBar) {
+        receivedBar.style.height = receivedPercentage + "%";
+      }
+    }, 100);
+    
+    // After first layer animates, show "Pledged Funds" label and animate second layer
+    setTimeout(() => {
+      if (statusLabel) {
+        statusLabel.textContent = "Adding Pledged Funds...";
+      }
+      
+      // Second stage: animate from received to total
+      animateThermometerValue(elementIds.totalRaised, receivedFunds, totalDonations, pledgedDuration, false, "");
+      if (elementIds.totalRaisedLarge) {
+        animateThermometerValue(elementIds.totalRaisedLarge, receivedFunds, totalDonations, pledgedDuration, true);
+      }
+      animateThermometerValue(elementIds.goalPercentage, receivedPercentage, totalPercentage, pledgedDuration, false, "%");
+      
+      // Pledged layer starts where received ends and fills the remaining height
+      const pledgedBar = document.getElementById(elementIds.thermometerPledged);
+      if (pledgedBar) {
+        pledgedBar.style.bottom = receivedPercentage + "%";
+        pledgedBar.style.height = pledgedPercentage + "%";
+      }
+    }, receivedDuration + 200);
+    
+    // Hide the label after both animations complete
+    setTimeout(() => {
+      if (statusLabel) {
+        statusLabel.style.opacity = "0";
+        setTimeout(() => {
+          statusLabel.textContent = "\u00A0";
+        }, 300);
+      }
+    }, receivedDuration + pledgedDuration + 500);
+  } catch (err) {
+    console.error("Error in loadDonationProgress:", err);
   }
-  // child and child_donated default to 3
-  return String(ticket.ticket_number).padStart(pad, "0");
 }
 
 // ==================================================
-// REUSABLE FORM COMPONENTS
+// TOAST NOTIFICATIONS
 // ==================================================
-
-/**
- * Create professional customer information form fields
- * @param {Object} options - Configuration options
- * @param {string} options.prefix - ID prefix (e.g., 'admin', 'edit')
- * @param {boolean} options.includeOrderNumber - Whether to include order number field
- * @param {Object} options.values - Default values to populate
- * @returns {string} HTML string for customer form fields
- */
-function createCustomerFormFields(options = {}) {
-  const { prefix = "", includeOrderNumber = false, values = {} } = options;
-  const idPrefix = prefix ? `${prefix}` : "";
-
-  return `
-    ${
-      includeOrderNumber
-        ? `
-    <div class="mb-3">
-      <label for="${idPrefix}OrderNumber" class="form-label">Order Number</label>
-      <input type="text" id="${idPrefix}OrderNumber" class="form-control" value="${
-            values.orderNumber || ""
-          }" disabled/>
-    </div>
-    `
-        : ""
-    }
-    <div class="mb-3">
-      <input
-        class="form-control"
-        placeholder="Email"
-        name="${prefix ? prefix.toLowerCase() + "Email" : "email"}"
-        id="${idPrefix}Email"
-        type="email"
-        value="${values.email || ""}"
-        required
-      />
-      <div class="invalid-feedback">
-        Please enter a valid email address (e.g., name@example.com).
-      </div>
-    </div>
-    <div class="row mb-3">
-      <div class="col-md-6">
-        <input
-          class="form-control"
-          placeholder="First Name"
-          name="${prefix ? prefix.toLowerCase() + "FirstName" : "firstName"}"
-          id="${idPrefix}FirstName"
-          value="${values.firstName || ""}"
-          required
-        />
-      </div>
-      <div class="col-md-6">
-        <input
-          class="form-control"
-          placeholder="Last Name"
-          name="${prefix ? prefix.toLowerCase() + "LastName" : "lastName"}"
-          id="${idPrefix}LastName"
-          value="${values.lastName || ""}"
-          required
-        />
-      </div>
-    </div>
-    <input
-      class="form-control mb-3"
-      placeholder="Phone Number"
-      id="${idPrefix}PhoneNumber"
-      name="${prefix ? prefix.toLowerCase() + "Phone" : "phone"}"
-      value="${values.phoneNumber || ""}"
-      required
-    />
-  `;
-}
-
-// Universal toast function with blur background
 function showToastWithBlur(message, options = {}) {
   const {
     type = options.type || "success", // success, error, warning, info

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donation Pledge Form</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      #loadingScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.3); /* lighter background */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(4px); /* optional blur */
+      }
+      
+      @keyframes bubble {
+        0% {
+          transform: translateY(0);
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 0.6;
+        }
+        100% {
+          transform: translateY(-100px);
+          opacity: 0;
+          transform: scale(0.5);
+        }
+      }
+    </style>
+  </head>
+  <body style="background-color: #d0f0ff">
+    <div id="loadingScreen" style="display: none">
+      <div
+        class="spinner-border text-primary"
+        role="status"
+        style="width: 3rem; height: 3rem"
+      >
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div class="container bg-white min-vh-100">
+      <!-- NAVBAR -->
+      <nav
+        class="navbar navbar-expand-lg navbar-dark"
+        style="background-color: #2f4f4f"
+      >
+        <div class="container">
+          <a class="navbar-brand" href="index.html"
+            >🎄 Stella Maris Lights of Hope</a
+          >
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div
+            class="collapse navbar-collapse justify-content-end"
+            id="navbarNav"
+          >
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a class="nav-link" href="index.html#about">About Us</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="index.html#expect">What to Expect</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="donation-form.html"
+                  >Donation Pledge Form</a
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+      <!-- HERO SECTION -->
+      <header class="bg-light text-center py-2 mb-4">
+        <div class="container">
+          <h2>Donation Pledge Form</h2>
+        </div>
+      </header>
+      <div class="px-3 pb-5" id="formContent">
+        <h2>Stella Maris Lights of Hope</h2>
+        <form id="donationForm">
+          <div class="mb-3">
+            <input
+              class="form-control"
+              placeholder="Name"
+              name="name"
+              id="name"
+              type="text"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <input
+              class="form-control"
+              placeholder="Email Address"
+              name="email"
+              id="email"
+              type="email"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <input
+              class="form-control"
+              placeholder="Phone Number"
+              name="phone"
+              id="phone"
+              type="tel"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <input
+              class="form-control"
+              placeholder="Pledge Donation Amount (JMD)"
+              name="donationAmount"
+              id="donationAmount"
+              type="number"
+              min="1"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label class="form-label">How would you like to donate?</label>
+            <div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="paymentMethod"
+                  id="paymentCash"
+                  value="cash"
+                  required
+                />
+                <label class="form-check-label" for="paymentCash"
+                  >Cash/Cheque</label
+                >
+              </div>
+              <div class="form-check form-check-inline">
+                <input
+                  class="form-check-input"
+                  type="radio"
+                  name="paymentMethod"
+                  id="paymentBank"
+                  value="bank transfer"
+                  required
+                />
+                <label class="form-check-label" for="paymentBank"
+                  >Bank Transfer</label
+                >
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary mt-3">Submit</button>
+        </form>
+      </div>
+    </div>
+    <!-- FOOTER -->
+    <footer class="text-center py-4 bg-light mt-5">
+      <p class="mb-1">
+        <strong>📍 Stella Maris Church Grounds</strong> |
+        <span id="dateAndTime"></span>
+      </p>
+      <p class="mb-1">
+        📞 876-925-9520 | 📧
+        <a href="mailto:stellamarisfamilyday@gmail.com"
+          >stellamarisfamilyday@gmail.com</a
+        >
+      </p>
+      <small class="text-muted"
+        >#StellaMarisLightsOfHope #JamaicaStrong #TogetherForJamaica #HopeForAll
+      </small>
+      <p>
+        &copy; <span id="year"></span> by Stella Maris Catholic Church Jamaica
+      </p>
+    </footer>
+
+    <script src="config.js"></script>
+    <script src="functions.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script type="module">
+      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+      const supabaseClient = createClient(
+        CONFIG.SUPABASE_URL,
+        CONFIG.SUPABASE_ANON_KEY
+      );
+      
+      // Initialize EmailJS and wait for it to be ready
+      (function() {
+        emailjs.init("-RrY_RPQHt4a9S2Mc");
+        console.log("EmailJS initialized");
+      })();
+      
+      const form = document.getElementById("donationForm");
+
+      // Format phone number as user types
+      const phoneInput = document.getElementById("phone");
+      phoneInput.addEventListener("input", (e) => {
+        const cursorPos = e.target.selectionStart;
+        const result = formatPhoneNumberWithCursor(e.target.value, cursorPos);
+        e.target.value = result.value;
+        e.target.setSelectionRange(result.cursorPos, result.cursorPos);
+      });
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        // Validate phone number length
+        const phoneInput = document.getElementById("phone").value.trim();
+        const cleanedPhone = cleanPhoneNumber(phoneInput);
+        
+        if (cleanedPhone.length !== 10) {
+          alert("Please enter a valid 10-digit phone number.");
+          return;
+        }
+        
+        showLoadingScreen();
+        
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const phone = cleanedPhone;
+      const nameInput = document.getElementById("name").value;
+      const amount = document.getElementById("donationAmount").value;
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+        // Prepare donation data - simplified for donations table
+        const donationInfo = {
+          name: `${nameInput}`,
+          email: email,
+          phone_number: phone,
+          pledge_amount: amount,
+          payment_method: paymentMethod,
+          paid: false,
+          created_at: new Date().toISOString(),
+          event_id: '4'
+        };
+
+        const { data, error: donationError } = await supabaseClient
+          .from("donations")
+          .insert([donationInfo])
+          .select();
+
+        if (
+          donationError ||
+          !data ||
+          !Array.isArray(data) ||
+          !data[0] ||
+          !data[0].id
+        ) {
+          console.error(
+            "Insert failed or no donation ID returned:",
+            donationError,
+            data
+          );
+          hideLoadingScreen();
+          showToastWithBlur(
+            "There was an error saving your donation. Please try again.",
+            { type: "error", icon: "fas fa-exclamation-triangle" }
+          );
+          return;
+        }
+
+        const donationId = data[0].id;
+
+        // Send confirmation email
+        let emailSent = false;
+        try {
+          console.log("Attempting to send email to:", email);
+          const emailResponse = await emailjs.send("service_awer6bj", "template_1bl94dp", {
+            email: email,
+            subject_line: `Donation Pledge: Stella Maris Lights of Hope`,
+            name: nameInput,
+            email_message: `<p style="font-size: 16px; color: #4b5563; margin-bottom: 20px;">
+          Thank you for your generous donation pledge for the <strong>Stella Maris Lights of Hope</strong>.
+        </p>
+
+        <p style="font-size: 15px; color: #6b7280; margin-bottom: 10px;">
+          Here are the details of your pledge:
+        </p>`,
+            email_end: `<p style="margin-top: 25px; font-size: 15px; color: #6b7280;">
+          If you have any questions, feel free to reply to this email.
+        </p>
+
+        <p style="font-size: 15px; color: #6b7280;">
+          We look forward to your contribution! Please share this link with your family and friends: <a href="https://stellamarislightsofhope.netlify.app">https://stellamarislightsofhope.netlify.app</a>
+        </p>`,
+            pledge_amount: formatCurrency(amount),
+            payment_method:
+              CONFIG.PAYMENT.methods[
+                form.paymentMethod.value === "cash" ? "cash" : "bank_transfer"
+              ],
+            payment_instructions:
+              CONFIG.PAYMENT.instructions[
+                form.paymentMethod.value === "cash" ? "cash" : "bank_transfer"
+              ],
+          });
+          console.log("Email sent successfully:", emailResponse);
+          emailSent = true;
+        } catch (emailError) {
+          console.error("Failed to send email. Error details:", emailError);
+          console.error("Error message:", emailError.text || emailError.message);
+          console.error("Email that failed:", email);
+        }
+        
+        hideLoadingScreen();
+        
+        // Show warning if email failed
+        if (!emailSent) {
+          alert("Your donation has been saved successfully!\n\nHowever, we couldn't send the confirmation email. Please check your spam folder or contact us at stellamarisfamilyday@gmail.com");
+        }
+        
+        // Hide the form
+        document.getElementById("donationForm").style.display = "none";
+
+        // Insert the confirmation
+        const confirmationDiv = document.createElement("div");
+        confirmationDiv.innerHTML = buildConfirmationHTML(donationInfo);
+
+        document
+          .getElementById("donationForm")
+          .parentNode.appendChild(confirmationDiv);
+      });
+
+      function buildConfirmationHTML(donationInfo) {
+        let html = `<h2>🎉Donation Confirmed!🎉</h2><p>Thank you <strong>${donationInfo.name}</strong> for your generous donation pledge!</p>`;
+
+        html += `<p><strong>Pledge Amount:</strong> $${formatCurrency(
+          donationInfo.pledge_amount
+        )}</p>`;
+        html +=
+          "<p>Please check your email for confirmation and payment instructions.</p>";
+        
+        // Add thermometer progress section
+        html += `
+          <div class="mt-4 p-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; position: relative; overflow: hidden;">
+            <!-- Coin Animation Container -->
+            <div id="coinContainerConfirm" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;"></div>
+            
+            <div style="position: relative; z-index: 2;">
+            <h4 class="text-center mb-4">Relief Fund Progress</h4>
+            <div class="row align-items-center justify-content-center">
+              <!-- Stats Column Left -->
+              <div class="col-md-3 text-center mb-4 mb-md-0 order-2 order-md-1">
+                <div style="background: rgba(255,255,255,0.2); padding: 1.5rem; border-radius: 10px;">
+                  <div style="font-size: 2rem; font-weight: bold;">JMD $<span id="totalRaisedConfirm">0</span></div>
+                  <div style="font-size: 1rem; opacity: 0.9; margin-top: 0.5rem;">Total Donated</div>
+                </div>
+              </div>
+              
+              <!-- Thermometer Column Center -->
+              <div class="col-md-4 text-center mb-4 mb-md-0 order-1 order-md-2">
+                <div class="mb-3">
+                  <div style="font-size: 2.5rem; font-weight: bold; line-height: 1; color: #fff;" id="totalRaisedLargeConfirm">JMD $0</div>
+                  <div style="font-size: 1rem; opacity: 0.9; margin-top: 0.5rem;">Raised so far</div>
+                </div>
+                <div style="display: inline-block; position: relative;">
+                  <!-- Thermometer Bulb -->
+                  <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border-radius: 50%; margin: 0 auto; position: relative; z-index: 2; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: bold; color: white;">
+                      <span id="goalPercentageConfirm">0%</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Thermometer Tube -->
+                  <div style="width: 60px; height: 350px; background: rgba(255,255,255,0.3); border-radius: 30px; margin: -20px auto 0; position: relative; border: 3px solid rgba(255,255,255,0.5); overflow: hidden;">
+                    <!-- Pledged (not yet paid) - Bottom layer -->
+                    <div id="thermometerPledgedConfirm" style="position: absolute; bottom: 0; left: 0; right: 0; height: 0%; background: linear-gradient(to top, #ffd700, #ffed4e, #fff9a5); transition: all 2s ease-out; opacity: 0.5; z-index: 1;">
+                    </div>
+                    
+                    <!-- Funds Received (amount_paid) - Front layer -->
+                    <div id="thermometerReceivedConfirm" style="position: absolute; bottom: 0; left: 0; right: 0; height: 0%; background: linear-gradient(to top, #28a745, #5cb85c, #7bc96f); transition: height 2s ease-out; border-radius: 0 0 30px 30px; z-index: 2;">
+                      <!-- Animated bubbles in thermometer -->
+                      <div style="position: absolute; bottom: 20%; left: 20%; width: 10px; height: 10px; background: rgba(255,255,255,0.4); border-radius: 50%; animation: bubble 3s infinite;"></div>
+                      <div style="position: absolute; bottom: 40%; right: 25%; width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%; animation: bubble 4s infinite 1s;"></div>
+                      <div style="position: absolute; bottom: 60%; left: 30%; width: 6px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 50%; animation: bubble 3.5s infinite 0.5s;"></div>
+                    </div>
+                    
+                <!-- Measurement marks -->
+                    <div style="position: absolute; top: 0; right: -25px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.7rem; color: rgba(255,255,255,0.8);">
+                      <span>$5M</span>
+                      <span>$4M</span>
+                      <span>$3M</span>
+                      <span>$2M</span>
+                      <span>$1M</span>
+                      <span>$0</span>
+                    </div>
+                  </div>
+                  <!-- Loading Status Label -->
+                  <div id="loadingStatusConfirm" style="margin-top: 1rem; font-size: 0.9rem; font-weight: 600; color: #fff; min-height: 20px; opacity: 0; transition: opacity 0.3s;">
+                    &nbsp;
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Stats Column Right -->
+              <div class="col-md-3 text-center mb-4 mb-md-0 order-3">
+                <div style="background: rgba(255,255,255,0.2); padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+                  <div style="font-size: 2rem; font-weight: bold;">JMD $5M</div>
+                  <div style="font-size: 1rem; opacity: 0.9; margin-top: 0.5rem;">Goal</div>
+                </div>
+                <!-- Legend -->
+                <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; font-size: 0.85rem;">
+                  <div class="mb-2">
+                    <div style="display: inline-block; width: 20px; height: 10px; background: linear-gradient(to right, #28a745, #7bc96f); border-radius: 2px; margin-right: 5px;"></div>
+                    <span>Received</span>
+                  </div>
+                  <div>
+                    <div style="display: inline-block; width: 20px; height: 10px; background: linear-gradient(to right, #ffd700, #fff9a5); border-radius: 2px; margin-right: 5px; opacity: 0.5;"></div>
+                    <span>Pledged</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>`;
+        
+        // Load thermometer using shared function from functions.js
+        setTimeout(() => {
+          loadDonationProgress(supabaseClient, {
+            coinContainer: 'coinContainerConfirm',
+            totalRaised: 'totalRaisedConfirm',
+            totalRaisedLarge: 'totalRaisedLargeConfirm',
+            goalPercentage: 'goalPercentageConfirm',
+            thermometerReceived: 'thermometerReceivedConfirm',
+            thermometerPledged: 'thermometerPledgedConfirm',
+            loadingStatus: 'loadingStatusConfirm'
+          });
+        }, 100);
+        
+        return html;
+      }
+    </script>
+  </body>
+</html>
