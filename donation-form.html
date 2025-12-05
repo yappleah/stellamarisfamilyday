@@ -205,9 +205,8 @@
     <script src="functions.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script type="module">
-      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-      const supabaseClient = createClient(
+      const supabaseClient = supabase.createClient(
         CONFIG.SUPABASE_URL,
         CONFIG.SUPABASE_ANON_KEY
       );
@@ -380,11 +379,11 @@
                 </div>
                 <div style="display: inline-block; position: relative;">
                   <!-- Thermometer Bulb -->
-                  <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border-radius: 50%; margin: 0 auto; position: relative; z-index: 2; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                  <!-- <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border-radius: 50%; margin: 0 auto; position: relative; z-index: 2; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
                     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: bold; color: white;">
                       <span id="goalPercentageConfirm">0%</span>
                     </div>
-                  </div>
+                  </div> -->
                   
                   <!-- Thermometer Tube -->
                   <div style="width: 60px; height: 350px; background: rgba(255,255,255,0.3); border-radius: 30px; margin: -20px auto 0; position: relative; border: 3px solid rgba(255,255,255,0.5); overflow: hidden;">
@@ -419,10 +418,10 @@
               
               <!-- Stats Column Right -->
               <div class="col-md-3 text-center mb-4 mb-md-0 order-3">
-                <div style="background: rgba(255,255,255,0.2); padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+                <!-- <div style="background: rgba(255,255,255,0.2); padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
                   <div style="font-size: 2rem; font-weight: bold;">JMD $5M</div>
                   <div style="font-size: 1rem; opacity: 0.9; margin-top: 0.5rem;">Goal</div>
-                </div>
+                </div> -->
                 <!-- Legend -->
                 <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; font-size: 0.85rem;">
                   <div class="mb-2">
