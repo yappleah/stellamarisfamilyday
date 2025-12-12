@@ -1,0 +1,105 @@
+Customers Table: 
+create table public.customers (
+  id uuid not null default gen_random_uuid (),
+  email text not null,
+  first_name text not null,
+  last_name text not null,
+  phone_number text not null,
+  created_at timestamp with time zone null default now(),
+  memorable_date date null,
+  memorable_hint text null,
+  constraint customers_pkey primary key (id),
+  constraint customers_email_key unique (email)
+) TABLESPACE pg_default;
+
+Events Table:
+create table public.events (
+  id uuid not null default gen_random_uuid (),
+  name text not null,
+  date date not null,
+  time text null,
+  location text null,
+  description text null,
+  created_at timestamp with time zone null default now(),
+  cutoff_date date null,
+  adult_ticket_price numeric not null,
+  child_ticket_price numeric not null,
+  constraint events_pkey primary key (id)
+) TABLESPACE pg_default;
+
+Orders Table: 
+create table public.orders (
+  id uuid not null default gen_random_uuid (),
+  event_id uuid null,
+  customer_id uuid null,
+  first_name text null,
+  last_name text null,
+  email text null,
+  phone_number text null,
+  adult_tickets integer null,
+  child_tickets integer null,
+  total_amount numeric null,
+  payment_method text null,
+  paid boolean null default false,
+  created_at timestamp with time zone null default now(),
+  amount_paid numeric null,
+  issued boolean null default false,
+  order_number text not null,
+  admin_notes text null,
+  adult_donations integer not null,
+  child_donations integer not null,
+  constraint ticket_orders_pkey primary key (id),
+  constraint ticket_orders_order_number_key unique (order_number),
+  constraint ticket_orders_customer_id_fkey foreign KEY (customer_id) references customers (id),
+  constraint ticket_orders_event_id_fkey foreign KEY (event_id) references events (id)
+) TABLESPACE pg_default;
+
+Payment Transactions Table: 
+create table public.payment_transactions (
+  id uuid not null default gen_random_uuid (),
+  ticket_id uuid null,
+  amount numeric null,
+  payment_method text null,
+  reference_number text null,
+  payment_date date null,
+  created_at timestamp with time zone null default now(),
+  constraint payment_transactions_pkey primary key (id),
+  constraint payment_transactions_ticket_id_fkey foreign KEY (ticket_id) references orders (id)
+) TABLESPACE pg_default;
+
+Tickets Table: 
+create table public.tickets (
+  id uuid not null default gen_random_uuid (),
+  ticket_order_id uuid not null,
+  ticket_type text not null,
+  food_option text[] null,
+  created_at timestamp without time zone null default now(),
+  ticket_number integer null,
+  attendance_type text not null,
+  pickup_time text null,
+  constraint tickets_pkey primary key (id),
+  constraint tickets_ticket_order_id_fkey foreign KEY (ticket_order_id) references orders (id) on delete CASCADE,
+  constraint tickets_attendance_type_check check (
+    (
+      attendance_type = any (
+        array[
+          'attending'::text,
+          'takeaway'::text,
+          'donate'::text
+        ]
+      )
+    )
+  ),
+  constraint tickets_ticket_type_check check (
+    (
+      ticket_type = any (
+        array[
+          'adult'::text,
+          'child'::text,
+          'adult_donated'::text,
+          'child_donated'::text
+        ]
+      )
+    )
+  )
+) TABLESPACE pg_default;
