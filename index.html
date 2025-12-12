@@ -3,24 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Stella Maris Family Funday</title>
+  <title>Stella Maris Lights of Hope</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="functions.js"></script>
 </head>
 <body style="background-color: #d0f0ff;">
   <!-- NAVBAR -->
   <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #2f4f4f;">
     <div class="container">
-      <a class="navbar-brand" href="index.html">🎄 Stella Maris Family Day</a>
+      <a class="navbar-brand" href="index.html">🎄 Stella Maris Lights of Hope</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" href="#about">About Us</a></li>
           <li class="nav-item"><a class="nav-link" href="#expect">What to Expect</a></li>
-          <li class="nav-item"><a class="nav-link" href="ticket-form.html">Ticket Order Form</a></li>
-          <li class="nav-item"><a class="nav-link" href="view-info.html">My Info</a></li>
+          <li class="nav-item"><a class="nav-link" href="#help">How to Help</a></li>
+          <li class="nav-item"><a class="nav-link" href="donation-form.html">Donation Pledge Form</a></li>
         </ul>
       </div>
     </div>
@@ -29,57 +31,165 @@
   <!-- HERO SECTION -->
   <header class="bg-light text-center py-5">
     <div class="container">
-      <h1 class="display-5 fw-bold">Family Funday & Christmas Fundraiser 2025</h1>
-      <p class="lead">🎶 Real Jamaican Christmas Vibes | Sunday, Dec 7 | 12PM – 6PM | Stella Maris Church Grounds</p>
-      <a href="ticket-form.html" class="btn btn-success btn-lg mt-3">🎟 Get Your Tickets</a>
+      <h1 class="display-5 fw-bold">🕯️ Stella Maris Lights of Hope 🕯️</h1>
+      <p class="lead">Sunday, December 7 • Begins at 4:00 p.m.</p>
+      <p class="mt-3 fs-5">Join us for an evening of reflection, joy, and solidarity as we come together to support our brothers and sisters affected by the recent hurricane.</p>
+      <p class="text-muted">This year's event replaces our usual Family Day celebrations — transforming our community gathering into a mission of hope and healing.</p>
+      <a href="donation-form.html" class="btn btn-success btn-lg mt-3">Make a Donation</a>
     </div>
   </header>
+
+  <!-- DONATION GOAL PROGRESS -->
+  <section class="container my-5">
+    <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative; overflow: hidden;">
+      <!-- Coin Animation Container -->
+      <div id="coinContainer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1;"></div>
+      
+      <div class="card-body py-4" style="position: relative; z-index: 2;">
+        <h3 class="text-center mb-4">Relief Fund Progress</h3>
+        <div class="row align-items-center justify-content-center">
+          <!-- Stats Column Left -->
+          <div class="col-md-3 text-center mb-4 mb-md-0 order-2 order-md-1">
+            <div style="background: rgba(255,255,255,0.2); padding: 1.5rem; border-radius: 10px;">
+              <div style="font-size: 2rem; font-weight: bold;">JMD $<span id="totalRaised">0</span></div>
+              <div style="font-size: 1rem; opacity: 0.9; margin-top: 0.5rem;">Total Donated</div>
+            </div>
+          </div>
+          
+          <!-- Thermometer Column Center -->
+          <div class="col-md-4 text-center mb-4 mb-md-0 order-1 order-md-2">
+            <div class="mb-3">
+              <div style="font-size: 2.5rem; font-weight: bold; line-height: 1; color: #fff;" id="totalRaisedLarge">JMD $0</div>
+              <div style="font-size: 1rem; opacity: 0.9; margin-top: 0.5rem;">Raised so far</div>
+            </div>
+            <div style="display: inline-block; position: relative;">
+              <!-- Thermometer Bulb -->
+              <!-- <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ff6b6b, #ee5a52); border-radius: 50%; margin: 0 auto; position: relative; z-index: 2; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.5rem; font-weight: bold; color: white;">
+                  <span id="goalPercentage">0%</span>
+                </div>
+              </div> -->
+              
+              <!-- Thermometer Tube -->
+              <div style="width: 60px; height: 350px; background: rgba(255,255,255,0.3); border-radius: 30px; margin: -20px auto 0; position: relative; border: 3px solid rgba(255,255,255,0.5); overflow: hidden;">
+                <!-- Pledged (not yet paid) - Bottom layer -->
+                <div id="thermometerPledged" style="position: absolute; bottom: 0; left: 0; right: 0; height: 0%; background: linear-gradient(to top, #ffd700, #ffed4e, #fff9a5); transition: all 2s ease-out; opacity: 0.5; z-index: 1;">
+                </div>
+                
+                <!-- Funds Received (amount_paid) - Front layer -->
+                <div id="thermometerReceived" style="position: absolute; bottom: 0; left: 0; right: 0; height: 0%; background: linear-gradient(to top, #28a745, #5cb85c, #7bc96f); transition: height 2s ease-out; border-radius: 0 0 30px 30px; z-index: 2;">
+                  <!-- Animated bubbles in thermometer -->
+                  <div style="position: absolute; bottom: 20%; left: 20%; width: 10px; height: 10px; background: rgba(255,255,255,0.4); border-radius: 50%; animation: bubble 3s infinite;"></div>
+                  <div style="position: absolute; bottom: 40%; right: 25%; width: 8px; height: 8px; background: rgba(255,255,255,0.4); border-radius: 50%; animation: bubble 4s infinite 1s;"></div>
+                  <div style="position: absolute; bottom: 60%; left: 30%; width: 6px; height: 6px; background: rgba(255,255,255,0.3); border-radius: 50%; animation: bubble 3.5s infinite 0.5s;"></div>
+                </div>
+                
+                <!-- Measurement marks -->
+                <div style="position: absolute; top: 0; right: -25px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; font-size: 0.7rem; color: rgba(255,255,255,0.8);">
+                  <span>$5M</span>
+                  <span>$4M</span>
+                  <span>$3M</span>
+                  <span>$2M</span>
+                  <span>$1M</span>
+                  <span>$0</span>
+                </div>
+              </div>
+              <!-- Loading Status Label -->
+              <div id="loadingStatus" style="margin-top: 1rem; font-size: 0.9rem; font-weight: 600; color: #fff; min-height: 20px; opacity: 0; transition: opacity 0.3s;">
+                &nbsp;
+              </div>
+            </div>
+          </div>
+          
+          <!-- Stats Column Right -->
+          <div class="col-md-3 text-center mb-4 mb-md-0 order-3">
+            <!-- <div style="background: rgba(255,255,255,0.2); padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;">
+              <div style="font-size: 2rem; font-weight: bold;">JMD $5M</div>
+              <div style="font-size: 1rem; opacity: 0.9; margin-top: 0.5rem;">Goal</div>
+            </div> -->
+            <!-- Legend -->
+            <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; font-size: 0.85rem;">
+              <div class="mb-2">
+              <div style="display: inline-block; width: 20px; height: 10px; background: linear-gradient(to right, #28a745, #7bc96f); border-radius: 2px; margin-right: 5px;"></div>
+              <span>Received</span>
+              </div>
+              <div>
+              <div style="display: inline-block; width: 20px; height: 10px; background: linear-gradient(to right, #ffd700, #fff9a5); border-radius: 2px; margin-right: 5px; opacity: 0.5;"></div>
+              <span>Pledged</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MESSAGE FROM FATHER BROWN -->
+  <section class="container my-5">
+    <div class="card border-0 shadow-lg" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);">
+      <div class="card-body p-4 p-md-5 text-white">
+        <div class="text-center mb-4">
+          <h3 class="fw-bold" style="font-size: 1.75rem;">✨ Message from Father Brown ✨</h3>
+          <p class="text-white-50 mb-0" style="font-size: 0.9rem;">26 November 2025</p>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.1); border-left: 4px solid #ffd700; padding: 1.5rem 2rem; border-radius: 8px;">
+          <p class="lead fw-bold mb-3" style="font-size: 1.3rem; color: #ffd700;">We did it! We surpassed our $5 million target!</p>
+          
+          <p class="mb-3">Our sincere thanks to everyone who has made this project such a tremendous success. Your generosity, faith, and commitment have truly been inspiring.</p>
+          
+          <p class="mb-3">For those who have pledged but not yet made their contribution, a reminder email with payment instructions will be sent shortly.</p>
+          
+          <p class="mb-3">Please note that our fundraising has not yet ended — donations will continue to be accepted until December 7th.</p>
+          
+          <p class="mb-3">Any additional funds received will be directed toward the Stella Maris Church mission to assist a sister church in the devastation zone. More details on this outreach will be shared soon.</p>
+          
+          <p class="mb-0 fst-italic">May God continue to bless you all abundantly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- MAIN CONTENT -->
   <main class="container my-5">
 
     <!-- ABOUT -->
-    <section id="about" class="mb-5">
-      <h2>About Us</h2>
+    <section id="about" class="mb-5 bg-white p-4 rounded shadow-sm">
+      <h2>💰 Purpose of the Event</h2>
       <div class="row align-items-center">
-        <div class="col-lg-6 mb-4 mb-lg-0">
-          <p class="lead">
-            Presented by the Stella Maris Church Fundraising Committee, this event celebrates the joy of the Christmas season while supporting vital church programs and outreach.
-          </p>
-          <p>
-            It's all about faith, family, food, and fun with Jamaican flair! Join us for an unforgettable celebration that brings our community together in the spirit of Christmas.
-          </p>
-          <p>
-            Experience authentic Jamaican culture, delicious traditional food, live entertainment, and activities for the whole family in a warm, welcoming atmosphere.
-          </p>
+      <div class="col-lg-12 mb-4">
+        <p class="lead">
+        We have surpassed our $5 million target! All proceeds collected during Lights of Hope, together with pledges and donations from our community, will continue to support the hurricane relief effort. Any additional funds received will be directed toward the Stella Maris Church mission to assist a sister church in the devastation zone.
+        </p>
+        <div class="alert alert-success">
+        <h4 class="alert-heading">Target: JMD $5 million - ACHIEVED! ✅</h4>
+        <p class="mb-0">Donations continue to be accepted until December 7th.</p>
         </div>
-        <div class="col-lg-6">
-          <div class="text-center">
-            <video controls playsinline preload="metadata" autoplay muted loop style="width: 100%; height: auto; max-height: 400px; border-radius: 10px;">
-              <source src="videos/funday_highlights.mp4" type="video/mp4">
-              <source src="videos/funday_highlights.webm" type="video/webm">
-              <track kind="captions" srclang="en" src="videos/funday_captions.vtt" label="English">
-              Your browser does not support the video tag. <a href="videos/funday_highlights.mp4">Download the video</a>.
-            </video>
-          </div>
-        </div>
+        <h5 class="mt-4">Beneficiaries:</h5>
+        <ul class="list-unstyled ms-3">
+        <li>✓ <strong><a href="https://www.crs.org/where-we-work/latin-america-caribbean/jamaica" target="_blank" rel="noopener noreferrer">Catholic Relief Services</a></strong> 👈 for better understanding of the agency and its work.</li>
+        <li>✓ <strong>Caritas Antilles</strong></li>
+        <li>✓ <strong>Food for the Poor</strong></li>
+        </ul>
+        <p class="text-muted">These trusted partners will ensure funds reach those most in need across the affected communities.</p>
+      </div>
       </div>
     </section>
 
     <!-- WHAT TO EXPECT -->
     <section id="expect" class="mb-5">
       <div class="text-center mb-5">
-        <h2 class="display-4 fw-bold text-primary mb-3">🎉 What to Expect 🎉</h2>
-        <p class="lead text-muted">Get ready for an incredible day packed with authentic Jamaican Christmas magic!</p>
+        <h2 class="display-4 fw-bold text-primary mb-3">✨ Event Highlights ✨</h2>
+        <p class="lead text-muted">An evening of reflection, joy, and community support</p>
       </div>
       
       <div class="row g-4">
         <div class="col-md-6 col-lg-4">
           <div class="card h-100 border-0 shadow-lg">
             <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #ff6b6b, #ee5a52);">
-              <div class="display-1 mb-3">🎅</div>
-              <h5 class="card-title text-white fw-bold">Santa's Yard</h5>
-              <p class="card-text text-white opacity-90">Jamaican Style Santa & amazing toy giveaways for the kids!</p>
+              <div class="display-1 mb-3">🍲</div>
+              <h5 class="card-title text-white fw-bold">Food Items on Sale</h5>
+              <p class="card-text text-white opacity-90">Soup, other foods and beverages</p>
             </div>
           </div>
         </div>
@@ -87,29 +197,9 @@
         <div class="col-md-6 col-lg-4">
           <div class="card h-100 border-0 shadow-lg">
             <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #4ecdc4, #44a08d);">
-              <div class="display-1 mb-3">🎨</div>
-              <h5 class="card-title text-white fw-bold">Kids' Activities</h5>
-              <p class="card-text text-white opacity-90">Craft Corner, Candy Cane Bible Hunt & Story Tent adventures!</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-lg">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #a8e6cf, #7fcdcd);">
-              <div class="display-1 mb-3">🎭</div>
-              <h5 class="card-title text-white fw-bold">Cultural Shows</h5>
-              <p class="card-text text-white opacity-90">Jonkonnu & Kumina Dancers, Carol Competitions & Old-Time Games!</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-lg">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #ffd93d, #ff6b35);">
-              <div class="display-1 mb-3">🍗</div>
-              <h5 class="card-title text-white fw-bold">Authentic Food</h5>
-              <p class="card-text text-white opacity-90">Traditional Jamaican Christmas delicacies & festive drinks!</p>
+              <div class="display-1 mb-3">🎵</div>
+              <h5 class="card-title text-white fw-bold">Carol Service</h5>
+              <p class="card-text text-white opacity-90">Featuring the Stella Maris Steel Band and Choirs</p>
             </div>
           </div>
         </div>
@@ -117,37 +207,11 @@
         <div class="col-md-6 col-lg-4">
           <div class="card h-100 border-0 shadow-lg">
             <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #667eea, #764ba2);">
-              <div class="display-1 mb-3">🎤</div>
-              <h5 class="card-title text-white fw-bold">Live Entertainment</h5>
-              <p class="card-text text-white opacity-90">Gospel Reggae, Steel Band & Sunday School performances!</p>
+              <div class="display-1 mb-3">🎄</div>
+              <h5 class="card-title text-white fw-bold">Tree Lighting Ceremony</h5>
+              <p class="card-text text-white opacity-90">Witness the lighting of our Christmas tree at 6:00 p.m. as a symbol of hope and unity</p>
             </div>
           </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-lg">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
-              <div class="display-1 mb-3">💰</div>
-              <h5 class="card-title text-white fw-bold">Win Big!</h5>
-              <p class="card-text text-white opacity-90">Grand Raffle, Silent Auction & Sponsor-a-Light Tree!</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-12 col-lg-8 mx-auto">
-          <div class="card border-0 shadow-lg">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #74b9ff, #0984e3);">
-              <div class="display-1 mb-3">📸</div>
-              <h5 class="card-title text-white fw-bold">Memory Making</h5>
-              <p class="card-text text-white opacity-90">Christmas Photo Booth & authentic Jamaican Village Experience - capture memories that will last forever!</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="text-center mt-5">
-        <div class="bg-warning text-dark p-4 rounded-pill d-inline-block shadow-lg pulse-animation">
-          <h4 class="mb-0 fw-bold">🌟 ALL THIS AND MORE AWAITS YOU! 🌟</h4>
         </div>
       </div>
     </section>
@@ -161,6 +225,12 @@
         0% { transform: scale(1); }
         50% { transform: scale(1.05); }
         100% { transform: scale(1); }
+      }
+      
+      @keyframes bubble {
+        0% { transform: translateY(0) scale(1); opacity: 0.6; }
+        50% { opacity: 0.8; }
+        100% { transform: translateY(-50px) scale(0.5); opacity: 0; }
       }
       
       .card {
@@ -183,45 +253,44 @@
         transition: opacity 0.3s ease;
       }
       
-      .card:hover .card-body::before {
-        opacity: 1;
-      }
+      /* Hover effect disabled for donation progress card */
     </style>
 
-    <section class="bg-light p-4 rounded mb-5 shadow-sm">
-        <h3 class="text-center mb-4">Why Join Us?</h3>
-        <div class="row">
-            <div class="col-md-6">
-            <h5>🎁 Incredible Value for the Whole Family</h5>
-            <ul>
-                <li>Access to all games, music, and rides included with ticket</li>
-                <li>Live performances, cultural shows, and Santa’s Yard</li>
-                <li>Free for children under 6</li>
-            </ul>
-            </div>
-            <div class="col-md-6">
-            <h5>🤝 Support a Meaningful Cause</h5>
-            <ul>
-                <li>All proceeds help fund our youth, outreach, and church programs</li>
-                <li>You're giving back to the community while having fun</li>
-                <li>Your support helps us bring Christmas cheer to families in need</li>
-            </ul>
-            </div>
+    <section id="help" class="bg-light p-4 rounded mb-5 shadow-sm">
+        <h3 class="text-center mb-4">🙏 How You Can Help</h3>
+        <p class="text-center lead mb-4">You can support the relief effort in the following ways:</p>
+        
+        <div class="mb-4">
+          <h5>👉 Attend the event and contribute through food purchases.</h5>
         </div>
+        
+        <div class="mb-4">
+          <h5>👉 Pledge your donation through:</h5>
+          <ul class="ms-4">
+            <li><strong>The Stella Maris Office</strong>, or</li>
+            <li><strong>Volunteers</strong> who will be present at all Masses beginning November 15th, or</li>
+            <li><strong>The online pledge form 👉 <a href="donation-form.html">Pledge Form</a></strong></li>
+          </ul>
+        </div>
+        
+        <div class="alert alert-info">
+          <p class="mb-0"><strong>📧 After you submit your pledge, you will receive an email with secure payment instructions.</strong></p>
+        </div>
+        
+        <p class="text-center mt-4 fw-bold text-primary fs-5">Every pledge and every dollar brings us closer to helping families rebuild their homes and lives.</p>
     </section>
 
-    <!-- CTA -->
-    <section class="text-center mt-5">
-      <h4 class="mb-3">Tickets Available Now!</h4>
-      <p>🎟 Adults: JMD <span id="adult_ticket_price"></span> | 🧒🏽 Kids (Ages 6-12): JMD <span id="child_ticket_price"></span> | 👶🏽 Under 6: Free</p>
-      <a href="ticket-form.html" class="btn btn-outline-primary btn-lg">Order Your Tickets</a>
+    <!-- Closing Message -->
+    <section class="text-center mt-5 p-5 rounded" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+      <h3 class="mb-3">🕯️Let's bring light to those facing darkness this Christmas season.🕯️</h3>
+      <p class="lead">Together, as one Stella Maris family, we can make hope shine brighter than ever.</p>
+      <a href="donation-form.html" class="btn btn-light btn-lg mt-3">Make Your Donation Today</a>
     </section>
 
     <section class="text-center mt-5">
       <div id="fundayCarouselContainer" class="mb-5"></div>
     </section>
     
-    <script src="config.js"></script>
     <script>
     window.addEventListener('load', function () {
       const images = CONFIG.IMAGES;
@@ -274,7 +343,8 @@
   <footer class="text-center py-4 bg-light mt-5">
     <p class="mb-1"><strong>📍 Stella Maris Church Grounds</strong> | <span id="dateAndTime"></span></p>
     <p class="mb-1">📞 876-925-9520 | 📧 <a href="mailto:stellamarisfamilyday@gmail.com">stellamarisfamilyday@gmail.com</a></p>
-    <small class="text-muted">#StellaMarisFamilyDay #JamaicanChristmas #FamilyFun</small>
+    <small class="text-muted">#StellaMarisLightsOfHope #JamaicaStrong #TogetherForJamaica #HopeForAll
+</small>
     <p>&copy; <span id="year"></span> by Stella Maris Catholic Church Jamaica</p>
   </footer>
   <script>
@@ -286,8 +356,21 @@
     });
     document.getElementById('dateAndTime').textContent = CONFIG.EVENT.date;
     document.getElementById('year').textContent = new Date().getFullYear();
-    document.getElementById('adult_ticket_price').textContent = formatter.format(CONFIG.PRICING.adult_ticket);
-    document.getElementById('child_ticket_price').textContent = formatter.format(CONFIG.PRICING.child_ticket);
+
+    // Load progress when page loads
+    window.addEventListener('load', () => {
+      const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+      
+      loadDonationProgress(supabaseClient, {
+        coinContainer: 'coinContainer',
+        totalRaised: 'totalRaised',
+        totalRaisedLarge: 'totalRaisedLarge',
+        goalPercentage: 'goalPercentage',
+        thermometerReceived: 'thermometerReceived',
+        thermometerPledged: 'thermometerPledged',
+        loadingStatus: 'loadingStatus'
+      });
+    });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
