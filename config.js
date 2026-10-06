@@ -4,8 +4,8 @@ const CONFIG = {
 
   // Public variables
   PRICING: {
-    adult_ticket: 5000,
-    child_ticket: 2500
+    adult_ticket: 6000,
+    child_ticket: 3500
   },
   SITE: {
     name: "Stella Maris Family Day",
@@ -16,8 +16,9 @@ const CONFIG = {
     password: "admin123"
   },
   EVENT: {
-    date: "Sunday, December 7, 2025 | 12:00 PM – 6:00 PM",
-    cutoffDate: "2025-11-29",
+    date: "Sunday, December 6, 2026",
+    cutoffDate: "2026-11-29",
+    venue: "Stella Maris Church Pastoral Centre",
   },
   PAYMENT: {
     methods: {
@@ -41,8 +42,8 @@ const CONFIG = {
       'funday1.jpg',
       'funday2.jpg',
       'funday3.jpg',
-      'funday4.jpeg',
-      'funday5.jpeg',
+      'funday4.jpg',
+      'funday5.jpg',
       'funday6.jpg',
       'funday7.jpg'
     ],

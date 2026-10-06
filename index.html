@@ -3,290 +3,274 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Stella Maris Family Funday</title>
+  <title>Stella Maris - Come Home for Christmas 2026</title>
+  
+  <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Google Fonts: Fredoka (Bold/Fun) & Caveat (Handwritten Script) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fredoka:wght@400;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body style="background-color: #d0f0ff;">
+<body>
   <!-- NAVBAR -->
-  <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #2f4f4f;">
-    <div class="container">
-      <a class="navbar-brand" href="index.html">🎄 Stella Maris Family Day</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-        <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" href="#about">About Us</a></li>
-          <li class="nav-item"><a class="nav-link" href="#expect">What to Expect</a></li>
-          <li class="nav-item"><a class="nav-link" href="ticket-form.html">Ticket Order Form</a></li>
-          <li class="nav-item"><a class="nav-link" href="view-info.html">My Info</a></li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+  <div id="navbar-placeholder"></div>
 
-  <!-- HERO SECTION -->
-  <header class="bg-light text-center py-5">
-    <div class="container">
-      <h1 class="display-5 fw-bold">Family Funday & Christmas Fundraiser 2025</h1>
-      <p class="lead">🎶 Real Jamaican Christmas Vibes | Sunday, Dec 7 | 12PM – 6PM | Stella Maris Church Grounds</p>
-      <a href="ticket-form.html" class="btn btn-success btn-lg mt-3">🎟 Get Your Tickets</a>
-    </div>
-  </header>
-
-  <!-- MAIN CONTENT -->
-  <main class="container my-5">
-
-    <!-- ABOUT -->
-    <section id="about" class="mb-5">
-      <h2>About Us</h2>
-      <div class="row align-items-center">
-        <div class="col-lg-6 mb-4 mb-lg-0">
-          <p class="lead">
-            Presented by the Stella Maris Church Fundraising Committee, this event celebrates the joy of the Christmas season while supporting vital church programs and outreach.
-          </p>
-          <p>
-            It's all about faith, family, food, and fun with Jamaican flair! Join us for an unforgettable celebration that brings our community together in the spirit of Christmas.
-          </p>
-          <p>
-            Experience authentic Jamaican culture, delicious traditional food, live entertainment, and activities for the whole family in a warm, welcoming atmosphere.
-          </p>
+  <!-- HERO HEADER SECTION -->
+  <header class="hero-section py-5 text-center">
+    <div class="container py-2">
+      <p class="text-uppercase fw-bold text-success mb-1 tracking-wide">Faith • Family • Food • Fun • Community</p>
+      
+      <h1 class="hero-title display-3 fw-bold mb-0">Christmas Yard</h1>
+      
+      <div class="my-3">
+        <div class="wood-badge">
+          <span class="hero-subtitle mb-0 text-white">Come Home for Christmas</span>
+          <div class="handwritten text-warning">A Real Jamaican Christmas Experience</div>
         </div>
+      </div>
+
+      <!-- HEADER TIME SUMMARY BADGE -->
+      <div class="d-inline-flex flex-wrap justify-content-center gap-2 align-items-center bg-white px-4 py-2 rounded-pill shadow-sm border border-danger my-2">
+        <span class="badge bg-danger fs-6">Gates Open: 12:00 PM</span>
+        <span class="text-dark fw-bold">|</span>
+        <span class="badge bg-warning text-dark fs-6">Lunch Served: 12:00 PM – 5:00 PM</span>
+        <span class="text-dark fw-bold">|</span>
+        <span class="badge bg-success fs-6">Tree Lighting: 6:00 PM</span>
+      </div>
+
+      <!-- Directional Signposts Visual Accent -->
+      <div class="row align-items-center my-4">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+          <div class="signpost-container">
+            <div class="signpost-arrow arrow-red">🎅 SANTA'S YARD</div>
+            <div class="signpost-arrow arrow-green">🎄 CHRISTMAS VILLAGE</div>
+            <div class="signpost-arrow arrow-yellow">🍗 FOOD VILLAGE</div>
+            <div class="signpost-arrow arrow-wood">🎲 FAMILY GAMES</div>
+            <div class="signpost-arrow arrow-red">🎤 ENTERTAINMENT & MORE!</div>
+          </div>
+        </div>
+
         <div class="col-lg-6">
-          <div class="text-center">
-            <video controls playsinline preload="metadata" autoplay muted loop style="width: 100%; height: auto; max-height: 400px; border-radius: 10px;">
-              <source src="videos/funday_highlights.mp4" type="video/mp4">
-              <source src="videos/funday_highlights.webm" type="video/webm">
-              <track kind="captions" srclang="en" src="videos/funday_captions.vtt" label="English">
-              Your browser does not support the video tag. <a href="videos/funday_highlights.mp4">Download the video</a>.
-            </video>
+          <div class="p-4 bg-white rounded-4 shadow-lg border border-3 border-warning position-relative">
+            <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger fs-6 px-3 py-2">
+              🌺 Good Food • Great People • Brighter Together 🌺
+            </span>
+            <!-- IMAGE CAROUSEL CONTAINER -->
+            <section class="text-center my-5">
+              <div id="fundayCarouselContainer"></div>
+            </section>
           </div>
         </div>
       </div>
+
+      <div class="mt-4">
+        <a href="ticket-form.html" class="btn btn-festive-main">🎟️ Get Your Tickets Now</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- QUICK EVENT DETAILS BANNER -->
+  <section class="container my-4">
+    <div class="info-strip p-4 text-center">
+      <div class="row gy-3 align-items-center">
+        <div class="col-md-4 border-end border-light-subtle">
+          <h5 class="text-warning mb-1">📅 DATE</h5>
+          <p class="fs-5 fw-bold mb-0"><span class="event-date">></span></p>
+        </div>
+        <div class="col-md-4 border-end border-light-subtle">
+          <h5 class="text-warning mb-1">📍 VENUE</h5>
+          <p class="fs-5 fw-bold mb-0"><span class="event-venue"></span></p>
+        </div>
+        <div class="col-md-4">
+          <h5 class="text-warning mb-1">⏰ TIME</h5>
+          <p class="fs-5 fw-bold mb-0">From 12 Noon | Tree Lighting 6:00 PM</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+ <!-- MAIN CONTENT -->
+  <main class="container my-5">
+
+    <!-- ABOUT SECTION -->
+    <section id="about" class="mb-5">
+      <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border-start border-5 border-success">
+        <h2 class="text-success fw-bold mb-3">About the Celebration</h2>
+        <p class="lead text-dark">
+          Presented by the Stella Maris Church Fundraising Committee, <strong>“Come Home for Christmas”</strong> brings together family, friends, and neighbors to celebrate the true joy of the Christmas Season!
+        </p>
+        <p class="mb-0">
+          Immerse yourself in wholesome fun filled with authentic Jamaican traditions, mouthwatering food catered by Patsy Lynn, live cultural entertainment, kids' attractions, and our evening Tree Lighting Ceremony—all while supporting vital church programs and community outreach initiatives.
+        </p>
+      </div>
     </section>
 
-    <!-- WHAT TO EXPECT -->
+    <!-- WHAT TO EXPECT CARDS -->
     <section id="expect" class="mb-5">
       <div class="text-center mb-5">
-        <h2 class="display-4 fw-bold text-primary mb-3">🎉 What to Expect 🎉</h2>
-        <p class="lead text-muted">Get ready for an incredible day packed with authentic Jamaican Christmas magic!</p>
+        <h2 class="display-5 fw-bold text-danger mb-2">🎉 Experience The Magic 🎉</h2>
+        <p class="handwritten text-success" style="font-size: 2rem;">Fun & Fellowship for the Entire Family</p>
       </div>
       
       <div class="row g-4">
         <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-lg">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #ff6b6b, #ee5a52);">
-              <div class="display-1 mb-3">🎅</div>
-              <h5 class="card-title text-white fw-bold">Santa's Yard</h5>
-              <p class="card-text text-white opacity-90">Jamaican Style Santa & amazing toy giveaways for the kids!</p>
+          <div class="card card-festive h-100 shadow-sm">
+            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #ff6b6b, #c01a26);">
+              <div class="display-2 mb-2">🎅</div>
+              <h4 class="card-title text-white fw-bold">Santa's Yard</h4>
+              <p class="card-text text-white opacity-90">Special treats, visits with Santa, kid-friendly fun, cotton candy, popcorn, patties & pizza!</p>
             </div>
           </div>
         </div>
         
         <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-lg">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #4ecdc4, #44a08d);">
-              <div class="display-1 mb-3">🎨</div>
-              <h5 class="card-title text-white fw-bold">Kids' Activities</h5>
-              <p class="card-text text-white opacity-90">Craft Corner, Candy Cane Bible Hunt & Story Tent adventures!</p>
+          <div class="card card-festive h-100 shadow-sm">
+            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #f8be14, #f28d19);">
+              <div class="display-2 mb-2">🍗</div>
+              <h4 class="card-title text-dark fw-bold">Catering by Patsy Lynn</h4>
+              <p class="card-text text-dark opacity-90">Authentic Jamaican Christmas cuisine served piping hot from 12:00 PM to 5:00 PM.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+          <div class="card card-festive h-100 shadow-sm">
+            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #2ecc71, #106f37);">
+              <div class="display-2 mb-2">☕</div>
+              <h4 class="card-title text-white fw-bold">Stations & Sweets</h4>
+              <p class="card-text text-white opacity-90">Beverage bar, Dessert Station, Ice Cream Station, Coffee Station & Hot Chocolate Booth!</p>
             </div>
           </div>
         </div>
         
         <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-lg">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #a8e6cf, #7fcdcd);">
-              <div class="display-1 mb-3">🎭</div>
-              <h5 class="card-title text-white fw-bold">Cultural Shows</h5>
-              <p class="card-text text-white opacity-90">Jonkonnu & Kumina Dancers, Carol Competitions & Old-Time Games!</p>
+          <div class="card card-festive h-100 shadow-sm">
+            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+              <div class="display-2 mb-2">🎤</div>
+              <h4 class="card-title text-white fw-bold">Live Entertainment</h4>
+              <p class="card-text text-white opacity-90">Incredible package of entertainers, music performances, and family stage games!</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+          <div class="card card-festive h-100 shadow-sm">
+            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #a0683a, #6e4221);">
+              <div class="display-2 mb-2">🎄</div>
+              <h4 class="card-title text-white fw-bold">Tree Lighting (6 PM)</h4>
+              <p class="card-text text-white opacity-90">Gather with us at dusk as we light up the Stella Maris Christmas Tree in song and prayer.</p>
             </div>
           </div>
         </div>
         
         <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-lg">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #ffd93d, #ff6b35);">
-              <div class="display-1 mb-3">🍗</div>
-              <h5 class="card-title text-white fw-bold">Authentic Food</h5>
-              <p class="card-text text-white opacity-90">Traditional Jamaican Christmas delicacies & festive drinks!</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-lg">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #667eea, #764ba2);">
-              <div class="display-1 mb-3">🎤</div>
-              <h5 class="card-title text-white fw-bold">Live Entertainment</h5>
-              <p class="card-text text-white opacity-90">Gospel Reggae, Steel Band & Sunday School performances!</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4">
-          <div class="card h-100 border-0 shadow-lg">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
-              <div class="display-1 mb-3">💰</div>
-              <h5 class="card-title text-white fw-bold">Win Big!</h5>
-              <p class="card-text text-white opacity-90">Grand Raffle, Silent Auction & Sponsor-a-Light Tree!</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-12 col-lg-8 mx-auto">
-          <div class="card border-0 shadow-lg">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #74b9ff, #0984e3);">
-              <div class="display-1 mb-3">📸</div>
-              <h5 class="card-title text-white fw-bold">Memory Making</h5>
-              <p class="card-text text-white opacity-90">Christmas Photo Booth & authentic Jamaican Village Experience - capture memories that will last forever!</p>
+          <div class="card card-festive h-100 shadow-sm">
+            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #e74c3c, #8e0e17);">
+              <div class="display-2 mb-2">🎯</div>
+              <h4 class="card-title text-white fw-bold">Game Booths & Outreach</h4>
+              <p class="card-text text-white opacity-90">Participate in fun game stalls and fundraising activities supporting local outreach.</p>
             </div>
           </div>
         </div>
       </div>
-      
-      <div class="text-center mt-5">
-        <div class="bg-warning text-dark p-4 rounded-pill d-inline-block shadow-lg pulse-animation">
-          <h4 class="mb-0 fw-bold">🌟 ALL THIS AND MORE AWAITS YOU! 🌟</h4>
-        </div>
-      </div>
     </section>
 
-    <style>
-      .pulse-animation {
-        animation: pulse 2s infinite;
-      }
-      
-      @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-      }
-      
-      .card {
-        overflow: hidden;
-      }
-      
-      .card-body {
-        position: relative;
-      }
-      
-      .card-body::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(255,255,255,0.1);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-      
-      .card:hover .card-body::before {
-        opacity: 1;
-      }
-    </style>
-
-    <section class="bg-light p-4 rounded mb-5 shadow-sm">
-        <h3 class="text-center mb-4">Why Join Us?</h3>
-        <div class="row">
-            <div class="col-md-6">
-            <h5>🎁 Incredible Value for the Whole Family</h5>
-            <ul>
-                <li>Access to all games, music, and rides included with ticket</li>
-                <li>Live performances, cultural shows, and Santa’s Yard</li>
-                <li>Free for children under 6</li>
-            </ul>
-            </div>
-            <div class="col-md-6">
-            <h5>🤝 Support a Meaningful Cause</h5>
-            <ul>
-                <li>All proceeds help fund our youth, outreach, and church programs</li>
-                <li>You're giving back to the community while having fun</li>
-                <li>Your support helps us bring Christmas cheer to families in need</li>
-            </ul>
-            </div>
-        </div>
+   <!-- TICKET PRICING SECTION -->
+    <section class="bg-white p-4 p-md-5 rounded-4 shadow-lg text-center border border-warning border-3 my-5">
+      <h3 class="fw-bold text-success display-6 mb-3">🎟️ Ticket Information</h3>
+      <p class="fs-4 text-dark mb-4">
+        <strong>Adults:</strong> JMD $<span id="adult_ticket_price">6,000</span> | 
+        <strong>Children (5–12 yrs):</strong> JMD $<span id="child_ticket_price">3,500</span> | 
+        <strong>Children (Up to 4 yrs):</strong> <span class="badge bg-success fs-6">FREE</span>
+      </p>
+      <a href="ticket-form.html" class="btn btn-festive-main">Reserve Your Tickets Online</a>
     </section>
-
-    <!-- CTA -->
-    <section class="text-center mt-5">
-      <h4 class="mb-3">Tickets Available Now!</h4>
-      <p>🎟 Adults: JMD <span id="adult_ticket_price"></span> | 🧒🏽 Kids (Ages 6-12): JMD <span id="child_ticket_price"></span> | 👶🏽 Under 6: Free</p>
-      <a href="ticket-form.html" class="btn btn-outline-primary btn-lg">Order Your Tickets</a>
-    </section>
-
-    <section class="text-center mt-5">
-      <div id="fundayCarouselContainer" class="mb-5"></div>
-    </section>
-    
-    <script src="config.js"></script>
-    <script>
-    window.addEventListener('load', function () {
-      const images = CONFIG.IMAGES;
-      const imagesDir = CONFIG.IMAGES_DIR || 'images/';
-      const carouselId = 'fundayCarousel';
-
-      const indicators = images.map((_, i) =>
-        `<button type="button" data-bs-target="#${carouselId}" data-bs-slide-to="${i}" ${i === 0 ? 'class="active" aria-current="true"' : ''} aria-label="Slide ${i + 1}"></button>`
-      ).join('');
-
-      const items = images.map((name, i) => {
-        const src = name.includes('/') ? name : imagesDir + name;
-        return `<div class="carousel-item${i === 0 ? ' active' : ''}">
-          <img src="${src}" class="d-block mx-auto rounded" style="max-height: 400px; max-width: 100%; object-fit: contain;" alt="Funday image ${i + 1}">
-        </div>`;
-      }).join('');
-
-      const html = `
-        <div id="${carouselId}" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
-          <div class="carousel-indicators">${indicators}</div>
-          <div class="carousel-inner">${items}</div>
-          <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-          </button>
-          <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-          </button>
-        </div>
-        <style>
-          #${carouselId} .carousel-item {
-            transition: transform 0.3s ease-in-out;
-          }
-          #${carouselId} .carousel-item-next,
-          #${carouselId} .carousel-item-prev,
-          #${carouselId} .carousel-item.active {
-            transition: transform 0.3s ease-in-out;
-          }
-        </style>
-      `;
-
-      document.getElementById('fundayCarouselContainer').innerHTML = html;
-    });
-    </script>
-
   </main>
 
   <!-- FOOTER -->
-  <footer class="text-center py-4 bg-light mt-5">
-    <p class="mb-1"><strong>📍 Stella Maris Church Grounds</strong> | <span id="dateAndTime"></span></p>
-    <p class="mb-1">📞 876-925-9520 | 📧 <a href="mailto:stellamarisfamilyday@gmail.com">stellamarisfamilyday@gmail.com</a></p>
-    <small class="text-muted">#StellaMarisFamilyDay #JamaicanChristmas #FamilyFun</small>
-    <p>&copy; <span id="year"></span> by Stella Maris Catholic Church Jamaica</p>
+  <footer class="text-center py-5">
+    <div class="container">
+      <h4 class="brand-font text-warning mb-2">Stella Maris Catholic Church Jamaica</h4>
+      <p class="mb-1">
+        📍 <strong><span class="event-venue"></span></strong> | 
+        <span class="event-date"></span>
+      </p>
+      <p class="mb-2">📞 876-925-9520 | 📧 <a href="mailto:stellamarisfamilyday@gmail.com" class="text-warning">stellamarisfamilyday@gmail.com</a></p>
+
+      <p class="handwritten text-warning fs-3 mb-1">One Community • Brighter Together</p>
+      <small class="text-light opacity-75">#ComeHomeForChristmas #StellaMarisFamilyDay #JamaicanChristmas #FamilyFaithFoodFun</small>
+      <p class="mt-3 mb-0 small text-secondary">&copy; <span id="year"></span> Stella Maris Catholic Church. All Rights Reserved.</p>
+    </div>
   </footer>
+    
+  <script src="config.js"></script>
   <script>
-    const formatter = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+    document.addEventListener("DOMContentLoaded", () => {
+      
+      const adultPrice = (typeof CONFIG !== 'undefined' && CONFIG.PRICING && CONFIG.PRICING.adult_ticket) 
+        ? CONFIG.PRICING.adult_ticket 
+        : 6000;
+        
+      const childPrice = (typeof CONFIG !== 'undefined' && CONFIG.PRICING && CONFIG.PRICING.child_ticket) 
+        ? CONFIG.PRICING.child_ticket 
+        : 3500;
+
+      const adultElem = document.getElementById('adult_ticket_price');
+      const childElem = document.getElementById('child_ticket_price');
+      const yearElem = document.getElementById('year');
+
+      document.querySelectorAll('.event-date').forEach(el => el.textContent = CONFIG.EVENT.date);
+      document.querySelectorAll('.event-venue').forEach(el => el.textContent = CONFIG.EVENT.venue);
+      if (adultElem) adultElem.textContent = Number(adultPrice).toLocaleString();
+      if (childElem) childElem.textContent = Number(childPrice).toLocaleString();
+      if (yearElem) yearElem.textContent = new Date().getFullYear();
+
+      // Carousel Render Logic
+      if (typeof CONFIG !== 'undefined' && CONFIG.IMAGES) {
+        const images = CONFIG.IMAGES;
+        const imagesDir = CONFIG.IMAGES_DIR || 'images/';
+        const carouselId = 'fundayCarousel';
+
+        const indicators = images.map((_, i) =>
+          `<button type="button" data-bs-target="#${carouselId}" data-bs-slide-to="${i}" ${i === 0 ? 'class="active" aria-current="true"' : ''} aria-label="Slide ${i + 1}"></button>`
+        ).join('');
+
+        const items = images.map((name, i) => {
+          const src = name.includes('/') ? name : imagesDir + name;
+          return `<div class="carousel-item${i === 0 ? ' active' : ''}">
+            <img src="${src}" class="d-block mx-auto rounded-4 shadow" style="max-height: 400px; max-width: 100%; object-fit: contain;" alt="Funday image ${i + 1}">
+          </div>`;
+        }).join('');
+
+        const html = `
+          <div id="${carouselId}" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+            <div class="carousel-indicators">${indicators}</div>
+            <div class="carousel-inner">${items}</div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            </button>
+          </div>
+        `;
+
+        document.getElementById('fundayCarouselContainer').innerHTML = html;
+      }
     });
-    document.getElementById('dateAndTime').textContent = CONFIG.EVENT.date;
-    document.getElementById('year').textContent = new Date().getFullYear();
-    document.getElementById('adult_ticket_price').textContent = formatter.format(CONFIG.PRICING.adult_ticket);
-    document.getElementById('child_ticket_price').textContent = formatter.format(CONFIG.PRICING.child_ticket);
+    document.addEventListener("DOMContentLoaded", () => {
+      fetch("navbar.html")
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById("navbar-placeholder").innerHTML = data;
+        })
+        .catch(error => console.error("Error loading navbar:", error));
+    });
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
