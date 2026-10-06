@@ -1250,8 +1250,8 @@ function createCustomerFormFields(options = {}) {
         Please enter a valid email address (e.g., name@example.com).
       </div>
     </div>
-    <div class="row mb-3">
-      <div class="col-md-6">
+    <div class="row">
+      <div class="col-md-6 mb-3">
         <input
           class="form-control"
           placeholder="First Name"
@@ -1261,7 +1261,7 @@ function createCustomerFormFields(options = {}) {
           required
         />
       </div>
-      <div class="col-md-6">
+      <div class="col-md-6 mb-3">
         <input
           class="form-control"
           placeholder="Last Name"

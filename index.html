@@ -15,180 +15,182 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- NAVBAR -->
-  <div id="navbar-placeholder"></div>
+  <div class="container-fluid container-md bg-white min-vh-100 mx-auto px-0 px-md-3" style="max-width: 100%;">
+    <!-- NAVBAR -->
+    <div id="navbar-placeholder"></div>
 
-  <!-- HERO HEADER SECTION -->
-  <header class="hero-section py-5 text-center">
-    <div class="container py-2">
-      <p class="text-uppercase fw-bold text-success mb-1 tracking-wide">Faith • Family • Food • Fun • Community</p>
-      
-      <h1 class="hero-title display-3 fw-bold mb-0">Christmas Yard</h1>
-      
-      <div class="my-3">
-        <div class="wood-badge">
-          <span class="hero-subtitle mb-0 text-white">Come Home for Christmas</span>
-          <div class="handwritten text-warning">A Real Jamaican Christmas Experience</div>
-        </div>
-      </div>
-
-      <!-- HEADER TIME SUMMARY BADGE -->
-      <div class="d-inline-flex flex-wrap justify-content-center gap-2 align-items-center bg-white px-4 py-2 rounded-pill shadow-sm border border-danger my-2">
-        <span class="badge bg-danger fs-6">Gates Open: 12:00 PM</span>
-        <span class="text-dark fw-bold">|</span>
-        <span class="badge bg-warning text-dark fs-6">Lunch Served: 12:00 PM – 5:00 PM</span>
-        <span class="text-dark fw-bold">|</span>
-        <span class="badge bg-success fs-6">Tree Lighting: 6:00 PM</span>
-      </div>
-
-      <!-- Directional Signposts Visual Accent -->
-      <div class="row align-items-center my-4">
-        <div class="col-lg-6 mb-4 mb-lg-0">
-          <div class="signpost-container">
-            <div class="signpost-arrow arrow-red">🎅 SANTA'S YARD</div>
-            <div class="signpost-arrow arrow-green">🎄 CHRISTMAS VILLAGE</div>
-            <div class="signpost-arrow arrow-yellow">🍗 FOOD VILLAGE</div>
-            <div class="signpost-arrow arrow-wood">🎲 FAMILY GAMES</div>
-            <div class="signpost-arrow arrow-red">🎤 ENTERTAINMENT & MORE!</div>
+    <!-- HERO HEADER SECTION -->
+    <header class="hero-section py-5 text-center">
+      <div class="container py-2">
+        <p class="text-uppercase fw-bold text-success mb-1 tracking-wide">Faith • Family • Food • Fun • Community</p>
+        
+        <h1 class="hero-title display-3 fw-bold mb-0">Christmas Yard</h1>
+        
+        <div class="my-3">
+          <div class="wood-badge">
+            <span class="hero-subtitle mb-0 text-white">Come Home for Christmas</span>
+            <div class="handwritten text-warning">A Real Jamaican Christmas Experience</div>
           </div>
         </div>
 
-        <div class="col-lg-6">
-          <div class="p-4 bg-white rounded-4 shadow-lg border border-3 border-warning position-relative">
-            <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger fs-6 px-3 py-2">
-              🌺 Good Food • Great People • Brighter Together 🌺
-            </span>
-            <!-- IMAGE CAROUSEL CONTAINER -->
-            <section class="text-center my-5">
-              <div id="fundayCarouselContainer"></div>
-            </section>
+        <!-- HEADER TIME SUMMARY BADGE -->
+        <div class="d-inline-flex flex-wrap justify-content-center gap-2 align-items-center bg-white px-4 py-2 rounded-pill shadow-sm border border-danger my-2">
+          <span class="badge bg-danger fs-6">Gates Open: 12:00 PM</span>
+          <span class="text-dark fw-bold">|</span>
+          <span class="badge bg-warning text-dark fs-6">Lunch Served: 12:00 PM – 5:00 PM</span>
+          <span class="text-dark fw-bold">|</span>
+          <span class="badge bg-success fs-6">Tree Lighting: 6:00 PM</span>
+        </div>
+
+        <!-- Directional Signposts Visual Accent -->
+        <div class="row align-items-center my-4">
+          <div class="col-lg-6 mb-4 mb-lg-0">
+            <div class="signpost-container">
+              <div class="signpost-arrow arrow-red">🎅 SANTA'S YARD</div>
+              <div class="signpost-arrow arrow-green">🎄 CHRISTMAS VILLAGE</div>
+              <div class="signpost-arrow arrow-yellow">🍗 FOOD VILLAGE</div>
+              <div class="signpost-arrow arrow-wood">🎲 FAMILY GAMES</div>
+              <div class="signpost-arrow arrow-red">🎤 ENTERTAINMENT & MORE!</div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="p-4 bg-white rounded-4 shadow-lg border border-3 border-warning position-relative">
+              <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger fs-6 px-3 py-2 text-nowrap">
+                🌺 Good Food • Great People • Brighter Together 🌺
+              </span>
+              <!-- IMAGE CAROUSEL CONTAINER -->
+              <section class="text-center my-5">
+                <div id="fundayCarouselContainer"></div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <a href="ticket-form.html" class="btn btn-festive-main">🎟️ Get Your Tickets Now</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- QUICK EVENT DETAILS BANNER -->
+    <section class="container my-4">
+      <div class="info-strip p-4 text-center">
+        <div class="row gy-3 align-items-center">
+          <div class="col-md-4 border-end border-light-subtle">
+            <h5 class="text-warning mb-1">📅 DATE</h5>
+            <p class="fs-5 fw-bold mb-0"><span class="event-date">></span></p>
+          </div>
+          <div class="col-md-4 border-end border-light-subtle">
+            <h5 class="text-warning mb-1">📍 VENUE</h5>
+            <p class="fs-5 fw-bold mb-0"><span class="event-venue"></span></p>
+          </div>
+          <div class="col-md-4">
+            <h5 class="text-warning mb-1">⏰ TIME</h5>
+            <p class="fs-5 fw-bold mb-0">From 12 Noon | Tree Lighting 6:00 PM</p>
           </div>
         </div>
       </div>
+    </section>
 
-      <div class="mt-4">
-        <a href="ticket-form.html" class="btn btn-festive-main">🎟️ Get Your Tickets Now</a>
-      </div>
-    </div>
-  </header>
+  <!-- MAIN CONTENT -->
+    <main class="container my-5">
 
-  <!-- QUICK EVENT DETAILS BANNER -->
-  <section class="container my-4">
-    <div class="info-strip p-4 text-center">
-      <div class="row gy-3 align-items-center">
-        <div class="col-md-4 border-end border-light-subtle">
-          <h5 class="text-warning mb-1">📅 DATE</h5>
-          <p class="fs-5 fw-bold mb-0"><span class="event-date">></span></p>
+      <!-- ABOUT SECTION -->
+      <section id="about" class="mb-5">
+        <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border-start border-5 border-success">
+          <h2 class="text-success fw-bold mb-3">About the Celebration</h2>
+          <p class="lead text-dark">
+            Presented by the Stella Maris Church Fundraising Committee, <strong>“Come Home for Christmas”</strong> brings together family, friends, and neighbors to celebrate the true joy of the Christmas Season!
+          </p>
+          <p class="mb-0">
+            Immerse yourself in wholesome fun filled with authentic Jamaican traditions, mouthwatering food catered by Patsy Lynn, live cultural entertainment, kids' attractions, and our evening Tree Lighting Ceremony—all while supporting vital church programs and community outreach initiatives.
+          </p>
         </div>
-        <div class="col-md-4 border-end border-light-subtle">
-          <h5 class="text-warning mb-1">📍 VENUE</h5>
-          <p class="fs-5 fw-bold mb-0"><span class="event-venue"></span></p>
-        </div>
-        <div class="col-md-4">
-          <h5 class="text-warning mb-1">⏰ TIME</h5>
-          <p class="fs-5 fw-bold mb-0">From 12 Noon | Tree Lighting 6:00 PM</p>
-        </div>
-      </div>
-    </div>
-  </section>
+      </section>
 
- <!-- MAIN CONTENT -->
-  <main class="container my-5">
+      <!-- WHAT TO EXPECT CARDS -->
+      <section id="expect" class="mb-5">
+        <div class="text-center mb-5">
+          <h2 class="display-5 fw-bold text-danger mb-2 text-nowrap">🎉 Experience The Magic 🎉</h2>
+          <p class="handwritten text-success" style="font-size: 2rem;">Fun & Fellowship for the Entire Family</p>
+        </div>
+        
+        <div class="row g-4">
+          <div class="col-md-6 col-lg-4">
+            <div class="card card-festive h-100 shadow-sm">
+              <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #ff6b6b, #c01a26);">
+                <div class="display-2 mb-2">🎅</div>
+                <h4 class="card-title text-white fw-bold">Santa's Yard</h4>
+                <p class="card-text text-white opacity-90">Special treats, visits with Santa, kid-friendly fun, cotton candy, popcorn, patties & pizza!</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6 col-lg-4">
+            <div class="card card-festive h-100 shadow-sm">
+              <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #f8be14, #f28d19);">
+                <div class="display-2 mb-2">🍗</div>
+                <h4 class="card-title text-dark fw-bold">Catering by Patsy Lynn</h4>
+                <p class="card-text text-dark opacity-90">Authentic Jamaican Christmas cuisine served piping hot from 12:00 PM to 5:00 PM.</p>
+              </div>
+            </div>
+          </div>
 
-    <!-- ABOUT SECTION -->
-    <section id="about" class="mb-5">
-      <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border-start border-5 border-success">
-        <h2 class="text-success fw-bold mb-3">About the Celebration</h2>
-        <p class="lead text-dark">
-          Presented by the Stella Maris Church Fundraising Committee, <strong>“Come Home for Christmas”</strong> brings together family, friends, and neighbors to celebrate the true joy of the Christmas Season!
+          <div class="col-md-6 col-lg-4">
+            <div class="card card-festive h-100 shadow-sm">
+              <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #2ecc71, #106f37);">
+                <div class="display-2 mb-2">☕</div>
+                <h4 class="card-title text-white fw-bold">Stations & Sweets</h4>
+                <p class="card-text text-white opacity-90">Beverage bar, Dessert Station, Ice Cream Station, Coffee Station & Hot Chocolate Booth!</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6 col-lg-4">
+            <div class="card card-festive h-100 shadow-sm">
+              <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                <div class="display-2 mb-2">🎤</div>
+                <h4 class="card-title text-white fw-bold">Live Entertainment</h4>
+                <p class="card-text text-white opacity-90">Incredible package of entertainers, music performances, and family stage games!</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-4">
+            <div class="card card-festive h-100 shadow-sm">
+              <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #a0683a, #6e4221);">
+                <div class="display-2 mb-2">🎄</div>
+                <h4 class="card-title text-white fw-bold">Tree Lighting (6 PM)</h4>
+                <p class="card-text text-white opacity-90">Gather with us at dusk as we light up the Stella Maris Christmas Tree in song and prayer.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6 col-lg-4">
+            <div class="card card-festive h-100 shadow-sm">
+              <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #e74c3c, #8e0e17);">
+                <div class="display-2 mb-2">🎯</div>
+                <h4 class="card-title text-white fw-bold">Game Booths & Outreach</h4>
+                <p class="card-text text-white opacity-90">Participate in fun game stalls and fundraising activities supporting local outreach.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    <!-- TICKET PRICING SECTION -->
+      <section class="bg-white p-4 p-md-5 rounded-4 shadow-lg text-center border border-warning border-3 my-5">
+        <h3 class="fw-bold text-success display-6 mb-3">🎟️ Ticket Information</h3>
+        <p class="fs-4 text-dark mb-4">
+          <strong>Adults:</strong> JMD $<span id="adult_ticket_price">6,000</span> | 
+          <strong>Children (5–12 yrs):</strong> JMD $<span id="child_ticket_price">3,500</span> | 
+          <strong>Children (Up to 4 yrs):</strong> <span class="badge bg-success fs-6">FREE</span>
         </p>
-        <p class="mb-0">
-          Immerse yourself in wholesome fun filled with authentic Jamaican traditions, mouthwatering food catered by Patsy Lynn, live cultural entertainment, kids' attractions, and our evening Tree Lighting Ceremony—all while supporting vital church programs and community outreach initiatives.
-        </p>
-      </div>
-    </section>
-
-    <!-- WHAT TO EXPECT CARDS -->
-    <section id="expect" class="mb-5">
-      <div class="text-center mb-5">
-        <h2 class="display-5 fw-bold text-danger mb-2">🎉 Experience The Magic 🎉</h2>
-        <p class="handwritten text-success" style="font-size: 2rem;">Fun & Fellowship for the Entire Family</p>
-      </div>
-      
-      <div class="row g-4">
-        <div class="col-md-6 col-lg-4">
-          <div class="card card-festive h-100 shadow-sm">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #ff6b6b, #c01a26);">
-              <div class="display-2 mb-2">🎅</div>
-              <h4 class="card-title text-white fw-bold">Santa's Yard</h4>
-              <p class="card-text text-white opacity-90">Special treats, visits with Santa, kid-friendly fun, cotton candy, popcorn, patties & pizza!</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4">
-          <div class="card card-festive h-100 shadow-sm">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #f8be14, #f28d19);">
-              <div class="display-2 mb-2">🍗</div>
-              <h4 class="card-title text-dark fw-bold">Catering by Patsy Lynn</h4>
-              <p class="card-text text-dark opacity-90">Authentic Jamaican Christmas cuisine served piping hot from 12:00 PM to 5:00 PM.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-          <div class="card card-festive h-100 shadow-sm">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #2ecc71, #106f37);">
-              <div class="display-2 mb-2">☕</div>
-              <h4 class="card-title text-white fw-bold">Stations & Sweets</h4>
-              <p class="card-text text-white opacity-90">Beverage bar, Dessert Station, Ice Cream Station, Coffee Station & Hot Chocolate Booth!</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4">
-          <div class="card card-festive h-100 shadow-sm">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #3498db, #2980b9);">
-              <div class="display-2 mb-2">🎤</div>
-              <h4 class="card-title text-white fw-bold">Live Entertainment</h4>
-              <p class="card-text text-white opacity-90">Incredible package of entertainers, music performances, and family stage games!</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-md-6 col-lg-4">
-          <div class="card card-festive h-100 shadow-sm">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #a0683a, #6e4221);">
-              <div class="display-2 mb-2">🎄</div>
-              <h4 class="card-title text-white fw-bold">Tree Lighting (6 PM)</h4>
-              <p class="card-text text-white opacity-90">Gather with us at dusk as we light up the Stella Maris Christmas Tree in song and prayer.</p>
-            </div>
-          </div>
-        </div>
-        
-        <div class="col-md-6 col-lg-4">
-          <div class="card card-festive h-100 shadow-sm">
-            <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #e74c3c, #8e0e17);">
-              <div class="display-2 mb-2">🎯</div>
-              <h4 class="card-title text-white fw-bold">Game Booths & Outreach</h4>
-              <p class="card-text text-white opacity-90">Participate in fun game stalls and fundraising activities supporting local outreach.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-   <!-- TICKET PRICING SECTION -->
-    <section class="bg-white p-4 p-md-5 rounded-4 shadow-lg text-center border border-warning border-3 my-5">
-      <h3 class="fw-bold text-success display-6 mb-3">🎟️ Ticket Information</h3>
-      <p class="fs-4 text-dark mb-4">
-        <strong>Adults:</strong> JMD $<span id="adult_ticket_price">6,000</span> | 
-        <strong>Children (5–12 yrs):</strong> JMD $<span id="child_ticket_price">3,500</span> | 
-        <strong>Children (Up to 4 yrs):</strong> <span class="badge bg-success fs-6">FREE</span>
-      </p>
-      <a href="ticket-form.html" class="btn btn-festive-main">Reserve Your Tickets Online</a>
-    </section>
-  </main>
+        <a href="ticket-form.html" class="btn btn-festive-main">Reserve Your Tickets Online</a>
+      </section>
+    </main>
+</div>
 
   <!-- FOOTER -->
   <footer class="text-center py-5">

@@ -676,12 +676,12 @@
     </style>
   </head>
   <body style="background-color: #d0f0ff">
-    <div class="container bg-white min-vh-100 mx-auto" style="max-width: 90%;">
+    <div class="container-fluid container-md bg-white min-vh-100 mx-auto px-0 px-md-3" style="max-width: 100%;">
       <!-- NAVBAR -->
       <nav class="navbar navbar-expand-lg navbar-festive">
         <div class="container-fluid">
           <a class="navbar-brand" href="index.html">
-            <span>🎄</span> Stella Maris Family Fun Day
+            <span>🎄</span>Stella Maris Family Fun Day
           </a>
         </div>
       </nav>
@@ -2475,7 +2475,7 @@
                 break;
               case "child":
                 typeLabel = "Child";
-                badgeClass = "bg-success";
+                badgeClass = "bg-warning";
                 break;
               case "adult_donated":
                 typeLabel = "Adult";
@@ -2484,7 +2484,7 @@
                 break;
               case "child_donated":
                 typeLabel = "Child";
-                badgeClass = "bg-success";
+                badgeClass = "bg-warning";
                 donated = true;
                 break;
               default:
