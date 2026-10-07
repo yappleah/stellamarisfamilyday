@@ -1349,3 +1349,19 @@ function showToastWithBlur(message, options = {}) {
 document.addEventListener("DOMContentLoaded", () => {
   initializePageElements();
 });
+
+ // Simple HTML escape for any displayed values
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str).replace(
+    /[&<>"']/g,
+    (m) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[m])
+  );
+}

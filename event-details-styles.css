@@ -1,0 +1,643 @@
+
+      #loadingScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.3); /* lighter background */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(4px); /* optional blur */
+      }
+
+      /* Scoped to orders table only to avoid affecting tickets table */
+      #ordersContainer .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        max-height: 70vh;
+        overflow-x: auto;
+        overflow-y: auto;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+      }
+
+      #ordersContainer .table {
+        margin-bottom: 0;
+        width: 100%;
+        min-width: 1500px; /* Force minimum width to enable horizontal scrolling */
+        table-layout: auto; /* Allow flexible column sizing for better scrolling */
+      }
+
+      #ordersContainer .table th {
+        background-color: #f8f9fa;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      /* ==================================================
+     * PROFESSIONAL TICKET FORM STYLING
+     * ================================================== */
+
+      /* Main ticket section styling */
+      .ticket-section {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+      }
+
+      .ticket-section:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .adult-tickets {
+        --section-accent: #2563eb;
+      }
+
+      .child-tickets {
+        --section-accent: #ffd600;
+      }
+
+      .ticket-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f3f4f6;
+      }
+
+      .ticket-icon {
+        font-size: 1rem;
+        margin-right: 10px;
+        padding: 8px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: #f8f9fa;
+        color: var(--section-accent);
+      }
+
+      .ticket-title {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #111827;
+      }
+
+      .ticket-price {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 1px;
+        font-weight: 500;
+      }
+
+      .ticket-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+
+      .ticket-section .btn-primary {
+        background: var(--section-accent);
+        border: 1px solid var(--section-accent);
+        color: white;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+      }
+
+      .ticket-section .btn-primary:hover {
+        background: color-mix(in srgb, var(--section-accent) 85%, black);
+        border-color: color-mix(in srgb, var(--section-accent) 85%, black);
+      }
+
+      .ticket-section .btn-outline-danger {
+        border: 1px solid #d1d5db;
+        color: #6b7280;
+        background: #ffffff;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        transition: all 0.2s ease;
+      }
+
+      .ticket-section .btn-outline-danger:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+        color: #374151;
+      }
+
+      /* Enhanced ticket dropdown styling */
+      .ticket-section .form-label {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .adult-tickets .form-label {
+        color: #1e40af;
+      }
+
+      .child-tickets .form-label {
+        color: #dc2626;
+      }
+
+      /* Individual ticket card styling - Compact Design */
+      .individual-ticket-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+        background: #ffffff;
+        border-left: 3px solid var(--accent-color);
+      }
+
+      .individual-ticket-card:hover {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .ticket-card-header {
+        padding: 8px 12px;
+        background: #fafafa;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .ticket-number-badge {
+        display: flex;
+        align-items: center;
+        color: #374151;
+        font-weight: 600;
+        font-size: 0.8rem;
+      }
+
+      .ticket-number-badge i {
+        margin-right: 6px;
+        font-size: 0.8rem;
+        color: var(--accent-color);
+      }
+
+      .ticket-type-indicator {
+        font-size: 0.7rem;
+        color: #6b7280;
+        background: #f3f4f6;
+        padding: 1px 6px;
+        border-radius: 8px;
+        font-weight: 500;
+      }
+
+      .ticket-card-content {
+        padding: 12px;
+        background: #ffffff;
+      }
+
+      /* Compact color scheme */
+      .adult-ticket-primary {
+        --accent-color: #2563eb;
+      }
+
+      .adult-ticket-secondary {
+        --accent-color: #2563eb;
+      }
+
+      .adult-ticket-tertiary {
+        --accent-color: #2563eb;
+      }
+
+      .child-ticket-primary {
+        --accent-color: #ffd600;
+      }
+
+      .child-ticket-secondary {
+        --accent-color: #ffe066;
+      }
+
+      .child-ticket-tertiary {
+        --accent-color: #fff9c4;
+      }
+      /* Child ticket icon yellow */
+      .child-tickets .ticket-icon {
+        color: #ffd600 !important;
+      }
+      /* Child ticket Add button yellow */
+      .child-tickets .btn-primary {
+        background: #ffd600 !important;
+        border-color: #ffd600 !important;
+        color: #111827 !important;
+      }
+      .child-tickets .btn-primary:hover {
+        background: #ffe066 !important;
+        border-color: #ffe066 !important;
+        color: #111827 !important;
+      }
+      /* Remove button always red */
+      .remove-ticket-btn,
+      .remove-ticket-btn i,
+      .remove-ticket-btn span {
+        color: #dc2626 !important;
+        border-color: #dc2626 !important;
+        background: #fff !important;
+      }
+      /* Hide remove buttons if parent has .paid-tickets */
+      .paid-tickets .remove-ticket-btn {
+        display: none !important;
+      }
+
+      /* Compact form styling */
+      .individual-ticket-card .form-label {
+        color: #111827;
+        font-weight: 600;
+        margin-bottom: 4px;
+        font-size: 0.8rem;
+      }
+
+      .individual-ticket-card .form-check-label {
+        color: #374151;
+        font-weight: 500;
+        font-size: 0.8rem;
+      }
+
+      .individual-ticket-card .form-select {
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        padding: 6px 10px;
+        background: #ffffff;
+      }
+
+      .individual-ticket-card .form-select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        outline: none;
+      }
+
+      .individual-ticket-card .form-check-input:checked {
+        background-color: var(--accent-color);
+        border-color: var(--accent-color);
+      }
+
+      .individual-ticket-card .form-check-input:focus {
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+      }
+
+      /* Compact section labels */
+      .individual-ticket-card .mb-2 {
+        margin-bottom: 8px !important;
+      }
+
+      .individual-ticket-card .mb-2 .form-label.small {
+        color: #6b7280;
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+      }
+
+      .individual-ticket-card .form-check {
+        margin-bottom: 4px;
+      }
+
+      .individual-ticket-card .form-check-inline {
+        margin-right: 12px;
+        margin-bottom: 2px;
+      }
+
+      #ordersContainer .table td {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+        vertical-align: middle;
+        word-wrap: none;
+      }
+
+      /* scope to orders table so tickets table is unaffected */
+      #ordersContainer .table th:nth-child(1),
+      #ordersContainer .table td:nth-child(1) {
+        width: 100px;
+      } /* Actions */
+      #ordersContainer .table th:nth-child(2),
+      #ordersContainer .table td:nth-child(2) {
+        width: 50px;
+      } /* Order # */
+      #ordersContainer .table th:nth-child(3),
+      #ordersContainer .table td:nth-child(3) {
+        width: 80px;
+      } /* Name */
+      #ordersContainer .table th:nth-child(4),
+      #ordersContainer .table td:nth-child(4) {
+        width: 150px !important;
+        min-width: 150px !important;
+      } /* Email */
+      #ordersContainer .table th:nth-child(5),
+      #ordersContainer .table td:nth-child(5) {
+        width: 130px;
+      } /* Phone */
+      #ordersContainer .table th:nth-child(6),
+      #ordersContainer .table td:nth-child(6) {
+        width: 50px;
+      } /* Adults */
+      #ordersContainer .table th:nth-child(7),
+      #ordersContainer .table td:nth-child(7) {
+        width: 50px;
+      } /* Children */
+      #ordersContainer .table th:nth-child(8),
+      #ordersContainer .table td:nth-child(8) {
+        width: 60px;
+      } /* Donation */
+      #ordersContainer .table th:nth-child(9),
+      #ordersContainer .table td:nth-child(9) {
+        width: 50px;
+      } /* Total */
+      #ordersContainer .table th:nth-child(10),
+      #ordersContainer .table td:nth-child(10) {
+        width: 50px;
+      } /* Amount Paid */
+      #ordersContainer .table th:nth-child(11),
+      #ordersContainer .table td:nth-child(11) {
+        width: 50px;
+      } /* Remaining Balance */
+      #ordersContainer .table th:nth-child(12),
+      #ordersContainer .table td:nth-child(12) {
+        width: 50px;
+      } /* Status */
+      #ordersContainer .table th:nth-child(13),
+      #ordersContainer .table td:nth-child(13) {
+        width: 90px;
+      } /* Payment Method */
+      #ordersContainer .table th:nth-child(14),
+      #ordersContainer .table td:nth-child(14) {
+        width: 50px;
+      } /* Issued */
+      #ordersContainer .table th:nth-child(15),
+      #ordersContainer .table td:nth-child(15) {
+        width: 140px;
+      } /* Ticket Numbers */
+      #ordersContainer .table th:nth-child(16),
+      #ordersContainer .table td:nth-child(16) {
+        width: 120px;
+      } /* Admin Notes */
+
+      /* Smaller action buttons in orders table */
+      #ordersContainer .table .btn-sm {
+        padding: 0.15rem 0.3rem;
+        font-size: 0.7rem;
+        line-height: 1.2;
+        min-width: 24px;
+        height: 24px;
+      }
+
+      #ordersContainer .table .btn-sm i {
+        font-size: 0.65rem;
+      }
+
+      /* Compact tickets table styling (mirrors ordersContainer compactness) */
+      #ticketsContainer .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        max-height: 70vh;
+        overflow-x: auto;
+        overflow-y: auto;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+      }
+
+      #ticketsContainer .table {
+        margin-bottom: 0;
+        width: 100%;
+        min-width: 1200px; /* ensure horizontal scroll at small widths */
+        table-layout: auto;
+        font-size: 0.875rem;
+      }
+
+      #ticketsContainer .table th {
+        background-color: #f8f9fa;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding: 0.5rem 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      #ticketsContainer .table td {
+        padding: 0.4rem 0.4rem;
+        font-size: 0.85rem;
+        vertical-align: middle;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: nowrap;
+      }
+
+      /* Column widths (more compact than before) */
+      #ticketsContainer .table th:nth-child(1),
+      #ticketsContainer .table td:nth-child(1) {
+        width: 60px !important;
+        max-width: 60px !important;
+      } /* Order # */
+      #ticketsContainer .table th:nth-child(2),
+      #ticketsContainer .table td:nth-child(2) {
+        width: 120px !important;
+        max-width: 120px !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      } /* Name */
+      #ticketsContainer .table th:nth-child(3),
+      #ticketsContainer .table td:nth-child(3) {
+        width: 100px !important;
+        max-width: 100px !important;
+        text-align: center;
+      } /* Phone */
+      #ticketsContainer .table th:nth-child(4),
+      #ticketsContainer .table td:nth-child(4) {
+        width: 60px !important;
+        max-width: 60px !important;
+        text-align: center;
+      } /* Ticket Type */
+      #ticketsContainer .table th:nth-child(5),
+      #ticketsContainer .table td:nth-child(5) {
+        width: 70px !important;
+        max-width: 70px !important;
+        text-align: center;
+      } /* Ticket Number */
+      #ticketsContainer .table th:nth-child(6),
+      #ticketsContainer .table td:nth-child(6) {
+        width: 160px !important;
+        max-width: 160px !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      } /* Food Option */
+      #ticketsContainer .table th:nth-child(7),
+      #ticketsContainer .table td:nth-child(7) {
+        width: 80px !important;
+        max-width: 80px !important;
+        text-align: center;
+      } /* Attendance */
+      #ticketsContainer .table th:nth-child(8),
+      #ticketsContainer .table td:nth-child(8) {
+        width: 70px !important;
+        max-width: 70px !important;
+        text-align: center;
+      } /* Pickup Time */
+      #ticketsContainer .table th:nth-child(9),
+      #ticketsContainer .table td:nth-child(9) {
+        width: 70px !important;
+        max-width: 70px !important;
+        text-align: center;
+      } /* Order Status */
+      #ticketsContainer .table th:nth-child(10),
+      #ticketsContainer .table td:nth-child(10) {
+        width: 60px !important;
+        max-width: 60px !important;
+        text-align: center;
+      } /* Issued */
+
+      /* Smaller badges and tighter spacing for compact view */
+      #ticketsContainer .badge {
+        padding: 0.3rem 0.4rem;
+        font-size: 0.75rem;
+      }
+
+      /* Ensure responsiveness: allow wrapping on very small screens */
+      @media (max-width: 768px) {
+        #ticketsContainer .table {
+          min-width: 900px;
+          font-size: 0.82rem;
+        }
+        #ticketsContainer .table th,
+        #ticketsContainer .table td {
+          padding: 0.35rem 0.35rem;
+        }
+      }
+
+      /* Payments table styling (consistent with other containers) */
+      #paymentsContainer .table-responsive {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        max-height: 70vh;
+        overflow-x: auto;
+        overflow-y: auto;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+      }
+
+      #paymentsContainer .table {
+        margin-bottom: 0;
+        width: 100%;
+        min-width: 1100px; /* ensure horizontal scroll at small widths */
+        table-layout: auto;
+        font-size: 0.875rem;
+      }
+
+      #paymentsContainer .table th {
+        background-color: #f8f9fa;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding: 0.5rem 0.4rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      #paymentsContainer .table td {
+        padding: 0.4rem 0.4rem;
+        font-size: 0.85rem;
+        vertical-align: middle;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: nowrap;
+      }
+
+      /* Payment table column widths */
+      #paymentsContainer .table th:nth-child(1),
+      #paymentsContainer .table td:nth-child(1) {
+        width: 80px !important;
+        max-width: 80px !important;
+      } /* Date */
+      #paymentsContainer .table th:nth-child(2),
+      #paymentsContainer .table td:nth-child(2) {
+        width: 70px !important;
+        max-width: 70px !important;
+      } /* Order # */
+      #paymentsContainer .table th:nth-child(3),
+      #paymentsContainer .table td:nth-child(3) {
+        width: 130px !important;
+        max-width: 130px !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      } /* Customer Name */
+      #paymentsContainer .table th:nth-child(4),
+      #paymentsContainer .table td:nth-child(4) {
+        width: 140px !important;
+        max-width: 140px !important;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      } /* Email */
+      #paymentsContainer .table th:nth-child(5),
+      #paymentsContainer .table td:nth-child(5) {
+        width: 80px !important;
+        max-width: 80px !important;
+        text-align: center;
+      } /* Amount */
+      #paymentsContainer .table th:nth-child(6),
+      #paymentsContainer .table td:nth-child(6) {
+        width: 90px !important;
+        max-width: 90px !important;
+        text-align: center;
+      } /* Method */
+      #paymentsContainer .table th:nth-child(7),
+      #paymentsContainer .table td:nth-child(7) {
+        width: 100px !important;
+        max-width: 100px !important;
+        text-align: center;
+      } /* Reference */
+      #paymentsContainer .table th:nth-child(8),
+      #paymentsContainer .table td:nth-child(8) {
+        width: 80px !important;
+        max-width: 80px !important;
+        text-align: center;
+      } /* Order Total */
+
+      /* Smaller badges and tighter spacing for payments view */
+      #paymentsContainer .badge {
+        padding: 0.3rem 0.4rem;
+        font-size: 0.75rem;
+      }
+
+      /* Scrollbar styling */
+      .table-responsive::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
+      }
+
+      .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+
+      .table-responsive::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+      }
+
+      .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+      }

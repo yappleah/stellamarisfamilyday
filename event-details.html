@@ -29,651 +29,8 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="event-details-styles.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-      #loadingScreen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0, 0, 0, 0.3); /* lighter background */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        backdrop-filter: blur(4px); /* optional blur */
-      }
-
-      /* Scoped to orders table only to avoid affecting tickets table */
-      #ordersContainer .table-responsive {
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-        max-height: 70vh;
-        overflow-x: auto;
-        overflow-y: auto;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-      }
-
-      #ordersContainer .table {
-        margin-bottom: 0;
-        width: 100%;
-        min-width: 1500px; /* Force minimum width to enable horizontal scrolling */
-        table-layout: auto; /* Allow flexible column sizing for better scrolling */
-      }
-
-      #ordersContainer .table th {
-        background-color: #f8f9fa;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        padding: 0.75rem 0.5rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-      }
-
-      /* ==================================================
-     * PROFESSIONAL TICKET FORM STYLING
-     * ================================================== */
-
-      /* Main ticket section styling */
-      .ticket-section {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 16px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s ease;
-      }
-
-      .ticket-section:hover {
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      .adult-tickets {
-        --section-accent: #2563eb;
-      }
-
-      .child-tickets {
-        --section-accent: #ffd600;
-      }
-
-      .ticket-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 12px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid #f3f4f6;
-      }
-
-      .ticket-icon {
-        font-size: 1rem;
-        margin-right: 10px;
-        padding: 8px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        background: #f8f9fa;
-        color: var(--section-accent);
-      }
-
-      .ticket-title {
-        margin: 0;
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #111827;
-      }
-
-      .ticket-price {
-        font-size: 0.8rem;
-        color: #6b7280;
-        margin-top: 1px;
-        font-weight: 500;
-      }
-
-      .ticket-buttons {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 12px;
-      }
-
-      .ticket-section .btn-primary {
-        background: var(--section-accent);
-        border: 1px solid var(--section-accent);
-        color: white;
-        font-weight: 600;
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        transition: all 0.2s ease;
-      }
-
-      .ticket-section .btn-primary:hover {
-        background: color-mix(in srgb, var(--section-accent) 85%, black);
-        border-color: color-mix(in srgb, var(--section-accent) 85%, black);
-      }
-
-      .ticket-section .btn-outline-danger {
-        border: 1px solid #d1d5db;
-        color: #6b7280;
-        background: #ffffff;
-        font-weight: 600;
-        padding: 6px 12px;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        transition: all 0.2s ease;
-      }
-
-      .ticket-section .btn-outline-danger:hover {
-        background: #f9fafb;
-        border-color: #9ca3af;
-        color: #374151;
-      }
-
-      /* Enhanced ticket dropdown styling */
-      .ticket-section .form-label {
-        font-weight: 600;
-        margin-bottom: 8px;
-      }
-
-      .adult-tickets .form-label {
-        color: #1e40af;
-      }
-
-      .child-tickets .form-label {
-        color: #dc2626;
-      }
-
-      /* Individual ticket card styling - Compact Design */
-      .individual-ticket-card {
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        margin-bottom: 8px;
-        overflow: hidden;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        transition: all 0.2s ease;
-        background: #ffffff;
-        border-left: 3px solid var(--accent-color);
-      }
-
-      .individual-ticket-card:hover {
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      .ticket-card-header {
-        padding: 8px 12px;
-        background: #fafafa;
-        border-bottom: 1px solid #f0f0f0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .ticket-number-badge {
-        display: flex;
-        align-items: center;
-        color: #374151;
-        font-weight: 600;
-        font-size: 0.8rem;
-      }
-
-      .ticket-number-badge i {
-        margin-right: 6px;
-        font-size: 0.8rem;
-        color: var(--accent-color);
-      }
-
-      .ticket-type-indicator {
-        font-size: 0.7rem;
-        color: #6b7280;
-        background: #f3f4f6;
-        padding: 1px 6px;
-        border-radius: 8px;
-        font-weight: 500;
-      }
-
-      .ticket-card-content {
-        padding: 12px;
-        background: #ffffff;
-      }
-
-      /* Compact color scheme */
-      .adult-ticket-primary {
-        --accent-color: #2563eb;
-      }
-
-      .adult-ticket-secondary {
-        --accent-color: #2563eb;
-      }
-
-      .adult-ticket-tertiary {
-        --accent-color: #2563eb;
-      }
-
-      .child-ticket-primary {
-        --accent-color: #ffd600;
-      }
-
-      .child-ticket-secondary {
-        --accent-color: #ffe066;
-      }
-
-      .child-ticket-tertiary {
-        --accent-color: #fff9c4;
-      }
-      /* Child ticket icon yellow */
-      .child-tickets .ticket-icon {
-        color: #ffd600 !important;
-      }
-      /* Child ticket Add button yellow */
-      .child-tickets .btn-primary {
-        background: #ffd600 !important;
-        border-color: #ffd600 !important;
-        color: #111827 !important;
-      }
-      .child-tickets .btn-primary:hover {
-        background: #ffe066 !important;
-        border-color: #ffe066 !important;
-        color: #111827 !important;
-      }
-      /* Remove button always red */
-      .remove-ticket-btn,
-      .remove-ticket-btn i,
-      .remove-ticket-btn span {
-        color: #dc2626 !important;
-        border-color: #dc2626 !important;
-        background: #fff !important;
-      }
-      /* Hide remove buttons if parent has .paid-tickets */
-      .paid-tickets .remove-ticket-btn {
-        display: none !important;
-      }
-
-      /* Compact form styling */
-      .individual-ticket-card .form-label {
-        color: #111827;
-        font-weight: 600;
-        margin-bottom: 4px;
-        font-size: 0.8rem;
-      }
-
-      .individual-ticket-card .form-check-label {
-        color: #374151;
-        font-weight: 500;
-        font-size: 0.8rem;
-      }
-
-      .individual-ticket-card .form-select {
-        border: 1px solid #d1d5db;
-        border-radius: 4px;
-        font-size: 0.8rem;
-        padding: 6px 10px;
-        background: #ffffff;
-      }
-
-      .individual-ticket-card .form-select:focus {
-        border-color: var(--accent-color);
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-        outline: none;
-      }
-
-      .individual-ticket-card .form-check-input:checked {
-        background-color: var(--accent-color);
-        border-color: var(--accent-color);
-      }
-
-      .individual-ticket-card .form-check-input:focus {
-        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-      }
-
-      /* Compact section labels */
-      .individual-ticket-card .mb-2 {
-        margin-bottom: 8px !important;
-      }
-
-      .individual-ticket-card .mb-2 .form-label.small {
-        color: #6b7280;
-        font-weight: 600;
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 4px;
-      }
-
-      .individual-ticket-card .form-check {
-        margin-bottom: 4px;
-      }
-
-      .individual-ticket-card .form-check-inline {
-        margin-right: 12px;
-        margin-bottom: 2px;
-      }
-
-      #ordersContainer .table td {
-        padding: 0.5rem;
-        font-size: 0.875rem;
-        vertical-align: middle;
-        word-wrap: none;
-      }
-
-      /* scope to orders table so tickets table is unaffected */
-      #ordersContainer .table th:nth-child(1),
-      #ordersContainer .table td:nth-child(1) {
-        width: 100px;
-      } /* Actions */
-      #ordersContainer .table th:nth-child(2),
-      #ordersContainer .table td:nth-child(2) {
-        width: 50px;
-      } /* Order # */
-      #ordersContainer .table th:nth-child(3),
-      #ordersContainer .table td:nth-child(3) {
-        width: 80px;
-      } /* Name */
-      #ordersContainer .table th:nth-child(4),
-      #ordersContainer .table td:nth-child(4) {
-        width: 150px !important;
-        min-width: 150px !important;
-      } /* Email */
-      #ordersContainer .table th:nth-child(5),
-      #ordersContainer .table td:nth-child(5) {
-        width: 130px;
-      } /* Phone */
-      #ordersContainer .table th:nth-child(6),
-      #ordersContainer .table td:nth-child(6) {
-        width: 50px;
-      } /* Adults */
-      #ordersContainer .table th:nth-child(7),
-      #ordersContainer .table td:nth-child(7) {
-        width: 50px;
-      } /* Children */
-      #ordersContainer .table th:nth-child(8),
-      #ordersContainer .table td:nth-child(8) {
-        width: 60px;
-      } /* Donation */
-      #ordersContainer .table th:nth-child(9),
-      #ordersContainer .table td:nth-child(9) {
-        width: 50px;
-      } /* Total */
-      #ordersContainer .table th:nth-child(10),
-      #ordersContainer .table td:nth-child(10) {
-        width: 50px;
-      } /* Amount Paid */
-      #ordersContainer .table th:nth-child(11),
-      #ordersContainer .table td:nth-child(11) {
-        width: 50px;
-      } /* Remaining Balance */
-      #ordersContainer .table th:nth-child(12),
-      #ordersContainer .table td:nth-child(12) {
-        width: 50px;
-      } /* Status */
-      #ordersContainer .table th:nth-child(13),
-      #ordersContainer .table td:nth-child(13) {
-        width: 90px;
-      } /* Payment Method */
-      #ordersContainer .table th:nth-child(14),
-      #ordersContainer .table td:nth-child(14) {
-        width: 50px;
-      } /* Issued */
-      #ordersContainer .table th:nth-child(15),
-      #ordersContainer .table td:nth-child(15) {
-        width: 140px;
-      } /* Ticket Numbers */
-      #ordersContainer .table th:nth-child(16),
-      #ordersContainer .table td:nth-child(16) {
-        width: 120px;
-      } /* Admin Notes */
-
-      /* Smaller action buttons in orders table */
-      #ordersContainer .table .btn-sm {
-        padding: 0.15rem 0.3rem;
-        font-size: 0.7rem;
-        line-height: 1.2;
-        min-width: 24px;
-        height: 24px;
-      }
-
-      #ordersContainer .table .btn-sm i {
-        font-size: 0.65rem;
-      }
-
-      /* Compact tickets table styling (mirrors ordersContainer compactness) */
-      #ticketsContainer .table-responsive {
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-        max-height: 70vh;
-        overflow-x: auto;
-        overflow-y: auto;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
-      }
-
-      #ticketsContainer .table {
-        margin-bottom: 0;
-        width: 100%;
-        min-width: 1200px; /* ensure horizontal scroll at small widths */
-        table-layout: auto;
-        font-size: 0.875rem;
-      }
-
-      #ticketsContainer .table th {
-        background-color: #f8f9fa;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        padding: 0.5rem 0.4rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        white-space: nowrap;
-      }
-
-      #ticketsContainer .table td {
-        padding: 0.4rem 0.4rem;
-        font-size: 0.85rem;
-        vertical-align: middle;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        white-space: nowrap;
-      }
-
-      /* Column widths (more compact than before) */
-      #ticketsContainer .table th:nth-child(1),
-      #ticketsContainer .table td:nth-child(1) {
-        width: 60px !important;
-        max-width: 60px !important;
-      } /* Order # */
-      #ticketsContainer .table th:nth-child(2),
-      #ticketsContainer .table td:nth-child(2) {
-        width: 120px !important;
-        max-width: 120px !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      } /* Name */
-      #ticketsContainer .table th:nth-child(3),
-      #ticketsContainer .table td:nth-child(3) {
-        width: 100px !important;
-        max-width: 100px !important;
-        text-align: center;
-      } /* Phone */
-      #ticketsContainer .table th:nth-child(4),
-      #ticketsContainer .table td:nth-child(4) {
-        width: 60px !important;
-        max-width: 60px !important;
-        text-align: center;
-      } /* Ticket Type */
-      #ticketsContainer .table th:nth-child(5),
-      #ticketsContainer .table td:nth-child(5) {
-        width: 70px !important;
-        max-width: 70px !important;
-        text-align: center;
-      } /* Ticket Number */
-      #ticketsContainer .table th:nth-child(6),
-      #ticketsContainer .table td:nth-child(6) {
-        width: 160px !important;
-        max-width: 160px !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      } /* Food Option */
-      #ticketsContainer .table th:nth-child(7),
-      #ticketsContainer .table td:nth-child(7) {
-        width: 80px !important;
-        max-width: 80px !important;
-        text-align: center;
-      } /* Attendance */
-      #ticketsContainer .table th:nth-child(8),
-      #ticketsContainer .table td:nth-child(8) {
-        width: 70px !important;
-        max-width: 70px !important;
-        text-align: center;
-      } /* Pickup Time */
-      #ticketsContainer .table th:nth-child(9),
-      #ticketsContainer .table td:nth-child(9) {
-        width: 70px !important;
-        max-width: 70px !important;
-        text-align: center;
-      } /* Order Status */
-      #ticketsContainer .table th:nth-child(10),
-      #ticketsContainer .table td:nth-child(10) {
-        width: 60px !important;
-        max-width: 60px !important;
-        text-align: center;
-      } /* Issued */
-
-      /* Smaller badges and tighter spacing for compact view */
-      #ticketsContainer .badge {
-        padding: 0.3rem 0.4rem;
-        font-size: 0.75rem;
-      }
-
-      /* Ensure responsiveness: allow wrapping on very small screens */
-      @media (max-width: 768px) {
-        #ticketsContainer .table {
-          min-width: 900px;
-          font-size: 0.82rem;
-        }
-        #ticketsContainer .table th,
-        #ticketsContainer .table td {
-          padding: 0.35rem 0.35rem;
-        }
-      }
-
-      /* Payments table styling (consistent with other containers) */
-      #paymentsContainer .table-responsive {
-        border: 1px solid #dee2e6;
-        border-radius: 0.375rem;
-        max-height: 70vh;
-        overflow-x: auto;
-        overflow-y: auto;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
-      }
-
-      #paymentsContainer .table {
-        margin-bottom: 0;
-        width: 100%;
-        min-width: 1100px; /* ensure horizontal scroll at small widths */
-        table-layout: auto;
-        font-size: 0.875rem;
-      }
-
-      #paymentsContainer .table th {
-        background-color: #f8f9fa;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        padding: 0.5rem 0.4rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        white-space: nowrap;
-      }
-
-      #paymentsContainer .table td {
-        padding: 0.4rem 0.4rem;
-        font-size: 0.85rem;
-        vertical-align: middle;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-        white-space: nowrap;
-      }
-
-      /* Payment table column widths */
-      #paymentsContainer .table th:nth-child(1),
-      #paymentsContainer .table td:nth-child(1) {
-        width: 80px !important;
-        max-width: 80px !important;
-      } /* Date */
-      #paymentsContainer .table th:nth-child(2),
-      #paymentsContainer .table td:nth-child(2) {
-        width: 70px !important;
-        max-width: 70px !important;
-      } /* Order # */
-      #paymentsContainer .table th:nth-child(3),
-      #paymentsContainer .table td:nth-child(3) {
-        width: 130px !important;
-        max-width: 130px !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      } /* Customer Name */
-      #paymentsContainer .table th:nth-child(4),
-      #paymentsContainer .table td:nth-child(4) {
-        width: 140px !important;
-        max-width: 140px !important;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      } /* Email */
-      #paymentsContainer .table th:nth-child(5),
-      #paymentsContainer .table td:nth-child(5) {
-        width: 80px !important;
-        max-width: 80px !important;
-        text-align: center;
-      } /* Amount */
-      #paymentsContainer .table th:nth-child(6),
-      #paymentsContainer .table td:nth-child(6) {
-        width: 90px !important;
-        max-width: 90px !important;
-        text-align: center;
-      } /* Method */
-      #paymentsContainer .table th:nth-child(7),
-      #paymentsContainer .table td:nth-child(7) {
-        width: 100px !important;
-        max-width: 100px !important;
-        text-align: center;
-      } /* Reference */
-      #paymentsContainer .table th:nth-child(8),
-      #paymentsContainer .table td:nth-child(8) {
-        width: 80px !important;
-        max-width: 80px !important;
-        text-align: center;
-      } /* Order Total */
-
-      /* Smaller badges and tighter spacing for payments view */
-      #paymentsContainer .badge {
-        padding: 0.3rem 0.4rem;
-        font-size: 0.75rem;
-      }
-
-      /* Scrollbar styling */
-      .table-responsive::-webkit-scrollbar {
-        height: 8px;
-        width: 8px;
-      }
-
-      .table-responsive::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 4px;
-      }
-
-      .table-responsive::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 4px;
-      }
-
-      .table-responsive::-webkit-scrollbar-thumb:hover {
-        background: #a8a8a8;
-      }
-    </style>
   </head>
   <body style="background-color: #d0f0ff">
     <div class="container-fluid container-md bg-white min-vh-100 mx-auto px-0 px-md-3" style="max-width: 100%;">
@@ -707,7 +64,6 @@
 
       <div class="px-1 pb-5">
         <div class="mb-3">
-          <span id="editOutstanding" style="display: none"></span>
           <a
             href="admin-portal-funday-9831.html"
             class="btn btn-link text-secondary"
@@ -934,6 +290,55 @@
       </div>
     </div>
 
+    <div
+      class="modal fade"
+      id="editCustomerModal"
+      tabindex="-1"
+      aria-labelledby="editCustomerModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <form class="modal-content" id="editCustomerForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editCustomerModalLabel">Edit Customer</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editCustomerId" />
+            <div class="mb-3">
+              <label for="editCustomerFirstName" class="form-label">First name</label>
+              <input type="text" class="form-control" id="editCustomerFirstName" required />
+            </div>
+            <div class="mb-3">
+              <label for="editCustomerLastName" class="form-label">Last name</label>
+              <input type="text" class="form-control" id="editCustomerLastName" />
+            </div>
+            <div class="mb-3">
+              <label for="editCustomerEmail" class="form-label">Email</label>
+              <input type="email" class="form-control" id="editCustomerEmail" required />
+            </div>
+            <div class="mb-3">
+              <label for="editCustomerPhone" class="form-label">Phone number</label>
+              <input type="tel" class="form-control" id="editCustomerPhone" required />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary" id="saveCustomerChangesBtn">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <script>
       // Helper to render one ticket row (label + input). Expects ticket object with id and ticket_type and optional ticket_number.
       function buildTicketHtml(ticket, idx) {
@@ -1065,22 +470,6 @@
           </div>
         </div>
       `;
-      }
-
-      // Simple HTML escape for any displayed values
-      function escapeHtml(str) {
-        if (!str) return "";
-        return String(str).replace(
-          /[&<>"']/g,
-          (m) =>
-            ({
-              "&": "&amp;",
-              "<": "&lt;",
-              ">": "&gt;",
-              '"': "&quot;",
-              "'": "&#39;",
-            }[m])
-        );
       }
 
       // When the modal opens, build the ticket input list from the selected order's tickets
@@ -1339,6 +728,48 @@
         </div>
       </div>
     </div>
+    <div
+      class="modal fade"
+      id="updatedOrderEmailModal"
+      tabindex="-1"
+      aria-labelledby="updatedOrderEmailModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="updatedOrderEmailModalLabel">
+              Order saved successfully
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            Would you like to email the customer the updated order details?
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              id="skipUpdatedOrderEmailBtn"
+            >
+              No
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              id="sendUpdatedOrderEmailBtn"
+            >
+              Send Email
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     <div id="loadingScreen">
       <div
         class="spinner-border text-primary"
@@ -1353,23 +784,50 @@
     <script src="functions.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script>
+      emailjs.init(CONFIG.EMAILJS_KEY);
       const adultPrice = CONFIG.PRICING.adult_ticket;
       const childPrice = CONFIG.PRICING.child_ticket;
-      emailjs.init("GMch0DES4yiVfdanm");
-      document.getElementById("dateAndTime").textContent = CONFIG.EVENT.date;
-      document.getElementById("venue").textContent = CONFIG.EVENT.venue;
-      document.getElementById("year").textContent = new Date().getFullYear();
-
       let allOrders = [];
+      let allCustomers = [];
+      let currentTicketId = null;
+      let currentFilteredOrders = [];
+      let currentFilteredCustomers = [];
+      let currentView = localStorage.getItem("eventDetailsView") || "orders";
       const supabaseClient = supabase.createClient(
         CONFIG.SUPABASE_URL,
         CONFIG.SUPABASE_ANON_KEY
       );
-
       const params = new URLSearchParams(window.location.search);
       const eventId = params.get("eventId");
-
-      let currentTicketId = null;
+      document.getElementById("dateAndTime").textContent = CONFIG.EVENT.date;
+      document.getElementById("venue").textContent = CONFIG.EVENT.venue;
+      document.getElementById("year").textContent = new Date().getFullYear();
+      const views = {
+        orders: {
+          container: document.getElementById("ordersContainer"),
+          btn: document.getElementById("ordersViewBtn"),
+          showFilters: true,
+          render: null,
+        },
+        tickets: {
+          container: document.getElementById("ticketsContainer"),
+          btn: document.getElementById("ticketsViewBtn"),
+          showFilters: false,
+          render: () => allOrders?.length && renderTicketsTable(),
+        },
+        payments: {
+          container: document.getElementById("paymentsContainer"),
+          btn: document.getElementById("paymentsViewBtn"),
+          showFilters: false,
+          render: () => allOrders?.length && renderPaymentsTable(),
+        },
+        customers: {
+          container: document.getElementById("customersContainer"),
+          btn: document.getElementById("customersViewBtn"),
+          showFilters: false,
+          render: () => loadCustomers(),
+        },
+      };
 
       /**
        * Find the next available ticket number for a given ticket type
@@ -1452,16 +910,6 @@
         }
       }
 
-      if (!eventId) {
-        document.getElementById("ordersContainer").innerHTML =
-          "<p class='text-danger'>No event specified.</p>";
-      } else {
-        if (sessionStorage.getItem("adminLoggedIn") !== "true") {
-          window.location.href = "admin-portal-funday-9831.html";
-        }
-        loadEventDetails(eventId);
-      }
-
       async function loadOrders(eventId) {
         showLoadingScreen();
 
@@ -1498,156 +946,142 @@
         updateViewDisplay();
       }
 
-      document.getElementById("orderSearch").addEventListener("input", (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const filtered = allOrders.filter((order) => {
-          const nameMatch = `${order.first_name || ""} ${order.last_name || ""}`
-            .toLowerCase()
-            .includes(searchTerm);
-          const emailMatch = (order.email || "")
-            .toLowerCase()
-            .includes(searchTerm);
-          const phoneMatch = (order.phone_number || "")
-            .toLowerCase()
-            .includes(searchTerm);
-          const ticketsMatch = (order.ticket_numbers || "")
-            .toString()
-            .toLowerCase()
-            .includes(searchTerm);
-
-          return nameMatch || emailMatch || phoneMatch || ticketsMatch;
-        });
-
-        renderOrders(filtered);
-      });
-
+      if (!eventId) {
+        document.getElementById("ordersContainer").innerHTML =
+          "<p class='text-danger'>No event specified.</p>";
+      } else {
+        if (sessionStorage.getItem("adminLoggedIn") !== "true") {
+          window.location.href = "admin-portal-funday-9831.html";
+        }
+        loadEventDetails(eventId);
+      }
+    
       function renderOrders(data) {
         // Store filtered orders globally for download
         currentFilteredOrders = data;
 
         document.getElementById("ordersContainer").innerHTML = `
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <small class="text-muted">
-          <i class="bi bi-arrow-left-right"></i> 
-          Scroll horizontally to see all columns • Total orders: <span>${
-            data.length
-          }</span>
-        </small>
-        <button id="downloadOrdersResults" class="btn btn-outline-primary btn-sm">
-          <i class="bi bi-download"></i> Download Orders
-        </button>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-          <thead>
-            <tr>
-              <th>Actions</th>
-              <th>Order #</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone Number</th>
-              <th>Adults</th>
-              <th>Children</th>
-              <th>Donated Adults</th>
-              <th>Donated Children</th>
-              <th>Total</th>
-              <th>Amount Paid</th>
-              <th>Remaining Balance</th>
-              <th>Payment Method</th>
-              <th>Issued</th>
-              <th>Ticket Numbers</th>
-              <th>Admin Notes</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${data
-              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-              .map(
-                (order) => `
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <small class="text-muted">
+              <i class="bi bi-arrow-left-right"></i> 
+              Scroll horizontally to see all columns • Total orders: <span>${
+                data.length
+              }</span>
+            </small>
+            <button id="downloadOrdersResults" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-download"></i> Download Orders
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+              <thead>
                 <tr>
-                  <td>
-                  <button class="btn btn-sm btn-info mb-1" onclick="resendConfirmationEmail('${
-                    order.id
-                  }')" title="Resend confirmation email"> 
-                    <i class="bi bi-envelope"></i>
-                  </button>
-                    ${
-                      !order.paid
-                        ? `<button class="btn btn-sm btn-success mb-1" title="Enter Payment" onclick="openPaymentModal('${
-                            order.id
-                          }', '${
-                            order.payment_method || "cash"
-                          }')"><i class="bi bi-currency-dollar"></i></button>`
-                        : ""
-                    }
-                    ${
-                      order.paid && !order.issued
-                        ? `<button class="btn btn-sm btn-warning mb-1" title="Issue Tickets" onclick="confirmIssued('${order.id}')"><i class="bi bi-ticket-perforated-fill"></i></button>`
-                        : ""
-                    }
-                    <button class="btn btn-sm btn-primary mb-1" title="${
-                      order.paid ? "Edit Notes" : "Edit Order"
-                    }" onclick="openEditModal('${order.id}')">
-                      <i class="bi bi-pencil-square"></i>
-                    </button>
-                  </td>
-                  <td>${order.order_number}</td>
-                  <td>${order.first_name} ${order.last_name}</td>
-                  <td>${order.email}</td>
-                  <td>${
-                    order.phone_number
-                      ? formatPhoneNumber(order.phone_number)
-                      : '<span class="text-muted">N/A</span>'
-                  }</td>
-                  <td>${order.adult_tickets}</td>
-                  <td>${order.child_tickets}</td>
-                  <td>${order.adult_donations}</td>
-                  <td>${order.child_donations}</td>
-                  <td>$${formatCurrency(order.total_amount || 0)}</td>
-                  <td>$${formatCurrency(order.amount_paid || 0)}</td>
-                  <td>
-                    <span class="${
-                      (order.total_amount || 0) - (order.amount_paid || 0) <= 0
-                        ? "text-success"
-                        : "text-danger"
-                    }">
-                      $${formatCurrency(
-                        Math.max(
-                          0,
-                          (order.total_amount || 0) - (order.amount_paid || 0)
-                        )
-                      )}
-                    </span>
-                  </td>
-                  <td>
-                    <span class="badge ${
-                      order.payment_method === "cash" ? "bg-success" : "bg-info"
-                    }">
-                      ${
-                        order.payment_method === "cash"
-                          ? "Cash/Cheque"
-                          : "Bank Transfer"
-                      }
-                    </span>
-                  </td>
-                  <td>
-                    <span class="${
-                      order.issued ? "text-success" : "text-danger"
-                    }">
-                      ${order.issued ? "Yes" : "No"}
-                    </span>
-                  </td>
-                  <td>${order.ticket_numbers}</td>
-                  <td>${order.admin_notes || " "}</td>
+                  <th>Actions</th>
+                  <th>Order #</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Phone Number</th>
+                  <th>Adults</th>
+                  <th>Children</th>
+                  <th>Donated Adults</th>
+                  <th>Donated Children</th>
+                  <th>Total</th>
+                  <th>Amount Paid</th>
+                  <th>Remaining Balance</th>
+                  <th>Payment Method</th>
+                  <th>Issued</th>
+                  <th>Ticket Numbers</th>
+                  <th>Admin Notes</th>
                 </tr>
-              `
-              )
-              .join("")}
-          </tbody>
-        </table>
-        </div>
-      `;
-
+              </thead>
+              <tbody>
+                ${data
+                  .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                  .map(
+                    (order) => `
+                    <tr>
+                      <td>
+                      <button class="btn btn-sm btn-info mb-1" onclick="resendConfirmationEmail('${
+                        order.id
+                      }')" title="Resend confirmation email"> 
+                        <i class="bi bi-envelope"></i>
+                      </button>
+                        ${
+                          !order.paid
+                            ? `<button class="btn btn-sm btn-success mb-1" title="Enter Payment" onclick="openPaymentModal('${
+                                order.id
+                              }', '${
+                                order.payment_method || "cash"
+                              }')"><i class="bi bi-currency-dollar"></i></button>`
+                            : ""
+                        }
+                        ${
+                          order.paid && !order.issued
+                            ? `<button class="btn btn-sm btn-warning mb-1" title="Issue Tickets" onclick="confirmIssued('${order.id}')"><i class="bi bi-ticket-perforated-fill"></i></button>`
+                            : ""
+                        }
+                        <button class="btn btn-sm btn-primary mb-1" title="${
+                          order.paid ? "Edit Notes" : "Edit Order"
+                        }" onclick="openEditModal('${order.id}')">
+                          <i class="bi bi-pencil-square"></i>
+                        </button>
+                      </td>
+                      <td>${order.order_number}</td>
+                      <td>${order.first_name} ${order.last_name}</td>
+                      <td>${order.email}</td>
+                      <td>${
+                        order.phone_number
+                          ? formatPhoneNumber(order.phone_number)
+                          : '<span class="text-muted">N/A</span>'
+                      }</td>
+                      <td>${order.adult_tickets}</td>
+                      <td>${order.child_tickets}</td>
+                      <td>${order.adult_donations}</td>
+                      <td>${order.child_donations}</td>
+                      <td>$${formatCurrency(order.total_amount || 0)}</td>
+                      <td>$${formatCurrency(order.amount_paid || 0)}</td>
+                      <td>
+                        <span class="${
+                          (order.total_amount || 0) - (order.amount_paid || 0) <= 0
+                            ? "text-success"
+                            : "text-danger"
+                        }">
+                          $${formatCurrency(
+                            Math.max(
+                              0,
+                              (order.total_amount || 0) - (order.amount_paid || 0)
+                            )
+                          )}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="badge ${
+                          order.payment_method === "cash" ? "bg-success" : "bg-info"
+                        }">
+                          ${
+                            order.payment_method === "cash"
+                              ? "Cash/Cheque"
+                              : "Bank Transfer"
+                          }
+                        </span>
+                      </td>
+                      <td>
+                        <span class="${
+                          order.issued ? "text-success" : "text-danger"
+                        }">
+                          ${order.issued ? "Yes" : "No"}
+                        </span>
+                      </td>
+                      <td>${order.ticket_numbers}</td>
+                      <td>${order.admin_notes || " "}</td>
+                    </tr>
+                  `
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+            </div>
+          `;
         // Add download functionality for orders
         setTimeout(() => {
           document
@@ -1655,9 +1089,6 @@
             ?.addEventListener("click", downloadOrdersResults);
         }, 0);
       }
-
-      // Store filtered orders globally for download
-      let currentFilteredOrders = [];
 
       // Download function for filtered orders
       function downloadOrdersResults() {
@@ -1668,8 +1099,6 @@
           );
           return;
         }
-
-        // Create CSV content with specified columns in exact order requested
         const headers = [
           "Order #",
           "Name",
@@ -1750,59 +1179,11 @@
           document.body.removeChild(link);
         }
       }
-
-      document
-        .getElementById("orderSearch")
-        .addEventListener("input", filterAndRender);
-      document
-        .getElementById("filterPaid")
-        .addEventListener("change", filterAndRender);
-      document
-        .getElementById("filterPaymentMethod")
-        .addEventListener("change", filterAndRender);
-      document
-        .getElementById("filterIssued")
-        .addEventListener("change", filterAndRender);
-      document
-        .getElementById("customerSearch")
-        .addEventListener("input", filterAndRenderCustomers);
-
-      function filterAndRenderCustomers() {
-        const searchInput = document.getElementById("customerSearch");
-        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : "";
-
-        // Optional filters (include if you have these dropdowns in your UI)
-        const memorableFilter = document.getElementById("filterMemorableDate")?.value || "";
-
-        const filtered = allCustomers.filter((customer) => {
-          // 1. Full name, email, phone, and memorable hint matching
-          const fullName = `${customer.first_name || ""} ${customer.last_name || ""}`.toLowerCase();
-          const email = (customer.email || "").toLowerCase();
-          const phone = (customer.phone_number || customer.phone || "").toLowerCase();
-          const hint = (customer.memorable_hint || "").toLowerCase();
-
-          const matchesSearch =
-            fullName.includes(searchTerm) ||
-            email.includes(searchTerm) ||
-            phone.includes(searchTerm) ||
-            hint.includes(searchTerm);
-
-          // 2. Optional: Filter by presence of memorable date
-          const matchesMemorable =
-            memorableFilter === "" ||
-            (memorableFilter === "has_date" && Boolean(customer.memorable_date)) ||
-            (memorableFilter === "no_date" && !customer.memorable_date);
-
-          return matchesSearch && matchesMemorable;
-        });
-
-        renderCustomers(filtered);
-      }
       
-        function filterAndRender() {
-        const searchTerm = document
-          .getElementById("orderSearch")
-          .value.toLowerCase();
+      function filterAndRender() {
+        const searchTerm = (
+          document.getElementById("orderSearch")?.value || ""
+        ).toLowerCase();
         const paidFilter = document.getElementById("filterPaid").value;
         const paymentMethodFilter = document.getElementById(
           "filterPaymentMethod"
@@ -1847,11 +1228,25 @@
         renderOrders(filtered);
       }
 
-      // ==================================================
-      // VIEW MANAGEMENT FUNCTIONALITY
-      // ==================================================
+      document
+        .getElementById("orderSearch")
+        .addEventListener("input", filterAndRender);
+      document
+        .getElementById("filterPaid")
+        .addEventListener("change", filterAndRender);
+      document
+        .getElementById("filterPaymentMethod")
+        .addEventListener("change", filterAndRender);
+      document
+        .getElementById("filterIssued")
+        .addEventListener("change", filterAndRender);
 
-      let currentView = localStorage.getItem("eventDetailsView") || "orders";
+      document
+        .getElementById("customerSearch")
+        ?.addEventListener("input", filterAndRenderCustomers);
+      document
+        .getElementById("editCustomerForm")
+        .addEventListener("submit", saveCustomerChanges);
 
       // View button event listeners
       document
@@ -1886,69 +1281,53 @@
           updateViewDisplay();
         });
 
+      // ==================================================
+      // VIEW MANAGEMENT FUNCTIONALITY
+      // ==================================================
+
       function updateViewDisplay() {
-        const ordersContainer = document.getElementById("ordersContainer");
-        const ticketsContainer = document.getElementById("ticketsContainer");
-        const paymentsContainer = document.getElementById("paymentsContainer");
-        const customersContainer = document.getElementById("customersContainer");
+        const activeKey = views[currentView] ? currentView : "orders";
         const searchFilters = document.getElementById("searchFilters");
-        const ordersBtn = document.getElementById("ordersViewBtn");
-        const ticketsBtn = document.getElementById("ticketsViewBtn");
-        const paymentsBtn = document.getElementById("paymentsViewBtn");
-        const customersBtn = document.getElementById("customersViewBtn");
 
-        // Reset all buttons to outline style
-        ordersBtn.className = "btn btn-outline-primary";
-        ticketsBtn.className = "btn btn-outline-primary";
-        paymentsBtn.className = "btn btn-outline-primary";
-        customersBtn.className = "btn btn-outline-primary";
+        // Toggle active states across all views in a single loop
+        Object.entries(views).forEach(([key, config]) => {
+          const isActive = key === activeKey;
+          config.container.style.display = isActive ? "block" : "none";
+          config.btn.className = isActive ? "btn btn-primary" : "btn btn-outline-primary";
+        });
 
-        // Hide all containers
-        ordersContainer.style.display = "none";
-        ticketsContainer.style.display = "none";
-        paymentsContainer.style.display = "none";
-        customersContainer.style.display = "none";
-
-        if (currentView === "tickets") {
-          // Show tickets view
-          ticketsContainer.style.display = "block";
-          ticketsBtn.className = "btn btn-primary";
-          searchFilters.style.display = "none";
-          if (allOrders && allOrders.length > 0) {
-            renderTicketsTable();
-          }
-        } else if (currentView === "payments") {
-          // Show payments view
-          paymentsContainer.style.display = "block";
-          paymentsBtn.className = "btn btn-primary";
-          searchFilters.style.display = "none";
-          if (allOrders && allOrders.length > 0) {
-            renderPaymentsTable();
-          }
-        } else if (currentView === "customers") {
-          // Show customers view
-          customersContainer.style.display = "block";
-          customersBtn.className = "btn btn-primary";
-          searchFilters.style.display = "none";
-          renderCustomersTable();
-        } else {
-          // Show orders view (default)
-          ordersContainer.style.display = "block";
-          ordersBtn.className = "btn btn-primary";
-          searchFilters.style.display = "block";
-        }
+        // Handle filters visibility and rendering for current active view
+        const activeConfig = views[activeKey];
+        searchFilters.style.display = activeConfig.showFilters ? "block" : "none";
+        activeConfig.render?.();
       }
 
-      async function renderCustomersTable() {
-        showLoadingScreen();
+      function sortCustomersByName(customerList) {
+        const nameOf = (customer) =>
+          `${customer.first_name || ""} ${customer.last_name || ""}`.trim();
+        return customerList.sort((a, b) =>
+          nameOf(a).localeCompare(nameOf(b), undefined, { sensitivity: "base" })
+        );
+      }
 
+      // 1. Fetch Data
+      async function loadCustomers() {
+        showLoadingScreen();
         const { data: customers, error } = await supabaseClient
           .from("customers")
           .select("*");
 
+        if (!error && customers) {
+          allCustomers = sortCustomersByName(customers);
+          renderCustomersTable(allCustomers);
+        }
         hideLoadingScreen();
-        const container = document.getElementById("customersContainer");
+      }
 
+      // 2. Initial Setup (Renders layout and binds input event ONCE)
+      function renderCustomersTable(data) {
+        currentFilteredCustomers = data;
+        const container = document.getElementById("customersContainer");      
         container.innerHTML = `
           <div class="row mb-3">
             <div class="col-md-12">
@@ -1962,7 +1341,7 @@
           </div>
           <div class="d-flex justify-content-between align-items-center mb-2">
             <small class="text-muted">
-              Total customers: <span id="customerCount">${customers.length}</span>
+              Total customers: <span id="customerCount">${data.length}</span>
             </small>
           </div>
           <div class="table-responsive">
@@ -1976,97 +1355,270 @@
                 </tr>
               </thead>
               <tbody id="customersTableBody">
-                ${renderCustomerRows(customers)}
+                ${renderCustomerRows(data)}
               </tbody>
             </table>
           </div>
         `;
+
+        // Attach search listener after DOM elements are created
+        document
+          .getElementById("customerSearch")
+          ?.addEventListener("input", filterAndRenderCustomers);
       }
 
-      // Helper to render individual table rows
+      // 3. Filter Handler
+      function filterAndRenderCustomers() {
+        const searchTerm = (
+          document.getElementById("customerSearch")?.value || ""
+        ).toLowerCase().trim();
+
+        const filtered = allCustomers.filter((customer) => {
+          const fullName = `${customer.first_name || ""} ${customer.last_name || ""}`.toLowerCase();
+          const email = (customer.email || "").toLowerCase();
+          const phone = (customer.phone_number || customer.phone || "").toLowerCase();
+
+          return (
+            fullName.includes(searchTerm) ||
+            email.includes(searchTerm) ||
+            phone.includes(searchTerm)
+          );
+        });
+
+        // Call renderCustomers (only updates <tbody>, preserves search box focus)
+        renderCustomers(filtered);
+      }
+
+      // 4. Updates ONLY the tbody and counter
+      function renderCustomers(data) {
+        currentFilteredCustomers = data;
+
+        const tbody = document.getElementById("customersTableBody");
+        const countElement = document.getElementById("customerCount");
+
+        if (countElement) {
+          countElement.textContent = data.length;
+        }
+
+        if (tbody) {
+          tbody.innerHTML = renderCustomerRows(data);
+        }
+      }
+
+      // 5. Row Helper (Safe against null/undefined)
       function renderCustomerRows(customerList) {
         if (!customerList || customerList.length === 0) {
           return `<tr><td colspan="4" class="text-center text-muted">No customers found.</td></tr>`;
         }
 
         return customerList.map(customer => {
-          const firstName = customer.first_name.trim() || 'N/A';
-          const lastName = customer.last_name.trim() || 'N/A';
-          const email = customer.email.trim() || 'N/A';
-          const phone = customer.phone_number.trim() || 'N/A';
-          const fullName = `${firstName} ${lastName}`;
+          const firstName = (customer.first_name || '').trim();
+          const lastName = (customer.last_name || '').trim();
+          const email = (customer.email || '').trim();
+          const phone = (customer.phone_number || customer.phone || '').trim();
+          const fullName = `${firstName} ${lastName}`.trim() || 'N/A';
+          const emailKey = email.toLowerCase();
+          const hasEventOrder = (allOrders || []).some(
+            (order) =>
+              (customer.id && String(order.customer_id) === String(customer.id)) ||
+              (emailKey && (order.email || '').trim().toLowerCase() === emailKey)
+          );
+          const noOrderIcon = hasEventOrder
+            ? ''
+            : '<i class="bi bi-cart-x text-warning ms-2" role="img" aria-label="No order for this event" title="No order for this event"></i>';
 
           return `
             <tr>
               <td class="text-center">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-secondary me-1"
+                  onclick="openEditCustomerModal('${encodeURIComponent(String(customer.id))}')"
+                  title="Edit Customer"
+                  aria-label="Edit ${escapeHtml(fullName)}"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
                 <button 
                   class="btn btn-sm btn-primary" 
-                  onclick="openCreateOrderWindow('${encodeURIComponent(firstName)}', ${encodeURIComponent(lastName)}', '${encodeURIComponent(email)}', '${encodeURIComponent(phone)}')"
+                  onclick="openCreateOrderWindow('${encodeURIComponent(firstName)}', '${encodeURIComponent(lastName)}', '${encodeURIComponent(email)}', '${encodeURIComponent(phone)}')"
                   title="Create Order for Customer"
                 >
-                  <i class="bi bi-cart-plus"></i> Create Order
+                  <i class="bi bi-cart-plus"></i>
                 </button>
               </td>
-              <td>${escapeHtml(fullName)}</td>
-              <td>${escapeHtml(email)}</td>
-              <td>${escapeHtml(phone)}</td>
+              <td>${escapeHtml(fullName)}${noOrderIcon}</td>
+              <td>${escapeHtml(email || 'N/A')}</td>
+              <td>${escapeHtml(phone ? formatPhoneNumber(phone) : 'N/A')}</td>
             </tr>
           `;
         }).join('');
       }
 
-      // Function to parse the name and launch the ticket form in a new window with URL parameters
+      function openEditCustomerModal(encodedCustomerId) {
+        const customerId = decodeURIComponent(encodedCustomerId);
+        const customer = allCustomers.find(
+          (entry) => String(entry.id) === customerId
+        );
+
+        if (!customer) {
+          showToastWithBlur("Customer not found. Refresh the list and try again.", {
+            type: "error",
+            icon: "fas fa-exclamation-triangle",
+          });
+          return;
+        }
+
+        document.getElementById("editCustomerId").value = String(customer.id);
+        document.getElementById("editCustomerFirstName").value =
+          customer.first_name || "";
+        document.getElementById("editCustomerLastName").value =
+          customer.last_name || "";
+        document.getElementById("editCustomerEmail").value = customer.email || "";
+        document.getElementById("editCustomerPhone").value =
+          customer.phone_number || customer.phone || "";
+        bootstrap.Modal.getOrCreateInstance(
+          document.getElementById("editCustomerModal")
+        ).show();
+      }
+
+      async function saveCustomerChanges(event) {
+        event.preventDefault();
+        const customerId = document.getElementById("editCustomerId").value;
+        const firstName = document
+          .getElementById("editCustomerFirstName")
+          .value.trim();
+        const lastName = document
+          .getElementById("editCustomerLastName")
+          .value.trim();
+        const email = document
+          .getElementById("editCustomerEmail")
+          .value.trim()
+          .toLowerCase();
+        const phone = cleanPhoneNumber(
+          document.getElementById("editCustomerPhone").value
+        );
+
+        if (
+          !customerId ||
+          !firstName ||
+          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        ) {
+          showToastWithBlur("Enter a first name and valid email address.", {
+            type: "warning",
+            icon: "fas fa-exclamation-triangle",
+          });
+          return;
+        }
+        if (phone.length !== 10) {
+          showToastWithBlur("Enter a valid 10-digit phone number.", {
+            type: "warning",
+            icon: "fas fa-exclamation-triangle",
+          });
+          return;
+        }
+
+        const saveButton = document.getElementById("saveCustomerChangesBtn");
+        saveButton.disabled = true;
+        showLoadingScreen();
+
+        const customerChanges = {
+          first_name: firstName,
+          last_name: lastName,
+          email,
+          phone_number: phone,
+        };
+
+        try {
+          const { data: updatedCustomer, error: customerError } =
+            await supabaseClient
+              .from("customers")
+              .update(customerChanges)
+              .eq("id", customerId)
+              .select("id")
+              .maybeSingle();
+
+          if (customerError) throw customerError;
+          if (!updatedCustomer) {
+            throw new Error("Customer was not found; no customer information was changed.");
+          }
+
+          const { data: updatedOrders, error: ordersError } =
+            await supabaseClient
+              .from("orders")
+              .update(customerChanges)
+              .eq("customer_id", customerId)
+              .select("id");
+
+          if (ordersError) {
+            throw new Error(
+              `Customer was updated, but linked orders could not be updated: ${ordersError.message}`
+            );
+          }
+
+          const customer = allCustomers.find(
+            (entry) => String(entry.id) === customerId
+          );
+          if (customer) Object.assign(customer, customerChanges);
+          sortCustomersByName(allCustomers);
+          allOrders.forEach((order) => {
+            if (String(order.customer_id) === customerId) {
+              Object.assign(order, customerChanges);
+            }
+          });
+          renderOrders(allOrders);
+
+          const searchTerm = document
+            .getElementById("customerSearch")
+            ?.value || "";
+          renderCustomersTable(allCustomers);
+          const searchInput = document.getElementById("customerSearch");
+          searchInput.value = searchTerm;
+          filterAndRenderCustomers();
+
+          bootstrap.Modal.getInstance(
+            document.getElementById("editCustomerModal")
+          )?.hide();
+          const linkedOrderCount = updatedOrders?.length || 0;
+          if (linkedOrderCount === 0) {
+            showToastWithBlur(
+              "Customer updated, but no orders are linked to this customer's UUID.",
+              { type: "warning", icon: "fas fa-exclamation-triangle" }
+            );
+          } else {
+            showToastWithBlur(
+              `Customer updated and ${linkedOrderCount} linked order(s) updated.`,
+              { type: "success", icon: "bi bi-check-circle" }
+            );
+          }
+        } catch (error) {
+          console.error("Customer update failed:", error);
+          showToastWithBlur(error.message || "Failed to update customer.", {
+            type: "error",
+            icon: "fas fa-exclamation-triangle",
+          });
+        } finally {
+          saveButton.disabled = false;
+          hideLoadingScreen();
+        }
+      }
+
+      // 6. Navigation Handler
       function openCreateOrderWindow(encodedFirstName, encodedLastName, encodedEmail, encodedPhone) {
         const firstName = decodeURIComponent(encodedFirstName).trim();
         const lastName = decodeURIComponent(encodedLastName).trim();
         const email = decodeURIComponent(encodedEmail).trim();
         const phone = decodeURIComponent(encodedPhone).trim();
 
-        // Build target URL with URLSearchParams
         const params = new URLSearchParams();
         if (firstName) params.set('firstName', firstName);
         if (lastName) params.set('lastName', lastName);
         if (email && email !== 'N/A') params.set('email', email);
         if (phone && phone !== 'N/A') params.set('phone', phone);
 
-        const targetUrl = `ticket-form.html?${params.toString()}`;
-
-        // Open target URL in a new window/tab
-        window.open(targetUrl, '_blank');
+        window.open(`ticket-form.html?${params.toString()}`, '_blank');
       }
-
-      // Utility to prevent XSS injection in table cells
-      function escapeHtml(str) {
-        if (!str) return '';
-        return String(str)
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#039;");
-      }
-
-      function renderCustomers(data) {
-        // Store filtered customers globally (useful for exports/downloads)
-        currentFilteredCustomers = data;
-
-        const tbody = document.getElementById("customersTableBody");
-        const countElement = document.getElementById("customerCount");
-
-        // Update customer counter badge
-        if (countElement) {
-          countElement.textContent = data.length;
-        }
-
-        // Render rows or empty state
-        if (!data || data.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No matching customers found.</td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = renderCustomerRows(data);
-      }
-      
+            
       function renderTicketsTable() {
         const container = document.getElementById("ticketsContainer");
 
@@ -3199,7 +2751,6 @@
 
       function confirmIssued(orderId) {
         currentTicketId = orderId;
-        // Show the modal - the modal event listener will handle the rest
         const modal = new bootstrap.Modal(
           document.getElementById("issuedModal")
         );
@@ -3207,7 +2758,10 @@
       }
 
       let total = 0;
-      let originalOrder = null; // Store original order data for comparison
+      let originalOrder = null;
+      let originalTicketState = {};
+      let originalDonationState = {};
+      let originalCustomerState = {};
 
       async function openEditModal(orderId) {
         const { data: order } = await supabaseClient
@@ -3395,11 +2949,6 @@
         new bootstrap.Modal(document.getElementById("editModal")).show();
       }
 
-      // Global variables to track original state
-      let originalTicketState = {};
-      let originalDonationState = {};
-      let originalCustomerState = {};
-
       function initializeChangeMonitoring() {
         const saveButton = document.querySelector(
           '#editModal .btn-primary[type="submit"]'
@@ -3447,7 +2996,6 @@
 
       function captureCurrentTicketState() {
         const tickets = {};
-
         // Capture adult tickets
         document
           .querySelectorAll("#editAdultFoodSelections > div")
@@ -3462,7 +3010,6 @@
               };
             }
           });
-
         // Capture child tickets
         document
           .querySelectorAll("#editChildFoodSelections > div")
@@ -3500,6 +3047,28 @@
           `input[name="pickup_${ticketId}"]:checked`
         );
         return radio ? radio.value : "";
+      }
+
+      function normalizeFoodOptions(foodOption) {
+        if (foodOption == null || foodOption === "") return "[]";
+
+        let options = foodOption;
+        if (typeof options === "string") {
+          try {
+            options = JSON.parse(options);
+          } catch {
+            options = options.includes(",")
+              ? options.split(",").map((option) => option.trim())
+              : [options.trim()];
+          }
+        }
+
+        const normalizedOptions = (Array.isArray(options) ? options : [options])
+          .map((option) => String(option).trim())
+          .filter(Boolean)
+          .sort();
+
+        return JSON.stringify(normalizedOptions);
       }
 
       function setupTicketChangeListeners() {
@@ -3692,12 +3261,57 @@
           adultTickets - adultDonations + adultDonations,
           childTickets - childDonations + childDonations
         );
-        console.log(adultTickets, childTickets, adultDonations, childDonations);
-        console.log(new_total);
 
         document.getElementById("editTotal").textContent =
           formatCurrency(new_total);
       };
+
+      function closeEditOrderModal() {
+        const modalElement = document.getElementById("editModal");
+        const modal = bootstrap.Modal.getInstance(modalElement);
+
+        if (!modal || !modalElement.classList.contains("show")) {
+          modal?.hide();
+          return Promise.resolve();
+        }
+
+        return new Promise((resolve) => {
+          modalElement.addEventListener("hidden.bs.modal", resolve, {
+            once: true,
+          });
+          modal.hide();
+        });
+      }
+
+      function askToEmailUpdatedOrder() {
+        return new Promise((resolve) => {
+          const modalElement = document.getElementById(
+            "updatedOrderEmailModal"
+          );
+          const sendButton = document.getElementById("sendUpdatedOrderEmailBtn");
+          const skipButton = document.getElementById("skipUpdatedOrderEmailBtn");
+          const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+          let shouldSend = false;
+
+          const handleSend = () => {
+            shouldSend = true;
+            modal.hide();
+          };
+          const handleSkip = () => modal.hide();
+          const handleHidden = () => {
+            sendButton.removeEventListener("click", handleSend);
+            skipButton.removeEventListener("click", handleSkip);
+            resolve(shouldSend);
+          };
+
+          sendButton.addEventListener("click", handleSend);
+          skipButton.addEventListener("click", handleSkip);
+          modalElement.addEventListener("hidden.bs.modal", handleHidden, {
+            once: true,
+          });
+          modal.show();
+        });
+      }
 
       document
         .getElementById("editForm")
@@ -3741,15 +3355,15 @@
             // Show success toast
             const toastId = `notesUpdatedToast_${Date.now()}`;
             const toastHtml = `
-        <div id="${toastId}" class="toast align-items-center border position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 350px; background-color: white; color: #212529;">
-          <div class="d-flex">
-            <div class="toast-body fs-5 py-3">
-              📝 Admin notes updated successfully!
-            </div>
-            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-          </div>
-        </div>
-      `;
+              <div id="${toastId}" class="toast align-items-center border position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 350px; background-color: white; color: #212529;">
+                <div class="d-flex">
+                  <div class="toast-body fs-5 py-3">
+                    📝 Admin notes updated successfully!
+                  </div>
+                  <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+              </div>
+            `;
             document.body.insertAdjacentHTML("beforeend", toastHtml);
             const toastEl = document.getElementById(toastId);
             const bsToast = new bootstrap.Toast(toastEl, {
@@ -3906,7 +3520,8 @@
                 id: ticketIdAttr,
                 ticket_order_id: ticketId,
                 food_option: foodOption,
-                ticket_type: isAdult ? "adult" : "child",
+                ticket_type:
+                  originalTicket?.ticket_type || (isAdult ? "adult" : "child"),
                 attendance_type: attendanceType,
                 pickup_time: pickupTime,
               };
@@ -3914,7 +3529,9 @@
               // Only add to update if ticket actually changed
               const ticketChanged =
                 !originalTicket ||
-                originalTicket.food_option !== foodOption ||
+                normalizeFoodOptions(originalTicket.food_option) !==
+                  normalizeFoodOptions(foodOption) ||
+                originalTicket.ticket_type !== currentTicket.ticket_type ||
                 originalTicket.attendance_type !== attendanceType ||
                 originalTicket.pickup_time !== pickupTime;
 
@@ -4115,6 +3732,99 @@
             return;
           }
 
+          const customerProfile = {
+            first_name: firstName,
+            last_name: lastName,
+            email: email.trim().toLowerCase(),
+            phone_number: phoneNumber,
+          };
+          let customerId = originalOrder.customer_id || null;
+
+          if (!customerId && originalOrder.email) {
+            const { data: emailCustomers, error: customerLookupError } =
+              await supabaseClient
+                .from("customers")
+                .select("id, first_name, last_name")
+                .eq("email", originalOrder.email.trim().toLowerCase())
+                .limit(1000);
+
+            if (customerLookupError) {
+              showToastWithBlur(
+                "Order was saved, but the customer profile could not be found.",
+                { type: "error", icon: "fas fa-exclamation-triangle" }
+              );
+              console.error(customerLookupError);
+              hideLoadingScreen();
+              return;
+            }
+
+            const normalizeName = (value) =>
+              String(value || "")
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, " ");
+            const existingCustomer = (emailCustomers || []).find(
+              (customer) =>
+                normalizeName(customer.first_name) ===
+                  normalizeName(originalOrder.first_name) &&
+                normalizeName(customer.last_name) ===
+                  normalizeName(originalOrder.last_name)
+            );
+            customerId = existingCustomer?.id || null;
+          }
+
+          if (customerId) {
+            const { error: customerUpdateError } = await supabaseClient
+              .from("customers")
+              .update(customerProfile)
+              .eq("id", customerId);
+
+            if (customerUpdateError) {
+              showToastWithBlur(
+                "Order was saved, but the customer profile could not be updated.",
+                { type: "error", icon: "fas fa-exclamation-triangle" }
+              );
+              console.error(customerUpdateError);
+              hideLoadingScreen();
+              return;
+            }
+          } else {
+            const { data: newCustomer, error: customerInsertError } =
+              await supabaseClient
+                .from("customers")
+                .insert(customerProfile)
+                .select("id")
+                .maybeSingle();
+
+            if (customerInsertError || !newCustomer) {
+              showToastWithBlur(
+                "Order was saved, but the customer profile could not be created.",
+                { type: "error", icon: "fas fa-exclamation-triangle" }
+              );
+              console.error(customerInsertError);
+              hideLoadingScreen();
+              return;
+            }
+            customerId = newCustomer.id;
+          }
+
+          if (customerId !== originalOrder.customer_id) {
+            const { error: customerLinkError } = await supabaseClient
+              .from("orders")
+              .update({ customer_id: customerId })
+              .eq("id", ticketId);
+
+            if (customerLinkError) {
+              showToastWithBlur(
+                "Customer details were saved, but the profile could not be linked to the order.",
+                { type: "error", icon: "fas fa-exclamation-triangle" }
+              );
+              console.error(customerLinkError);
+              hideLoadingScreen();
+              return;
+            }
+          }
+
           const { data: event } = await supabaseClient
             .from("events")
             .select("name")
@@ -4137,281 +3847,155 @@
             return;
           }
 
-          // Send email if tickets are updated OR donation amount changed
+          const totalAmountChanged =
+            Number(new_total) !== Number(originalOrder?.total_amount || 0);
+          const shouldSendEmail =
+            totalAmountChanged ||
+            ticketsToInsert.length > 0 ||
+            ticketsToUpdate.length > 0 ||
+            ticketsToDelete.length > 0;
+
           console.log("DEBUG - Email condition check:", {
+            totalAmountChanged,
             ticketsToUpdate: ticketsToUpdate.length,
             ticketsToInsert: ticketsToInsert.length,
             ticketsToDelete: ticketsToDelete.length,
-            donationChanged,
-            shouldSendEmail:
-              ticketsToUpdate.length > 0 ||
-              ticketsToInsert.length > 0 ||
-              ticketsToDelete.length > 0 ||
-              donationChanged,
+            shouldSendEmail,
           });
 
-          if (
-            ticketsToUpdate.length > 0 ||
-            ticketsToInsert.length > 0 ||
-            ticketsToDelete.length > 0 ||
-            donationChanged
-          ) {
-            // After all ticket operations are complete, fetch ALL current tickets and order by form position
+          if (shouldSendEmail) {
+            // Read the saved ticket rows directly for the confirmation email.
             const { data: allCurrentTickets } = await supabaseClient
               .from("tickets")
               .select("*")
               .eq("ticket_order_id", ticketId);
 
-            // Build ticket data in the order they appear in the form (not database order)
-            const formOrderedTickets = [];
+            if (!allCurrentTickets) {
+              throw new Error("Could not load saved tickets for the email.");
+            }
+            const ticketDetailsHTML = buildTicketHTML(allCurrentTickets);
 
-            // Create a map for quick lookup
-            const ticketMap = {};
-            allCurrentTickets.forEach((ticket) => {
-              ticketMap[ticket.id] = ticket;
-            });
-
-            // Process adult tickets in form order
-            document
-              .querySelectorAll("#editAdultFoodSelections > div")
-              .forEach((container) => {
-                const ticketIdAttr = container.dataset.ticketId;
-                if (ticketIdAttr) {
-                  // For new tickets, they should now have real IDs after insert
-                  // For existing tickets, use the existing ID
-                  let actualTicketId = ticketIdAttr;
-
-                  // If this was a temp ticket, find the corresponding inserted ticket by matching form data
-                  if (ticketIdAttr.startsWith("temp_")) {
-                    // Find the ticket that matches this form position
-                    const attendanceRadio = container.querySelector(
-                      `input[name="attendance_${ticketIdAttr}"]:checked`
-                    );
-                    const attendanceType = attendanceRadio
-                      ? attendanceRadio.value
-                      : "attending";
-                    const foodSelect = container.querySelector(
-                      "select[data-ticket-id]"
-                    );
-                    const foodOption =
-                      attendanceType === "takeaway" && foodSelect
-                        ? foodSelect.value
-                        : null;
-                    const pickupRadio = container.querySelector(
-                      `input[name="pickup_${ticketIdAttr}"]:checked`
-                    );
-                    const pickupTime =
-                      attendanceType === "takeaway" && pickupRadio
-                        ? pickupRadio.value
-                        : null;
-
-                    // Find matching ticket in database
-                    const matchingTicket = allCurrentTickets.find(
-                      (ticket) =>
-                        ticket.ticket_type === "adult" &&
-                        ticket.attendance_type === attendanceType &&
-                        ticket.food_option === foodOption &&
-                        ticket.pickup_time === pickupTime &&
-                        !formOrderedTickets.includes(ticket) // Not already added
-                    );
-
-                    if (matchingTicket) {
-                      formOrderedTickets.push(matchingTicket);
-                    }
-                  } else {
-                    // Existing ticket
-                    const ticket = ticketMap[ticketIdAttr];
-                    if (ticket) {
-                      formOrderedTickets.push(ticket);
-                    }
-                  }
-                }
-              });
-
-            // Process child tickets in form order
-            document
-              .querySelectorAll("#editChildFoodSelections > div")
-              .forEach((container) => {
-                const ticketIdAttr = container.dataset.ticketId;
-                if (ticketIdAttr) {
-                  let actualTicketId = ticketIdAttr;
-
-                  // If this was a temp ticket, find the corresponding inserted ticket
-                  if (ticketIdAttr.startsWith("temp_")) {
-                    const attendanceRadio = container.querySelector(
-                      `input[name="attendance_${ticketIdAttr}"]:checked`
-                    );
-                    const attendanceType = attendanceRadio
-                      ? attendanceRadio.value
-                      : "attending";
-                    const foodSelect = container.querySelector(
-                      "select[data-ticket-id]"
-                    );
-                    const foodOption =
-                      attendanceType === "takeaway" && foodSelect
-                        ? foodSelect.value
-                        : null;
-                    const pickupRadio = container.querySelector(
-                      `input[name="pickup_${ticketIdAttr}"]:checked`
-                    );
-                    const pickupTime =
-                      attendanceType === "takeaway" && pickupRadio
-                        ? pickupRadio.value
-                        : null;
-
-                    // Find matching ticket in database
-                    const matchingTicket = allCurrentTickets.find(
-                      (ticket) =>
-                        ticket.ticket_type === "child" &&
-                        ticket.attendance_type === attendanceType &&
-                        ticket.food_option === foodOption &&
-                        ticket.pickup_time === pickupTime &&
-                        !formOrderedTickets.includes(ticket) // Not already added
-                    );
-
-                    if (matchingTicket) {
-                      formOrderedTickets.push(matchingTicket);
-                    }
-                  } else {
-                    // Existing ticket
-                    const ticket = ticketMap[ticketIdAttr];
-                    if (ticket) {
-                      formOrderedTickets.push(ticket);
-                    }
-                  }
-                }
-              });
-
-            // Build ticket details HTML from form-ordered tickets
-            const ticketDetailsHTML = buildTicketHTML(formOrderedTickets);
-
-            // Send email using emailjs
-            emailjs
-              .send("service_4huc4z9", "template_3ezl67k", {
-                subject_line: `Your ${event.name} Order Has Been Updated`,
-                name: `${ticket.first_name} ${ticket.last_name}`,
-                email: ticket.email,
-                email_message: `<p style="font-size: 16px; color: #555;">Your ticket order for <strong>${event.name}</strong> has been <span style="color: #2c7be5;  "><strong>updated</strong></span>.</p>
-                <p style="font-size: 15px; color: #666;">Here are your revised order details:</p>`,
-                email_end: `<p style="font-size: 14px; color: #555;">
-                If you've already made a payment, any outstanding balance will be updated accordingly.
-              </p>
-
-              <p style="font-size: 14px; color: #555;">
-                We look forward to seeing you at the event!
-              </p>`,
-                adult_tickets: adult,
-                child_tickets: child,
-                adult_donations: adultDonations,
-                child_donations: childDonations,
-                total_amount: formatCurrency(new_total),
-                order_number: orderNumber,
-                payment_method:
-                  payment_method === "cash" ? "Cash/Cheque" : "Bank Transfer",
-                outstanding_balance: formatCurrency(
-                  Math.max(0, new_total - amountPaid)
-                ),
-                ticket_details: ticketDetailsHTML,
-                payment_instructions:
-                  payment_method === "cash"
-                    ? `Cash should be paid at the Stella Maris Church office (a receipt will be provided) and Cheques should be made payable to <strong>STELLA MARIS CHURCH</strong>.`
-                    : `Bank transfer to the Stella Maris CIBC account. Please use the following details:<br>
-                <ul>
-                  <li><strong>Bank Name:</strong> CIBC</li>
-                  <li><strong>Account Name:</strong> Stella Maris Church</li>
-                  <li><strong>Account Number:</strong> 1002355932 (Savings)</li>
-                  <li><strong>Branch:</strong> Manor Park</li>
-                  <li><strong>Reference:</strong> Your full name or order number</li>
-                </ul>`,
-              })
-              .then(() => {
-                bootstrap.Modal.getInstance(
-                  document.getElementById("editModal")
-                ).hide();
-                hideLoadingScreen();
-                // Show success toast
-                const toastId = `orderUpdatedToast_${Date.now()}`;
-                const toastHtml = `
-          <div id="${toastId}_blur" class="toast-blur-overlay"></div>
-          <div id="${toastId}" class="toast align-items-center border position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 400px; background-color: white; color: #212529;">
-            <div class="d-flex">
-              <div class="toast-body fs-5 py-3">
-                ✅ Order updated successfully!🎉 Confirmation email sent to customer.
-              </div>
-              <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-          </div>
-        `;
-                document.body.insertAdjacentHTML("beforeend", toastHtml);
-                const toastEl = document.getElementById(toastId);
-                const bsToast = new bootstrap.Toast(toastEl, {
-                  delay: 4000,
-                  autohide: true,
-                });
-                bsToast.show();
-
-                // Reload after toast shows
-                location.reload();
-              })
-              .catch((err) => {
-                console.error("DEBUG: Email send error:", err);
-                hideLoadingScreen();
-                bootstrap.Modal.getInstance(
-                  document.getElementById("editModal")
-                ).hide();
-
-                // Show warning toast for email failure
-                const toastId = `emailFailedToast_${Date.now()}`;
-                const toastHtml = `
-          <div id="${toastId}" class="toast align-items-center text-bg-warning border-0 position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 400px;">
-            <div class="d-flex">
-              <div class="toast-body fs-5 py-3 text-dark">
-                ⚠️ Order updated but failed to send email notification.
-              </div>
-              <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-          </div>
-        `;
-                document.body.insertAdjacentHTML("beforeend", toastHtml);
-                const toastEl = document.getElementById(toastId);
-                const bsToast = new bootstrap.Toast(toastEl, {
-                  delay: 4000,
-                  autohide: true,
-                });
-                bsToast.show();
-
-                // Reload after toast shows
-                setTimeout(() => {
-                  location.reload();
-                }, 3000);
-              });
-          } else {
-            // Close modal and hide loading screen even when no email is sent
-            bootstrap.Modal.getInstance(
-              document.getElementById("editModal")
-            ).hide();
             hideLoadingScreen();
+            await closeEditOrderModal();
+            const sendEmail = await askToEmailUpdatedOrder();
 
-            // Show simple success toast for customer information changes
-            const toastId = `customerInfoUpdatedToast_${Date.now()}`;
-            const toastHtml = `
-        <div id="${toastId}" class="toast align-items-center border position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 400px; background-color: white; color: #212529;">
-          <div class="d-flex">
-            <div class="toast-body fs-5 py-3">
-              ✅ Customer information updated successfully.
-            </div>
-            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-          </div>
-        </div>
-      `;
-            document.body.insertAdjacentHTML("beforeend", toastHtml);
-            const toastEl = document.getElementById(toastId);
-            const bsToast = new bootstrap.Toast(toastEl, {
-              delay: 3000,
-              autohide: true,
+            if (sendEmail) {
+              showLoadingScreen();
+              emailjs
+                .send("service_4huc4z9", "template_3ezl67k", {
+                  subject_line: `Your ${event.name} Order Has Been Updated`,
+                  name: `${ticket.first_name} ${ticket.last_name}`,
+                  email: ticket.email,
+                  email_message: `<p style="font-size: 16px; color: #555;">Your ticket order for <strong>${event.name}</strong> has been <span style="color: #2c7be5;  "><strong>updated</strong></span>.</p>
+                  <p style="font-size: 15px; color: #666;">Here are your revised order details:</p>`,
+                  email_end: `<p style="font-size: 14px; color: #555;">
+                  If you've already made a payment, any outstanding balance will be updated accordingly.
+                </p>
+
+                <p style="font-size: 14px; color: #555;">
+                  We look forward to seeing you at the event!
+                </p>`,
+                  adult_tickets: adult,
+                  child_tickets: child,
+                  adult_donations: adultDonations,
+                  child_donations: childDonations,
+                  total_amount: formatCurrency(new_total),
+                  order_number: ticket.order_number,
+                  payment_method:
+                    payment_method === "cash" ? "Cash/Cheque" : "Bank Transfer",
+                  outstanding_balance: formatCurrency(
+                    Math.max(0, new_total - amountPaid)
+                  ),
+                  ticket_details: ticketDetailsHTML,
+                  payment_instructions:
+                    payment_method === "cash"
+                      ? `Cash should be paid at the Stella Maris Church office (a receipt will be provided) and Cheques should be made payable to <strong>STELLA MARIS CHURCH</strong>.`
+                      : `Bank transfer to the Stella Maris CIBC account. Please use the following details:<br>
+                  <ul>
+                    <li><strong>Bank Name:</strong> CIBC</li>
+                    <li><strong>Account Name:</strong> Stella Maris Church</li>
+                    <li><strong>Account Number:</strong> 1002355932 (Savings)</li>
+                    <li><strong>Branch:</strong> Manor Park</li>
+                    <li><strong>Reference:</strong> Your full name or order number</li>
+                  </ul>`,
+                })
+                .then(() => {
+                  bootstrap.Modal.getInstance(
+                    document.getElementById("editModal")
+                  ).hide();
+                  hideLoadingScreen();
+                  // Show success toast
+                  const toastId = `orderUpdatedToast_${Date.now()}`;
+                  const toastHtml = `
+                    <div id="${toastId}_blur" class="toast-blur-overlay"></div>
+                    <div id="${toastId}" class="toast align-items-center border position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 400px; background-color: white; color: #212529;">
+                      <div class="d-flex">
+                        <div class="toast-body fs-5 py-3">
+                          ✅ Order updated successfully!🎉 Confirmation email sent to customer.
+                        </div>
+                        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                      </div>
+                    </div>
+                  `;
+                  document.body.insertAdjacentHTML("beforeend", toastHtml);
+                  const toastEl = document.getElementById(toastId);
+                  const bsToast = new bootstrap.Toast(toastEl, {
+                    delay: 4000,
+                    autohide: true,
+                  });
+                  bsToast.show();
+
+                  // Reload after toast shows
+                  location.reload();
+                })
+                .catch((err) => {
+                  console.error("DEBUG: Email send error:", err);
+                  hideLoadingScreen();
+                  bootstrap.Modal.getInstance(
+                    document.getElementById("editModal")
+                  ).hide();
+
+                  // Show warning toast for email failure
+                  const toastId = `emailFailedToast_${Date.now()}`;
+                  const toastHtml = `
+                    <div id="${toastId}" class="toast align-items-center text-bg-warning border-0 position-fixed" role="alert" aria-live="assertive" aria-atomic="true" style="z-index:9999; top: 50%; left: 50%; transform: translate(-50%, -50%); min-width: 400px;">
+                      <div class="d-flex">
+                        <div class="toast-body fs-5 py-3 text-dark">
+                          ⚠️ Order updated but failed to send email notification.
+                        </div>
+                        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                      </div>
+                    </div>
+                  `;
+                  document.body.insertAdjacentHTML("beforeend", toastHtml);
+                  const toastEl = document.getElementById(toastId);
+                  const bsToast = new bootstrap.Toast(toastEl, {
+                    delay: 4000,
+                    autohide: true,
+                  });
+                  bsToast.show();
+
+                  // Reload after toast shows
+                  setTimeout(() => {
+                    location.reload();
+                  }, 3000);
+                });
+            } else {
+              await loadOrders(eventId);
+              showToastWithBlur("Order saved successfully. No email was sent.", {
+                type: "success",
+                icon: "bi bi-check-circle",
+              });
+            }
+          } else {
+            hideLoadingScreen();
+            await closeEditOrderModal();
+            await loadOrders(eventId);
+            showToastWithBlur("Updated successfully.", {
+              type: "success",
+              icon: "bi bi-check-circle",
             });
-            bsToast.show();
-          } // End of if (ticketsToUpdate.length > 0 || ticketsToInsert.length > 0 || donationChanged || paymentMethodChanged)
+          }
         }); // End of editForm event listener
 
       function populateAdminExistingTickets(tickets) {
@@ -4455,31 +4039,6 @@
         document.getElementById("editAdult").value = adultCount;
         document.getElementById("editChild").value = childCount;
       }
-
-      document.getElementById("customerSearch").addEventListener("input", (e) => {
-        const searchTerm = e.target.value.toLowerCase().trim();
-
-        const filtered = allCustomers.filter((customer) => {
-          // 1. Construct and test full name
-          const nameMatch = `${customer.first_name || ""} ${customer.last_name || ""}`
-            .toLowerCase()
-            .includes(searchTerm);
-
-          // 2. Test email address
-          const emailMatch = (customer.email || "")
-            .toLowerCase()
-            .includes(searchTerm);
-
-          // 3. Test phone number
-          const phoneMatch = (customer.phone_number || customer.phone || "")
-            .toLowerCase()
-            .includes(searchTerm);
-
-          return nameMatch || emailMatch || phoneMatch;
-        });
-
-        renderCustomers(filtered);
-      });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   </body>

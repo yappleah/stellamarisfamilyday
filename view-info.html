@@ -687,19 +687,20 @@
           e.target.value = formatted.slice(0, 10);
         });
 
-        const savedEmail = sessionStorage.getItem("customerEmail");
+        const savedCustomerId = sessionStorage.getItem("customerId");
         const form = document.getElementById("lookupForm");
         const resultDiv = document.getElementById("result");
 
-        if (savedEmail && form && resultDiv) {
+        if (savedCustomerId && form && resultDiv) {
           const { data: customer, error } = await supabaseClient
             .from("customers")
             .select("*")
-            .eq("email", savedEmail)
+            .eq("id", savedCustomerId)
             .maybeSingle();
 
           if (!customer || error) {
             sessionStorage.removeItem("customerEmail");
+            sessionStorage.removeItem("customerId");
             form.style.display = "block";
             resultDiv.style.display = "none";
             return;
@@ -710,11 +711,14 @@
           resultDiv.style.display = "block";
 
           await fetchAndRenderTickets();
+        } else {
+          sessionStorage.removeItem("customerEmail");
+          sessionStorage.removeItem("customerId");
         }
       });
     </script>
     <script>
-      emailjs.init("GMch0DES4yiVfdanm");
+      emailjs.init(CONFIG.EMAILJS_KEY);
       const adultPrice = CONFIG.PRICING.adult_ticket;
       const childPrice = CONFIG.PRICING.child_ticket;
       const supabaseClient = supabase.createClient(
@@ -874,14 +878,14 @@
         const email = emailInput.value.trim().toLowerCase();
         if (!email) return;
 
-        const { data: customer } = await supabaseClient
+        const { data: customers } = await supabaseClient
           .from("customers")
           .select("memorable_hint")
           .eq("email", email)
-          .maybeSingle();
+          .limit(2);
 
-        if (customer?.memorable_hint) {
-          hintHover.setAttribute("data-bs-title", customer.memorable_hint);
+        if (customers?.length === 1 && customers[0].memorable_hint) {
+          hintHover.setAttribute("data-bs-title", customers[0].memorable_hint);
           bootstrap.Tooltip.getInstance(hintHover)?.dispose();
           new bootstrap.Tooltip(hintHover);
         }
@@ -894,14 +898,14 @@
           .getElementById("memorableDate")
           .value.trim();
 
-        const { data: customer, error } = await supabaseClient
+        const { data: customers, error } = await supabaseClient
           .from("customers")
           .select("*")
           .eq("email", email)
           .eq("memorable_date", memorableDate)
-          .maybeSingle();
+          .limit(2);
 
-        if (error || !customer) {
+        if (error || !customers?.length) {
           showToastWithBlur(
             "No match found. Please check your information and try again.",
             { type: 'error', icon: 'fas fa-exclamation-circle' }
@@ -909,8 +913,18 @@
           return;
         }
 
+        if (customers.length > 1) {
+          showToastWithBlur(
+            "More than one customer matches this email and memorable date. Please contact the event organizers for help.",
+            { type: 'error', icon: 'fas fa-exclamation-circle' }
+          );
+          return;
+        }
+
+        const customer = customers[0];
         form.style.display = "none";
         sessionStorage.setItem("customerEmail", email);
+        sessionStorage.setItem("customerId", String(customer.id));
         document.getElementById("userSignOut").style.display = "block";
 
         await fetchAndRenderTickets();
@@ -1364,13 +1378,13 @@
 
       async function fetchAndRenderTickets() {
         showLoadingScreen();
-        const savedEmail = sessionStorage.getItem("customerEmail");
+        const savedCustomerId = sessionStorage.getItem("customerId");
 
-        if (!savedEmail) return;
+        if (!savedCustomerId) return;
         const { data: customer, error: customerError } = await supabaseClient
           .from("customers")
           .select("*")
-          .eq("email", savedEmail)
+          .eq("id", savedCustomerId)
           .maybeSingle();
 
         if (!customer || customerError) return;

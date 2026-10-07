@@ -385,6 +385,7 @@
               <input
                 class="form-control"
                 placeholder="First Name"
+                id="firstName"
                 name="firstName"
                 required
               />
@@ -393,6 +394,7 @@
               <input
                 class="form-control"
                 placeholder="Last Name"
+                id="lastName"
                 name="lastName"
                 required
               />
@@ -519,8 +521,7 @@
               id="saveInfoCheckbox"
             />
             <label class="form-check-label" for="saveInfoCheckbox"
-              >Save my info for next time (you will be able to change your
-              order)</label
+              >Add a memorable date to help identify your profile (optional)</label
             >
           </div>
           <div id="saveInfoSection" style="display: none">
@@ -627,7 +628,7 @@
           e.target.value = formatted.slice(0, 10);
         });
       });
-      
+
       document.addEventListener("DOMContentLoaded", () => {
         const params = new URLSearchParams(window.location.search);
 
@@ -645,8 +646,8 @@
         if (email && document.getElementById("email")) {
           document.getElementById("email").value = email;
         }
-        if (phone && document.getElementById("phone")) {
-          document.getElementById("phone").value = phone;
+        if (phone && document.getElementById("phoneInput")) {
+          document.getElementById("phoneInput").value = phone;
         }
       });
     </script>
@@ -669,6 +670,11 @@
       const specialDateInput = document.getElementById("specialDate");
       const specialDateHintInput = document.getElementById("specialDateHint");
       const saveCheckboxContainer = saveCheckbox.closest(".form-check");
+      const normalizeCustomerName = (value) =>
+        String(value || "")
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, " ");
       let adultPrice = 0;
       let childPrice = 0;
       const adultInput = document.getElementById("adultTickets");
@@ -735,7 +741,7 @@
       window.addEventListener("DOMContentLoaded", async () => {
         try {
           // Initialize EmailJS
-          emailjs.init("GMch0DES4yiVfdanm");
+          emailjs.init(CONFIG.EMAILJS_KEY);
 
           // Wait for all initialization to complete
           await initializePage();
@@ -1076,18 +1082,27 @@
         const email = emailInput.value.trim().toLowerCase();
         if (!email) return;
 
-        const { data: existingCustomer, error } = await supabaseClient
+        const firstName = normalizeCustomerName(firstNameInput.value);
+        const lastName = normalizeCustomerName(lastNameInput.value);
+        let matchingCustomer = null;
+
+        if (firstName && lastName) {
+          const { data: emailCustomers, error } = await supabaseClient
           .from("customers")
-          .select("*")
+          .select("id, first_name, last_name, phone_number")
           .eq("email", email)
-          .maybeSingle();
+          .limit(1000);
 
-        if (error) return;
+          if (error) return;
+          matchingCustomer = (emailCustomers || []).find(
+            (customer) =>
+              normalizeCustomerName(customer.first_name) === firstName &&
+              normalizeCustomerName(customer.last_name) === lastName
+          );
+        }
 
-        if (existingCustomer) {
-          firstNameInput.value = existingCustomer.first_name;
-          lastNameInput.value = existingCustomer.last_name;
-          phoneInput.value = formatPhoneNumber(existingCustomer.phone_number);
+        if (matchingCustomer) {
+          phoneInput.value = formatPhoneNumber(matchingCustomer.phone_number);
           // Hide save info section and checkbox for existing users
           saveCheckboxContainer.style.display = "none";
           saveSection.style.display = "none";
@@ -1139,19 +1154,44 @@
           hideLoadingScreen();
           return;
         }
-        const { data: existingCustomer, error: customerError } =
-          await supabaseClient
+        const [emailLookup, phoneLookup] = await Promise.all([
+          supabaseClient
             .from("customers")
-            .select("id")
+            .select("id, first_name, last_name")
             .eq("email", email)
-            .maybeSingle();
+            .limit(1000),
+          supabaseClient
+            .from("customers")
+            .select("id, first_name, last_name")
+            .eq("phone_number", phone)
+            .limit(1000),
+        ]);
+        const { data: emailMatches, error: emailLookupError } = emailLookup;
+        const { data: phoneMatches, error: phoneLookupError } = phoneLookup;
+
+        if (emailLookupError || phoneLookupError) {
+          console.error("Customer lookup failed:", emailLookupError || phoneLookupError);
+          showToastWithBlur("Could not verify existing customer details. Please try again.", {
+            type: "error",
+            icon: "fas fa-exclamation-triangle",
+          });
+          hideLoadingScreen();
+          return;
+        }
+
+        const submittedFirstName = normalizeCustomerName(form.firstName.value);
+        const submittedLastName = normalizeCustomerName(form.lastName.value);
+        const existingCustomer = [
+          ...(emailMatches || []),
+          ...(phoneMatches || []),
+        ].find(
+          (customer) =>
+            normalizeCustomerName(customer.first_name) === submittedFirstName &&
+            normalizeCustomerName(customer.last_name) === submittedLastName
+        );
         if (existingCustomer) customerId = existingCustomer.id;
-        if (
-          saveCheckbox.checked &&
-          !customerId &&
-          specialDateInput.value &&
-          specialDateHintInput.value
-        ) {
+
+        if (!existingCustomer) {
           const { data: newCustomer } = await supabaseClient
             .from("customers")
             .insert([
@@ -1160,8 +1200,8 @@
                 first_name: form.firstName.value,
                 last_name: form.lastName.value,
                 phone_number: phone,
-                memorable_date: specialDateInput.value,
-                memorable_hint: specialDateHintInput.value,
+                memorable_date: specialDateInput.value || null,
+                memorable_hint: specialDateHintInput.value || null,
               },
             ])
             .select("id")

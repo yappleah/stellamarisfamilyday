@@ -1,7 +1,7 @@
 const CONFIG = {
   SUPABASE_URL: 'https://eppezsyplvtwldhuchsy.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwcGV6c3lwbHZ0d2xkaHVjaHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyMzMxMjQsImV4cCI6MjA2ODgwOTEyNH0.5JP6V_n5HNLjeehG7f0ioL8GMy9ZnUynL6x57RnnZGg',
-
+  EMAILJS_KEY: 'GMch0DES4yiVfdanm',
   // Public variables
   PRICING: {
     adult_ticket: 6000,
