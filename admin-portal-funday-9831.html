@@ -146,6 +146,7 @@
   </div>
   
   <script src="config.js"></script>
+  <script src="functions.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -182,8 +183,14 @@
         document.getElementById("adminLoginForm").style.display = "none";
         document.getElementById("adminPanel").style.display = "block";
         document.getElementById("adminSignOut").style.display = "block";
-
-        loadEventsDashboard();
+        showLoadingScreen();
+        try {
+          await loadEventsDashboard();
+        } catch (error) {
+          console.error("Failed to load events dashboard:", error);
+        } finally {
+          hideLoadingScreen();
+        }
         } else {
         alert("Invalid login credentials.");
         }
@@ -240,7 +247,6 @@
         const confirmedChildren = confirmed.reduce((s, r) => s + (r.child_tickets || 0), 0);
         const pendingAdults = pending.reduce((s, r) => s + (r.adult_tickets || 0), 0);
         const pendingChildren = pending.reduce((s, r) => s + (r.child_tickets || 0), 0);
-
         return `
           <div class="dashboard-card" onclick="location.href='event-details.html?eventId=${encodeURIComponent(event.id)}'">
             <h5>${event.name}</h5>
@@ -259,7 +265,6 @@
           </div>
         `;
       }).join("");
-
       document.getElementById("eventList").innerHTML = dashboard;
     }
   </script>

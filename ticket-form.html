@@ -627,6 +627,28 @@
           e.target.value = formatted.slice(0, 10);
         });
       });
+      
+      document.addEventListener("DOMContentLoaded", () => {
+        const params = new URLSearchParams(window.location.search);
+
+        const firstName = params.get("firstName");
+        const lastName = params.get("lastName");
+        const email = params.get("email");
+        const phone = params.get("phone");
+
+        if (firstName && document.getElementById("firstName")) {
+          document.getElementById("firstName").value = firstName;
+        }
+        if (lastName && document.getElementById("lastName")) {
+          document.getElementById("lastName").value = lastName;
+        }
+        if (email && document.getElementById("email")) {
+          document.getElementById("email").value = email;
+        }
+        if (phone && document.getElementById("phone")) {
+          document.getElementById("phone").value = phone;
+        }
+      });
     </script>
     <script type="module">
       import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
