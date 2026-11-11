@@ -512,6 +512,12 @@
                 >
               </div>
             </div>
+            <p id="bankTransferNote" class="form-text mt-2" hidden>
+              Please send a copy of your bank transfer information to Frederick
+              Williams at
+              <a href="mailto:fredandwill1@gmail.com">fredandwill1@gmail.com</a>.
+              We will contact you regarding the collection of your tickets.
+            </p>
           </div>
 
           <div class="form-check mb-2">
@@ -584,6 +590,12 @@
         const specialDateInput = document.getElementById("specialDate");
         const specialDateHintInput = document.getElementById("specialDateHint");
         const saveInfoCheckbox = document.getElementById("saveInfoCheckbox");
+        const bankTransferNote = document.getElementById("bankTransferNote");
+        document.querySelectorAll('input[name="paymentMethod"]').forEach((input) => {
+          input.addEventListener("change", () => {
+            bankTransferNote.hidden = input.value !== "bank transfer";
+          });
+        });
         document.getElementById('venue').textContent = CONFIG.EVENT.venue;
 
         // ✅ Function to show/hide the date input safely
@@ -1394,7 +1406,10 @@
               payment_instructions:
                 CONFIG.PAYMENT.instructions[
                   form.paymentMethod.value === "cash" ? "cash" : "bank_transfer"
-                ],
+                ] +
+                (form.paymentMethod.value === "cash"
+                  ? ""
+                  : buildBankTransferNoteHTML()),
               outstanding_balance: formatCurrency(totalAmount),
               ticket_details: ticketDetailsHTML,
             })
@@ -1431,6 +1446,10 @@
         }
       });
 
+      function buildBankTransferNoteHTML() {
+        return `<p>Please send a copy of your bank transfer information to Frederick Williams at <a href="mailto:fredandwill1@gmail.com">fredandwill1@gmail.com</a>. We will contact you regarding the collection of your tickets.</p>`;
+      }
+
       function buildConfirmationHTML(formInfo) {
         let html = `<h2>🎉Order Confirmed!🎉</h2><p>Thank you <strong>${formInfo.first_name} ${formInfo.last_name}</strong> for your order! A confirmation email has been sent to <strong>${formInfo.email}</strong>.</p>
           <p><strong>Order Number:</strong> ${formInfo.order_number}</p>`;
@@ -1442,6 +1461,9 @@
         html += `<p><strong>Payment Method:</strong>${
           formInfo.payment_method === "cash" ? " Cash/Cheque" : " Bank Transfer"
         }</p>`;
+        if (formInfo.payment_method !== "cash") {
+          html += buildBankTransferNoteHTML();
+        }
         html +=
           "<p>Please check your email for confirmation and payment instructions.</p>";
         return html;
