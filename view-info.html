@@ -1035,6 +1035,22 @@
           const ticketsToInsert = [];
           const containerIds = [];
 
+          for (const container of ticketContainers) {
+            const ticketId = container.dataset.ticketId || container.dataset.tempId;
+            const attendance = container.querySelector(`input[name="attendance_${ticketId}"]:checked`);
+            if (attendance && attendance.value === "takeaway") {
+              const foodError = validateTicketFoodSelection(container);
+              if (foodError) {
+                showToastWithBlur(foodError, {
+                  type: "warning",
+                  icon: "fas fa-exclamation-triangle",
+                });
+                hideLoadingScreen();
+                return;
+              }
+            }
+          }
+
           ticketContainers.forEach(container => {
             const ticketId = container.dataset.ticketId || container.dataset.tempId;
             containerIds.push(ticketId);

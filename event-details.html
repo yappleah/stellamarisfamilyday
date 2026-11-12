@@ -353,65 +353,6 @@
           typeLabel = "Child Donated";
         }
 
-        // Handle food options - parse JSON array or use single value
-        let foodLabels = "";
-        if (ticket.food_option) {
-          try {
-            const foodOptions = JSON.parse(ticket.food_option);
-            if (Array.isArray(foodOptions)) {
-              foodLabels = foodOptions
-                .map((option) => {
-                  // Use getFoodLabel if available, else fallback to option
-                  if (typeof getFoodLabel === "function") {
-                    return getFoodLabel(option);
-                  } else {
-                    // Map known station keys to labels manually if needed
-                    switch (option) {
-                      case "station1":
-                        return "Curry goat, rice & roti";
-                      case "station2":
-                        return "Jerk pork & chicken with festival";
-                      case "station3":
-                        return "Fish & vegetable pasta";
-                      case "station4":
-                        return "Chinese - vegetable lo mein, sweet & sour chicken";
-                      default:
-                        return option;
-                    }
-                  }
-                })
-                .join(", ");
-            } else if (typeof foodOptions === "string") {
-              foodLabels =
-                typeof getFoodLabel === "function"
-                  ? getFoodLabel(foodOptions)
-                  : foodOptions;
-            }
-          } catch (e) {
-            // Fallback for old format - single food option as string
-            if (typeof getFoodLabel === "function") {
-              foodLabels = getFoodLabel(ticket.food_option);
-            } else {
-              switch (ticket.food_option) {
-                case "station1":
-                  foodLabels = "Curry goat, rice & roti";
-                  break;
-                case "station2":
-                  foodLabels = "Jerk pork & chicken with festival";
-                  break;
-                case "station3":
-                  foodLabels = "Fish & vegetable pasta";
-                  break;
-                case "station4":
-                  foodLabels =
-                    "Chinese - vegetable lo mein, sweet & sour chicken";
-                  break;
-                default:
-                  foodLabels = ticket.food_option;
-              }
-            }
-          }
-        }
         // Attendance type label
         let attendanceLabel = "";
         if (ticket.attendance_type === "attending") {
@@ -426,8 +367,6 @@
 
         // Show attendance type beside ticket type, not food options
         const attendanceInfo = ` (${escapeHtml(attendanceLabel)})`;
-        const foodOption = "";
-
         // Determine the value to use: existing number, suggested number, or empty
         let inputValue = "";
         let inputClass = "form-control ticket-number-input";
@@ -1670,10 +1609,16 @@
             <label class="form-label fw-bold">Food Option</label>
             <select id="ticketFoodFilter" class="form-select">
               <option value="">All Food Options</option>
-              <option value="station1">Station 1</option>
-              <option value="station2">Station 2</option>
-              <option value="station3">Station 3</option>
-              <option value="station4">Station 4</option>
+              ${FOOD_MENUS.map(
+                (menu) => `<optgroup label="${menu.label} Menu">
+                  <option value="${menu.value}">All ${menu.label} selections</option>
+                  ${menu.mains
+                    .map(
+                      (main) => `<option value="${escapeHtml(`${menu.label} - ${main}`)}">${escapeHtml(main)}</option>`
+                    )
+                    .join("")}
+                </optgroup>`
+              ).join("")}
             </select>
           </div>
         </div>
@@ -1794,27 +1739,13 @@
               !attendanceFilter ||
               (ticket.attendance_type || "attending") === attendanceFilter;
 
-            // Food option filter - check if food_option contains the selected foodFilter value (raw station key)
+            // Match a whole menu or an individual current/legacy food selection.
             let matchesFood = !foodFilter;
             if (foodFilter && ticket.food_option) {
-              let foodOptions = ticket.food_option;
-              let rawOptions = [];
-              if (Array.isArray(foodOptions)) {
-                rawOptions = foodOptions;
-              } else if (typeof foodOptions === "string") {
-                try {
-                  rawOptions = JSON.parse(foodOptions);
-                } catch {
-                  if (foodOptions.includes(",")) {
-                    rawOptions = foodOptions.split(",").map((s) => s.trim());
-                  } else {
-                    rawOptions = [foodOptions];
-                  }
-                }
-              } else {
-                rawOptions = [foodOptions];
-              }
-              matchesFood = rawOptions.some((option) => option === foodFilter);
+              const menu = FOOD_MENUS.find((option) => option.value === foodFilter);
+              matchesFood = getFoodOptionsArray(ticket.food_option).some((option) =>
+                menu ? menu.mains.some((main) => option === `${menu.label} - ${main}`) : option === foodFilter
+              );
             }
 
             // Pickup time filter (only applies to takeaway orders)
@@ -1909,24 +1840,28 @@
                 const match = key.match(/^station(\d)$/i);
                 return match ? `Station ${match[1]}` : key;
               };
-              try {
-                const foodOptions = JSON.parse(ticket.food_option);
-                if (Array.isArray(foodOptions)) {
-                  foodExportText = foodOptions.map(formatStation).join("; ");
-                } else {
-                  foodExportText = formatStation(ticket.food_option);
-                }
-              } catch (e) {
-                if (
-                  typeof ticket.food_option === "string" &&
-                  ticket.food_option.includes(",")
-                ) {
-                  foodExportText = ticket.food_option
-                    .split(",")
-                    .map((s) => formatStation(s.trim()))
-                    .join("; ");
-                } else {
-                  foodExportText = formatStation(ticket.food_option);
+              if (Array.isArray(ticket.food_option)) {
+                foodExportText = ticket.food_option.map(formatStation).join("; ");
+              } else {
+                try {
+                  const foodOptions = JSON.parse(ticket.food_option);
+                  if (Array.isArray(foodOptions)) {
+                    foodExportText = foodOptions.map(formatStation).join("; ");
+                  } else {
+                    foodExportText = formatStation(ticket.food_option);
+                  }
+                } catch (e) {
+                  if (
+                    typeof ticket.food_option === "string" &&
+                    ticket.food_option.includes(",")
+                  ) {
+                    foodExportText = ticket.food_option
+                      .split(",")
+                      .map((s) => formatStation(s.trim()))
+                      .join("; ");
+                  } else {
+                    foodExportText = formatStation(ticket.food_option);
+                  }
                 }
               }
             }
@@ -2903,10 +2838,10 @@
           }
         }
 
-        // Disable all food selection dropdowns if paid
+        // Disable food choices if paid.
         document
           .querySelectorAll(
-            "#editAdultFoodSelections select, #editChildFoodSelections select"
+            '#editAdultFoodSelections select, #editChildFoodSelections select, #editAdultFoodSelections input[type="checkbox"], #editChildFoodSelections input[type="checkbox"]'
           )
           .forEach((select) => {
             select.disabled = isPaid;
@@ -3036,10 +2971,10 @@
       }
 
       function getTicketFood(ticketId) {
-        const select = document.querySelector(
-          `select[data-ticket-id="${ticketId}"]`
+        const selected = document.querySelectorAll(
+          `input.food-station-checkbox[data-ticket-id="${ticketId}"]:checked`
         );
-        return select ? select.value : "";
+        return normalizeFoodOptions(Array.from(selected, (input) => input.value));
       }
 
       function getTicketPickup(ticketId) {
@@ -3464,6 +3399,23 @@
             "#editChildFoodSelections > div"
           );
           const allContainers = [...adultContainers, ...childContainers];
+
+          for (const container of allContainers) {
+            const attendance = container.querySelector(
+              `input[name="attendance_${container.dataset.ticketId}"]:checked`
+            );
+            if (attendance && attendance.value === "takeaway") {
+              const foodError = validateTicketFoodSelection(container);
+              if (foodError) {
+                showToastWithBlur(foodError, {
+                  type: "warning",
+                  icon: "fas fa-exclamation-triangle",
+                });
+                hideLoadingScreen();
+                return;
+              }
+            }
+          }
 
           allContainers.forEach((container) => {
             const ticketIdAttr = container.dataset.ticketId;

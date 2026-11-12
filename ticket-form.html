@@ -692,16 +692,7 @@
       const adultInput = document.getElementById("adultTickets");
       const childInput = document.getElementById("childTickets");
       let upcomingEvent = null;
-      // Local food options
-      const foodOptions = [
-        { value: "station1", label: "Curry goat, rice & roti" },
-        { value: "station2", label: "Jerk pork & chicken with festival" },
-        { value: "station3", label: "Fish & vegetable pasta" },
-        {
-          value: "station4",
-          label: "Chinese - vegetable lo mein, sweet & sour chicken",
-        },
-      ];
+      const foodOptions = FOOD_MENUS;
 
       // Local ticket state
       let adultTickets = [];
@@ -781,6 +772,7 @@
         ticketType,
         ticketId,
         attendanceType = "attending",
+        menuSelected = "",
         foodOptionsSelected = [],
         pickupTimeSelected = null
       ) {
@@ -814,7 +806,7 @@
         }>
                     <label class="form-check-label" for="attending_${ticketId}">Attending Event</label>
                   </div>
-                  <div class="form-check" style="display: none;">
+                  <div class="form-check">
                     <input class="form-check-input" type="radio" name="attendance_${ticketId}" id="takeaway_${ticketId}" value="takeaway" ${
           attendanceType === "takeaway" ? "checked" : ""
         }>
@@ -831,22 +823,40 @@
               <div class="food-option-section mb-2" id="food_${ticketId}" style="display:${
           attendanceType === "takeaway" ? "block" : "none"
         };">
-                <label class="form-label small">Food Stations <small class="text-muted">(Select all that apply)</small></label>
-                <div class="food-checkboxes">
+                <label class="form-label small">Select a menu, then choose exactly 2 meats</label>
+                <div class="food-menus">
                   ${foodOptions
                     .map(
                       (opt) => `
                     <div class="form-check">
-                        <input class="form-check-input food-station-checkbox" type="checkbox" id="food_${
-                          opt.value
-                        }_${ticketId}" value="${
-                        opt.value
-                      }" data-ticket-id="${ticketId}" ${
-                        foodOptionsSelected.includes(opt.value) ? "checked" : ""
+                      <input class="form-check-input food-menu-radio" type="radio" name="menu_${ticketId}" id="menu_${opt.label.toLowerCase()}_${ticketId}" value="${opt.value}" data-ticket-id="${ticketId}" ${
+                        menuSelected === opt.value ? "checked" : ""
                       }>
-                      <label class="form-check-label" for="food_${
-                        opt.value
-                      }_${ticketId}">${opt.label}</label>
+                      <label class="form-check-label" for="menu_${opt.label.toLowerCase()}_${ticketId}">
+                        <strong>${opt.label} Menu</strong>
+                      </label>
+                      <div class="d-block text-muted small ms-4">Served with: ${opt.sides}</div>
+                      <div class="food-menu-options ms-4" data-menu-value="${opt.value}" style="display:${
+                        menuSelected === opt.value ? "block" : "none"
+                      };">
+                        <div class="small fw-semibold mt-1">Choose exactly 2 meats:</div>
+                        ${opt.mains
+                          .map((main, index) => {
+                            const mainValue = `${opt.label} - ${main}`;
+                            const mainId = `food_${opt.label.toLowerCase()}_${ticketId}_${index}`;
+                            return `
+                              <div class="form-check">
+                                <input class="form-check-input food-station-checkbox" type="checkbox" name="food_${ticketId}" id="${mainId}" value="${mainValue}" data-ticket-id="${ticketId}" data-menu-value="${opt.value}" ${
+                                  foodOptionsSelected.includes(mainValue)
+                                    ? "checked"
+                                    : ""
+                                }>
+                                <label class="form-check-label" for="${mainId}">${main}</label>
+                              </div>
+                            `;
+                          })
+                          .join("")}
+                      </div>
                     </div>
                   `
                     )
@@ -891,6 +901,7 @@
             `.individual-ticket-card[data-ticket-id='${tid}']`
           );
           let attendanceType = "attending";
+          let menuSelected = "";
           let foodOptions = [];
           let pickupTime = null;
           if (card) {
@@ -900,6 +911,10 @@
             attendanceRadios.forEach((radio) => {
               if (radio.checked) attendanceType = radio.value;
             });
+            const selectedMenu = card.querySelector(
+              `.food-menu-radio[data-ticket-id='${tid}']:checked`
+            );
+            if (selectedMenu) menuSelected = selectedMenu.value;
             card
               .querySelectorAll(
                 `.food-station-checkbox[data-ticket-id='${tid}']:checked`
@@ -915,7 +930,12 @@
               if (radio.checked) pickupTime = radio.value;
             });
           }
-          ticketStates[tid] = { attendanceType, foodOptions, pickupTime };
+          ticketStates[tid] = {
+            attendanceType,
+            menuSelected,
+            foodOptions,
+            pickupTime,
+          };
         });
 
         const adultContainer = document.getElementById("adult-dropdowns");
@@ -927,6 +947,7 @@
               "adult",
               tid,
               state.attendanceType,
+              state.menuSelected,
               state.foodOptions,
               state.pickupTime
             );
@@ -939,6 +960,7 @@
               "child",
               tid,
               state.attendanceType,
+              state.menuSelected,
               state.foodOptions,
               state.pickupTime
             );
@@ -946,6 +968,7 @@
           .join("");
         attachRemoveListeners();
         attachAttendanceListeners();
+        attachFoodSelectionListeners();
         updateTotals();
         attachAttendanceRequiredListeners();
         updatePickupRequiredAttributes();
@@ -1025,6 +1048,48 @@
               };
             }
           });
+        });
+      }
+
+      function attachFoodSelectionListeners() {
+        [...adultTickets, ...childTickets].forEach((tid) => {
+          const card = document.querySelector(
+            `.individual-ticket-card[data-ticket-id='${tid}']`
+          );
+          if (!card) return;
+
+          card
+            .querySelectorAll(`.food-menu-radio[data-ticket-id='${tid}']`)
+            .forEach((radio) => {
+              radio.addEventListener("change", () => {
+                card
+                  .querySelectorAll(".food-station-checkbox")
+                  .forEach((checkbox) => {
+                    checkbox.checked = false;
+                  });
+                card.querySelectorAll(".food-menu-options").forEach((options) => {
+                  options.style.display =
+                    options.dataset.menuValue === radio.value ? "block" : "none";
+                });
+              });
+            });
+
+          card
+            .querySelectorAll(`.food-station-checkbox[data-ticket-id='${tid}']`)
+            .forEach((checkbox) => {
+              checkbox.addEventListener("change", () => {
+                const checkedMains = card.querySelectorAll(
+                  `.food-station-checkbox[data-menu-value="${checkbox.dataset.menuValue}"]:checked`
+                );
+                if (checkedMains.length > 2) {
+                  checkbox.checked = false;
+                  showToastWithBlur("You can choose only 2 mains from the selected menu.", {
+                    type: "warning",
+                    icon: "fas fa-exclamation-triangle",
+                  });
+                }
+              });
+            });
         });
       }
 
@@ -1140,21 +1205,29 @@
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         showLoadingScreen();
-        // Validate at least one food option selected for each takeaway ticket
-        let validFood = true;
+        // Validate a menu and exactly two mains for each takeaway ticket.
+        let foodError = "";
         const allTicketCards = document.querySelectorAll('.individual-ticket-card');
         allTicketCards.forEach(card => {
+          if (foodError) return;
           const attendanceRadio = card.querySelector('input[type="radio"][name^="attendance_"]:checked');
           if (attendanceRadio && attendanceRadio.value === 'takeaway') {
-            const checkedFood = card.querySelectorAll('.food-station-checkbox:checked');
-            if (checkedFood.length === 0) {
-              validFood = false;
+            const selectedMenu = card.querySelector('.food-menu-radio:checked');
+            if (!selectedMenu) {
+              foodError = "Please select a menu for all takeaway tickets.";
+              return;
+            }
+            const selectedMains = card.querySelectorAll(
+              `.food-station-checkbox[data-menu-value="${selectedMenu.value}"]:checked`
+            );
+            if (selectedMains.length !== 2) {
+              foodError = "Please select exactly 2 mains for all takeaway tickets.";
             }
           }
         });
-        if (!validFood) {
+        if (foodError) {
           hideLoadingScreen();
-          showToastWithBlur("Please select at least one food option for all takeaway tickets before submitting.", { type: "warning", icon: "fas fa-exclamation-triangle" });
+          showToastWithBlur(foodError, { type: "warning", icon: "fas fa-exclamation-triangle" });
           return;
         }
         const eventInfo = upcomingEvent || {};
