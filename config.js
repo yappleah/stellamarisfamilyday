@@ -27,9 +27,9 @@ const CONFIG = {
     },
     instructions: {
       cash: `Cash should be paid at the Stella Maris Church office (a receipt will be provided) and Cheques should be made payable to <strong>STELLA MARIS CHURCH</strong>.`,
-      bank_transfer: `Bank transfer to the Stella Maris CIBC account. Please use the following details:<br>
+      bank_transfer: `Bank transfer to the Stella Maris CIBC/ FCIB account. Please use the following details:<br>
           <ul>
-            <li><strong>Bank Name:</strong> CIBC</li>
+            <li><strong>Bank Name:</strong> CIBC/ FCIB</li>
             <li><strong>Account Name:</strong> Stella Maris Church</li>
             <li><strong>Account Number:</strong> 1002355932 (Savings)</li>
             <li><strong>Branch:</strong> Manor Park</li>
